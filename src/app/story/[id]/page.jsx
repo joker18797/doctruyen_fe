@@ -1,17 +1,30 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Button, Select } from 'antd'
+import { Button, Select, Input, List, message } from 'antd'
 import LayoutHeader from '@/components/LayoutHeader'
+import { useSelector } from 'react-redux'
+import { UserOutlined } from '@ant-design/icons'
+import { Avatar } from 'antd'
 
 const { Option } = Select
+const { TextArea } = Input
 
 export default function StoryInfoPage() {
     const { id } = useParams()
     const router = useRouter()
     const [story, setStory] = useState(null)
     const [selectedChapterIndex, setSelectedChapterIndex] = useState(null)
+
+    const user = useSelector((state) => state.user.currentUser)
+    const [commentInput, setCommentInput] = useState('')
+    const [comments, setComments] = useState([
+        {
+            user: { name: 'Khách ẩn danh' },
+            content: 'Truyện này rất hay!',
+            createdAt: '2025-06-29 10:00'
+        }
+    ])
 
     const fakeData = {
         1: {
@@ -36,6 +49,26 @@ export default function StoryInfoPage() {
             router.push(`/story/${id}/read`)
         }
     }
+
+    const handleCommentSubmit = () => {
+        if (!commentInput.trim()) {
+            message.warning('Vui lòng nhập nội dung bình luận.')
+            return
+        }
+
+        const newComment = {
+            content: commentInput.trim(),
+            createdAt: new Date().toLocaleString(),
+            user: {
+                name: user?.name || 'Ẩn danh'
+            }
+        }
+
+        setComments([newComment, ...comments])
+        setCommentInput('')
+        message.success('Đã gửi bình luận!')
+    }
+
 
     if (!story) return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
 
@@ -80,6 +113,44 @@ export default function StoryInfoPage() {
                                 📖 Đọc truyện
                             </Button>
                         </div>
+                    </div>
+
+                    {/* Bình luận */}
+                    {user && (
+                        <div className="mt-10">
+                            <h2 className="text-xl font-semibold text-gray-700 mb-4">💬 Bình luận</h2>
+                            <TextArea
+                                rows={3}
+                                placeholder="Viết bình luận của bạn..."
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                            />
+                            <div className="mt-2 text-right">
+                                <Button type="primary" onClick={handleCommentSubmit}>
+                                    Gửi bình luận
+                                </Button>
+                            </div>
+
+
+                        </div>
+                    )}
+                    <div className="mt-6">
+                        <List
+                            dataSource={comments}
+                            locale={{ emptyText: 'Chưa có bình luận nào.' }}
+                            renderItem={(item) => (
+                                <List.Item>
+                                    <div className="flex items-start gap-3">
+                                        <Avatar icon={<UserOutlined />} />
+                                        <div>
+                                            <div className="font-semibold text-gray-800">{item.user.name}</div>
+                                            <div className="text-gray-700">{item.content}</div>
+                                            <div className="text-sm text-gray-500">{item.createdAt}</div>
+                                        </div>
+                                    </div>
+                                </List.Item>
+                            )}
+                        />
                     </div>
                 </div>
             </div>

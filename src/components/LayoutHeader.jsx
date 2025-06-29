@@ -2,7 +2,7 @@
 
 import { useSelector, useDispatch } from 'react-redux'
 import { Button, Dropdown, Avatar } from 'antd'
-import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined } from '@ant-design/icons'
+import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined } from '@ant-design/icons'
 import Link from 'next/link'
 import { logout } from '@/redux/userSlice'
 
@@ -53,8 +53,13 @@ export default function LayoutHeader() {
                                 </Button>
                             </Link>
                             <Link href="/admin/ads">
-                                <Button type="dashed" icon={<LinkOutlined  />}>
+                                <Button type="dashed" icon={<LinkOutlined />}>
                                     <div className='max-[700px]:hidden'>Quản lý quảng cáo</div>
+                                </Button>
+                            </Link>
+                            <Link href="/admin/banners">
+                                <Button type="dashed" icon={<PictureOutlined />}>
+                                    <div className="max-[700px]:hidden">Quản lý banner</div>
                                 </Button>
                             </Link>
                         </>
