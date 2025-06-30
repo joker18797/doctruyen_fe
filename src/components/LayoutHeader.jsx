@@ -20,6 +20,15 @@ export default function LayoutHeader() {
     const userMenu = {
         items: [
             {
+                key: 'profile',
+                label: (
+                    <Link href="/profile" className="w-full inline-block">
+                        <UserOutlined className="mr-2" />
+                        Hồ sơ cá nhân
+                    </Link>
+                ),
+            },
+            {
                 key: 'my-stories',
                 label: (
                     <Link href="/my-stories" className="w-full inline-block">
@@ -39,6 +48,7 @@ export default function LayoutHeader() {
             },
         ],
     }
+
 
     const getInfoUser = async () => {
         try {
