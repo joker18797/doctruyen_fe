@@ -4,13 +4,16 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Button, Dropdown, Avatar } from 'antd'
 import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined } from '@ant-design/icons'
 import Link from 'next/link'
-import { logout } from '@/redux/userSlice'
+import { logout, login } from '@/redux/userSlice'
+import API from '@/Service/API'
+import { useEffect, useRef } from 'react'
 
 export default function LayoutHeader() {
     const user = useSelector((state) => state.user.currentUser)
     const dispatch = useDispatch()
-
+    const hasFetched = useRef(false)
     const handleLogout = () => {
+        localStorage.removeItem("jwt")
         dispatch(logout())
     }
 
@@ -37,6 +40,22 @@ export default function LayoutHeader() {
         ],
     }
 
+    const getInfoUser = async () => {
+        try {
+            const res = await API.User.info()
+            if (res?.status === 200) {
+                dispatch(login(res?.data))
+            }
+        } catch (error) {
+
+        }
+    }
+    useEffect(() => {
+        if (!hasFetched.current && !user) {
+            hasFetched.current = true
+            getInfoUser()
+        }
+    }, [user])
     return (
         <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
             <Link href="/">
@@ -66,7 +85,10 @@ export default function LayoutHeader() {
                     )}
                     <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
                         <div className="cursor-pointer flex items-center space-x-2">
-                            <Avatar icon={<UserOutlined />} />
+                            <Avatar
+                                src={process.env.NEXT_PUBLIC_URL_API + user.avatar}
+                                icon={!user.avatar && <UserOutlined />}
+                            />
                             <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
                         </div>
                     </Dropdown>
