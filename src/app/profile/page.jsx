@@ -1,16 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Input, Button, Upload, message, Avatar } from 'antd'
+import { Input, Button, Upload, message, Avatar, Spin } from 'antd'
 import { UploadOutlined, UserOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 import { useDispatch, useSelector } from 'react-redux'
 import { login } from '@/redux/userSlice'
 import LayoutHeader from '@/components/LayoutHeader'
+import { toast } from 'react-toastify'
 
 export default function ProfilePage() {
     const user = useSelector((state) => state.user.currentUser)
     const dispatch = useDispatch()
+    const [IsLoading, setIsLoading] = useState(false);
     const [form, setForm] = useState({
         name: '',
         avatar: '',
@@ -34,14 +36,17 @@ export default function ProfilePage() {
         formData.append('avatar', file)
 
         try {
+            setIsLoading(true);
             const res = await API.User.uploadAvatar(formData)
             if (res?.status === 200) {
+                setIsLoading(false)
                 setForm((prev) => ({ ...prev, avatar: res.data.avatar }))
-                dispatch(login({ ...user, avatar: res.data.avatar }))
-                message.success('Cập nhật ảnh đại diện thành công')
+                dispatch(login(res.data?.data))
+                toast.success('Cập nhật ảnh đại diện thành công')
             }
         } catch (err) {
-            message.error('Lỗi khi tải ảnh lên')
+            setIsLoading(false)
+            toast.error('Lỗi khi tải ảnh lên')
         }
     }
 
@@ -49,16 +54,17 @@ export default function ProfilePage() {
         try {
             const res = await API.User.updateProfile({ name: form.name })
             if (res?.status === 200) {
-                message.success('Cập nhật hồ sơ thành công')
-                dispatch(login(res.data))
+                toast.success('Cập nhật hồ sơ thành công')
+                dispatch(login(res.data?.data))
             }
         } catch (err) {
-            message.error('Cập nhật thất bại')
+            setIsLoading(false)
+            toast.error('Cập nhật thất bại')
         }
     }
 
     return (
-        <div>
+        <Spin spinning={IsLoading} >
             <LayoutHeader />
             <div className="min-h-screen bg-gray-50 py-10 px-4">
                 <div className="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 space-y-6">
@@ -90,6 +96,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </Spin>
     )
 }

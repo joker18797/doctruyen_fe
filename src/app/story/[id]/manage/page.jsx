@@ -42,6 +42,7 @@ export default function ManageStoryPage() {
       const formData = new FormData()
       formData.append('title', newChapter.title)
       formData.append('content', newChapter.content)
+      formData.append('story', id)
       if (newChapter.audio) {
         formData.append('audio', newChapter.audio)
       }
