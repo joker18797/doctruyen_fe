@@ -6,6 +6,7 @@ import LayoutHeader from '@/components/LayoutHeader'
 import { useSelector } from 'react-redux'
 import { UserOutlined } from '@ant-design/icons'
 import { Avatar } from 'antd'
+import API from '@/Service/API'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -18,28 +19,19 @@ export default function StoryInfoPage() {
 
     const user = useSelector((state) => state.user.currentUser)
     const [commentInput, setCommentInput] = useState('')
-    const [comments, setComments] = useState([
-        {
-            user: { name: 'Khách ẩn danh' },
-            content: 'Truyện này rất hay!',
-            createdAt: '2025-06-29 10:00'
-        }
-    ])
-
-    const fakeData = {
-        1: {
-            title: 'Truyện Kiếm Hiệp',
-            cover: '/cover1.jpg',
-            description: 'Một câu chuyện phiêu lưu ly kỳ đầy bí ẩn tại giang hồ.',
-            chapters: Array.from({ length: 100 }, (_, i) => `Chương ${i + 1}: Nội dung chương ${i + 1}`),
-            audio: '/audio-sample.mp3',
-        },
-    }
+    const [comments, setComments] = useState([])
 
     useEffect(() => {
-        if (id && fakeData[id]) {
-            setStory(fakeData[id])
+        const fetchStory = async () => {
+            try {
+                const res = await API.Story.detail(id)
+                setStory(res.data)
+            } catch (err) {
+                console.error('Lỗi khi lấy chi tiết truyện:', err)
+            }
         }
+
+        if (id) fetchStory()
     }, [id])
 
     const handleRead = () => {
@@ -69,7 +61,6 @@ export default function StoryInfoPage() {
         message.success('Đã gửi bình luận!')
     }
 
-
     if (!story) return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
 
     return (
@@ -79,14 +70,14 @@ export default function StoryInfoPage() {
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
                         <img
-                            src={story.cover}
+                            src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
                             alt="Bìa truyện"
                             className="w-full md:w-60 h-64 object-cover rounded-lg"
                         />
                         <div className="flex-1">
                             <h1 className="text-2xl font-bold text-gray-800 mb-2">{story.title}</h1>
                             <p className="text-gray-600 mb-4">{story.description}</p>
-                            <p className="text-gray-600 mb-4">Tổng số chương: {story.chapters.length}</p>
+                            <p className="text-gray-600 mb-4">Tổng số chương: {story.chapters?.length || 0}</p>
 
                             <div className="mb-4">
                                 <Select
@@ -97,7 +88,7 @@ export default function StoryInfoPage() {
                                     className="w-60"
                                     optionLabelProp="label"
                                 >
-                                    {story.chapters.map((_, index) => (
+                                    {story.chapters?.map((ch, index) => (
                                         <Option
                                             key={index}
                                             value={index}
@@ -130,10 +121,9 @@ export default function StoryInfoPage() {
                                     Gửi bình luận
                                 </Button>
                             </div>
-
-
                         </div>
                     )}
+
                     <div className="mt-6">
                         <List
                             dataSource={comments}

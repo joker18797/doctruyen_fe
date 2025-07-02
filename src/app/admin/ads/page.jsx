@@ -1,49 +1,73 @@
-// pages/admin/ads.js
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Switch } from 'antd'
+import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space } from 'antd'
 import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
-
-const FAKE_ADS = [
-    { id: 1, title: 'Shopee Sale', url: 'https://shopee.vn', active: true },
-    { id: 2, title: 'Lazada Khuyến mãi', url: 'https://lazada.vn', active: true },
-    { id: 3, title: 'Tiki Freeship', url: 'https://tiki.vn', active: false },
-]
+import API from '@/Service/API'
+import { toast } from 'react-toastify'
 
 export default function AdminAdsPage() {
     const [ads, setAds] = useState([])
     const [editingAd, setEditingAd] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [form] = Form.useForm()
 
     useEffect(() => {
-        setAds(FAKE_ADS)
+        fetchAds()
     }, [])
+
+    const fetchAds = async () => {
+        try {
+            const res = await API.AdminAds.list()
+            setAds(res.data || [])
+        } catch (err) {
+            toast.error('Không thể tải danh sách quảng cáo')
+        }
+    }
 
     const handleAdEdit = (record) => {
         setEditingAd(record)
+        form.setFieldsValue(record)
         setIsModalOpen(true)
     }
 
-    const handleAdDelete = (id) => {
-        setAds(ads.filter((a) => a.id !== id))
-        message.success('Đã xóa quảng cáo')
-    }
-
-    const handleAdUpdate = (values) => {
-        if (editingAd) {
-            setAds(ads.map((a) => a.id === editingAd.id ? { ...a, ...values } : a))
-        } else {
-            setAds([...ads, { ...values, id: Date.now(), active: true }])
+    const handleAdDelete = async (id) => {
+        try {
+            await API.AdminAds.delete(id)
+            toast.success('Đã xóa quảng cáo')
+            fetchAds()
+        } catch (err) {
+            toast.error('Xóa quảng cáo thất bại')
         }
-        setIsModalOpen(false)
-        message.success('Cập nhật liên kết quảng cáo thành công')
     }
 
-    const toggleAdStatus = (id) => {
-        setAds(ads.map((a) => a.id === id ? { ...a, active: !a.active } : a))
-        message.success('Đã cập nhật trạng thái hiển thị')
+    const handleAdUpdate = async (values) => {
+        try {
+            if (editingAd) {
+                await API.AdminAds.update(editingAd._id, values)
+                toast.success('Cập nhật quảng cáo thành công')
+            } else {
+                await API.AdminAds.create(values)
+                toast.success('Thêm quảng cáo thành công')
+            }
+            setIsModalOpen(false)
+            form.resetFields()
+            setEditingAd(null)
+            fetchAds()
+        } catch (err) {
+            toast.error('Lỗi khi gửi dữ liệu')
+        }
+    }
+
+    const toggleAdStatus = async (record) => {
+        try {
+            await API.AdminAds.update(record._id, { active: !record.active })
+            toast.success('Đã cập nhật trạng thái hiển thị')
+            fetchAds()
+        } catch (err) {
+            toast.error('Lỗi khi cập nhật trạng thái')
+        }
     }
 
     const adColumns = [
@@ -72,7 +96,7 @@ export default function AdminAdsPage() {
                     <Button size="small" icon={<EditOutlined />} onClick={() => handleAdEdit(record)}>Sửa</Button>
                     <Popconfirm
                         title="Xác nhận xóa quảng cáo?"
-                        onConfirm={() => handleAdDelete(record.id)}
+                        onConfirm={() => handleAdDelete(record._id)}
                         okText="Xóa"
                         cancelText="Hủy"
                     >
@@ -81,7 +105,7 @@ export default function AdminAdsPage() {
                     <Button
                         size="small"
                         icon={<StopOutlined />}
-                        onClick={() => toggleAdStatus(record.id)}
+                        onClick={() => toggleAdStatus(record)}
                         type={record.active ? 'default' : 'primary'}
                     >
                         {record.active ? 'Tắt' : 'Bật'}
@@ -98,20 +122,23 @@ export default function AdminAdsPage() {
                 <div className="max-w-4xl mx-auto">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-2xl font-semibold text-gray-800">🔗 Quản lý quảng cáo</h2>
-                        <Button icon={<LinkOutlined />} onClick={() => { setEditingAd(null); setIsModalOpen(true) }}>Thêm liên kết</Button>
+                        <Button icon={<LinkOutlined />} onClick={() => {
+                            setEditingAd(null)
+                            form.resetFields()
+                            setIsModalOpen(true)
+                        }}>Thêm liên kết</Button>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <Table rowKey="id" dataSource={ads} columns={adColumns} pagination={false} bordered scroll={{ x: true }} />
-                    </div>
+                    <Table rowKey="_id" dataSource={ads} columns={adColumns} pagination={false} bordered scroll={{ x: true }} />
 
                     <Modal
                         title={editingAd ? 'Cập nhật liên kết quảng cáo' : 'Thêm liên kết quảng cáo'}
                         open={isModalOpen}
                         onCancel={() => setIsModalOpen(false)}
                         footer={null}
+                        width={500}
                     >
-                        <Form layout="vertical" onFinish={handleAdUpdate} initialValues={editingAd || {}}>
+                        <Form layout="vertical" form={form} onFinish={handleAdUpdate}>
                             <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}> 
                                 <Input />
                             </Form.Item>

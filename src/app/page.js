@@ -1,48 +1,29 @@
 'use client'
 
-import { Button } from 'antd'
+import { Button, Popconfirm, message, Pagination } from 'antd'
 import Link from 'next/link'
 import LayoutHeader from '@/components/LayoutHeader'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Footer from '@/components/Footer';
+import Footer from '@/components/Footer'
 import { useSelector } from 'react-redux'
-import { Popconfirm, message, Pagination  } from 'antd'
+import API from '@/Service/API'
 
-const dummyStories = [
-  { id: 1, title: 'Truyện Kiếm Hiệp', cover: '/cover1.jpg', hasAudio: true },
-  { id: 2, title: 'Truyện Ngôn Tình', cover: '/cover2.jpg', hasAudio: false },
-  { id: 3, title: 'Truyện Hài Hước', cover: '/cover3.jpg', hasAudio: true },
-  { id: 4, title: 'Truyện Hài Hước', cover: '/cover3.jpg', hasAudio: true },
-  { id: 5, title: 'Truyện Hài Hước', cover: '/cover3.jpg', hasAudio: true },
-  { id: 6, title: 'Truyện Hài Hước', cover: '/cover3.jpg', hasAudio: true },
-  { id: 7, title: 'Truyện Hài Hước', cover: '/cover3.jpg', hasAudio: true },
-]
-
-const popularStories = [
-  { id: 4, title: 'Truyện Hành Động Hot', cover: '/cover4.jpg', hasAudio: true },
-  { id: 5, title: 'Truyện Kinh Dị Yêu Thích', cover: '/cover5.jpg', hasAudio: false },
-]
-
-const latestStories = [
-  { id: 6, title: 'Truyện Mới 1', cover: '/cover6.jpg', hasAudio: false },
-  { id: 7, title: 'Truyện Mới 2', cover: '/cover7.jpg', hasAudio: true },
-]
-const FAKE_ADS = [
-  { id: 1, url: 'https://shopee.vn', active: true },
-  { id: 2, url: 'https://lazada.vn', active: true },
-]
-
-const FAKE_BANNERS = [
-  { id: 1, image: '/banner1.jpg', url: 'https://shopee.vn' },
-  { id: 2, image: '/banner2.jpg', url: 'https://lazada.vn' },
-]
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
 
   useEffect(() => {
-    const random = FAKE_BANNERS[Math.floor(Math.random() * FAKE_BANNERS.length)]
-    setBanner(random)
+    const fetchBanner = async () => {
+      try {
+        const res = await API.AdminBanner.list()
+        const banners = res.data || []
+        const random = banners[Math.floor(Math.random() * banners.length)]
+        setBanner(random)
+      } catch (err) {
+        console.error('Không thể lấy banner:', err)
+      }
+    }
+    fetchBanner()
   }, [])
 
   if (!banner) return null
@@ -51,7 +32,7 @@ function RandomBanner() {
     <div className="mb-6">
       <a href={banner.url} target="_blank" rel="noopener noreferrer">
         <img
-          src={banner.image}
+          src={process.env.NEXT_PUBLIC_URL_API + banner.image}
           alt="banner quảng cáo"
           className="w-full max-h-60 object-cover rounded-lg shadow"
         />
@@ -60,19 +41,39 @@ function RandomBanner() {
   )
 }
 
- function StorySection({ title, stories }) {
+function StorySection({ title, filter }) {
   const router = useRouter()
   const user = useSelector((state) => state.user.currentUser)
   const [clickedStories, setClickedStories] = useState([])
   const [ads, setAds] = useState([])
-  const [storyList, setStoryList] = useState(stories)
+  const [storyList, setStoryList] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
   const pageSize = 6
-  const totalPages = Math.ceil(storyList.length / pageSize)
 
   useEffect(() => {
-    setAds(FAKE_ADS.filter(ad => ad.active))
+    const fetchStories = async () => {
+      try {
+        const res = await API.Story.list({ filter })
+        setStoryList(res.data?.data || [])
+      } catch (err) {
+        console.error('Không thể lấy truyện:', err)
+      }
+    }
+    fetchStories()
+  }, [filter])
+
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const res = await API.AdminAds.list()
+        const activeAds = (res.data || []).filter((ad) => ad.active)
+        setAds(activeAds)
+      } catch (err) {
+        console.error('Không thể lấy ads:', err)
+      }
+    }
+    fetchAds()
   }, [])
 
   const handleStoryClick = (storyId) => {
@@ -87,15 +88,15 @@ function RandomBanner() {
   }
 
   const handleDeleteStory = (id) => {
-    const updated = storyList.filter((s) => s.id !== id)
+    const updated = storyList.filter((s) => s._id !== id)
     setStoryList(updated)
     message.success('Đã xóa truyện!')
     if ((currentPage - 1) * pageSize >= updated.length) {
-      setCurrentPage(Math.max(1, currentPage - 1)) // Lùi về trang trước nếu hết truyện
+      setCurrentPage(Math.max(1, currentPage - 1))
     }
   }
 
-  const currentStories = storyList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const currentStories = storyList?.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   return (
     <div className="mt-10">
@@ -104,12 +105,12 @@ function RandomBanner() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {currentStories.map((story) => (
           <div
-            key={story.id}
+            key={story._id}
             className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
-            onClick={() => handleStoryClick(story.id)}
+            onClick={() => handleStoryClick(story._id)}
           >
             <img
-              src={story.cover}
+              src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
               alt={story.title}
               className="w-full h-52 object-cover"
             />
@@ -126,7 +127,7 @@ function RandomBanner() {
                 title="Bạn có chắc muốn xóa truyện này?"
                 okText="Xóa"
                 cancelText="Hủy"
-                onConfirm={() => handleDeleteStory(story.id)}
+                onConfirm={() => handleDeleteStory(story._id)}
                 onCancel={(e) => e?.stopPropagation()}
               >
                 <Button
@@ -166,9 +167,9 @@ export default function Home() {
         <RandomBanner />
 
         <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
-        <StorySection title="🔥 Truyện phổ biến" stories={popularStories} />
-        <StorySection title="💖 Được yêu thích nhất" stories={dummyStories} />
-        <StorySection title="🆕 Mới cập nhật" stories={latestStories} />
+        <StorySection title="🔥 Truyện phổ biến" filter="popular" />
+        <StorySection title="💖 Được yêu thích nhất" filter="favorite" />
+        <StorySection title="🆕 Mới cập nhật" filter="recent" />
       </div>
       <Footer />
     </div>
