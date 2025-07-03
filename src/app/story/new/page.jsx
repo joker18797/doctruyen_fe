@@ -6,6 +6,7 @@ import { UploadOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
+import { toast } from 'react-toastify'
 
 const genreOptions = [
   'Kiếm hiệp',
@@ -32,7 +33,7 @@ export default function NewStoryPage() {
   const handleSubmit = async () => {
 
     if (!form.title || !form.coverFile) {
-      return message.error('Vui lòng nhập tiêu đề và chọn ảnh bìa')
+      return toast.error('Vui lòng nhập tiêu đề và chọn ảnh bìa')
     }
     console.log('222222');
 
@@ -46,14 +47,14 @@ export default function NewStoryPage() {
     try {
       const res = await API.Story.create(formData)
       if (res?.status === 201) {
-        message.success('Đăng truyện thành công!')
+        toast.success('Đăng truyện thành công!')
         router.push('/my-stories')
       } else {
-        message.error('Đăng truyện thất bại!')
+        toast.error('Đăng truyện thất bại!')
       }
     } catch (err) {
       console.error('Lỗi tạo truyện:', err)
-      message.error('Có lỗi xảy ra khi tạo truyện')
+      toast.error('Có lỗi xảy ra khi tạo truyện')
     }
   }
 

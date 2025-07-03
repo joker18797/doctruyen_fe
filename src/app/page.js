@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import Footer from '@/components/Footer'
 import { useSelector } from 'react-redux'
 import API from '@/Service/API'
+import { toast } from 'react-toastify'
 
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
@@ -90,7 +91,7 @@ function StorySection({ title, filter }) {
   const handleDeleteStory = (id) => {
     const updated = storyList.filter((s) => s._id !== id)
     setStoryList(updated)
-    message.success('Đã xóa truyện!')
+    toast.success('Đã xóa truyện!')
     if ((currentPage - 1) * pageSize >= updated.length) {
       setCurrentPage(Math.max(1, currentPage - 1))
     }
@@ -114,8 +115,13 @@ function StorySection({ title, filter }) {
               alt={story.title}
               className="w-full h-52 object-cover"
             />
-            <div className="p-4 flex flex-col justify-between h-40">
-              <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
+
+            <div className="p-4 flex flex-col justify-between h-52">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p>
+              </div>
+
               <div className="flex justify-between items-center mt-4">
                 <Button type="primary" size="small">Đọc</Button>
                 {story.hasAudio && <span className="text-xl">🔊</span>}

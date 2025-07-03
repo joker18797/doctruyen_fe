@@ -1,11 +1,12 @@
 'use client'
 
-import { Button, Modal, Pagination, message } from 'antd'
+import { Button, Modal, Pagination } from 'antd'
 import Link from 'next/link'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
+import { toast } from 'react-toastify'
 
 export default function MyStoriesPage() {
     const user = useSelector((state) => state.user.currentUser)
@@ -26,10 +27,10 @@ export default function MyStoriesPage() {
                     total: res.data.pagination.total
                 }))
             } else {
-                message.error('Không thể tải truyện của bạn')
+                toast.error('Không thể tải truyện của bạn')
             }
         } catch (err) {
-            message.error('Lỗi server: không thể lấy danh sách truyện')
+            toast.error('Lỗi server: không thể lấy danh sách truyện')
         }
     }
 
@@ -48,13 +49,13 @@ export default function MyStoriesPage() {
         try {
             const res = await API.Story.delete(id)
             if (res?.status === 200) {
-                message.success('Đã xóa truyện!')
+                toast.success('Đã xóa truyện!')
                 setStories((prev) => prev.filter((s) => s._id !== id))
             } else {
-                message.error('Xóa thất bại!')
+                toast.error('Xóa thất bại!')
             }
         } catch (err) {
-            message.error('Lỗi khi xóa truyện!')
+            toast.error('Lỗi khi xóa truyện!')
         }
     }
 
@@ -87,7 +88,9 @@ export default function MyStoriesPage() {
                                             className="w-full h-48 object-cover rounded-t-xl"
                                         />
                                         <div className="p-4">
-                                            <h2 className="text-lg font-semibold text-gray-800 mb-1">{story.title}</h2>
+                                            <h2 className="text-lg font-semibold text-gray-800 mb-2">{story.title}</h2>
+                                            <p className="text-sm text-gray-600 mb-2">👁️ {story.totalRead ?? 0} lượt đọc</p>
+
                                             <p className="text-sm text-gray-500 mb-3">
                                                 {story.status === 'published' ? 'Đã xuất bản' : 'Nháp'}
                                             </p>

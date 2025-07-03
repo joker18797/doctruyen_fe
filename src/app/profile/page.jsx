@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Input, Button, Upload, message, Avatar, Spin } from 'antd'
+import { Input, Button, Upload, Avatar, Spin } from 'antd'
 import { UploadOutlined, UserOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 import { useDispatch, useSelector } from 'react-redux'

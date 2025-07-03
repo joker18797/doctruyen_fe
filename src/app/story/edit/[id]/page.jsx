@@ -2,9 +2,10 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Input, Button, Select, Upload, message } from 'antd'
+import { Input, Button, Select, Upload } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
+import { toast } from 'react-toastify'
 
 export default function EditStoryPage() {
   const { id } = useParams()
@@ -35,7 +36,7 @@ export default function EditStoryPage() {
         }))
       }
     } catch (err) {
-      message.error('Không tìm thấy truyện')
+      toast.error('Không tìm thấy truyện')
     }
   }
 
@@ -46,7 +47,7 @@ export default function EditStoryPage() {
 
   
   const handleSubmit = async () => {
-    if (!form.title) return message.error('Vui lòng nhập tiêu đề')
+    if (!form.title) return toast.error('Vui lòng nhập tiêu đề')
 
     const formData = new FormData()
     formData.append('title', form.title)
@@ -59,11 +60,11 @@ export default function EditStoryPage() {
     try {
       const res = await API.Story.update(id, formData)
       if (res?.status === 200) {
-        message.success('Cập nhật truyện thành công!')
+        toast.success('Cập nhật truyện thành công!')
         router.push('/my-stories')
       }
     } catch (err) {
-      message.error('Lỗi khi cập nhật truyện')
+      toast.error('Lỗi khi cập nhật truyện')
     }
   }
 

@@ -1,7 +1,7 @@
 import { axiosDELETE, axiosGET, axiosPOST, axiosPUT } from "../../Helper/TypeAxios";
 import { urlParseParams } from "@/Helper/helpFunction";
 export default class Chapter {
-    create( id,data) {
+    create(id, data) {
         return axiosPOST("api_gw", `/api/stories/${id}/chapters`, data);
     }
     update(id, chapterId, data) {
@@ -10,8 +10,11 @@ export default class Chapter {
     delete(id, chapterId) {
         return axiosDELETE('api_gw', `/api/stories/${id}/chapters/${chapterId}`);
     }
-    list(id,data){
+    list(id, data) {
         const stringUrl = urlParseParams(data);
-         return axiosGET("api_gw", `/api/stories/${id}/chapters?${stringUrl}`);
+        return axiosGET("api_gw", `/api/stories/${id}/chapters?${stringUrl}`);
+    }
+    detail(id) {
+        return axiosGET("api_gw", `/api/stories/${id}/detail`);
     }
 }

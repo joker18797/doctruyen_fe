@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button, Select, InputNumber } from 'antd'
 import { DownOutlined, UpOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
+import API from '@/Service/API'
 
 const { Option } = Select
 
@@ -15,33 +16,51 @@ export default function StoryReadPage() {
   const searchParams = useSearchParams()
 
   const [story, setStory] = useState(null)
-  const [selectedChapterIndex, setSelectedChapterIndex] = useState(0)
+  const [selectedChapterId, setSelectedChapterId] = useState(null)
+  const [chapterContent, setChapterContent] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
-
-  // Dữ liệu giả
-  const fakeData = {
-    1: {
-      title: 'Truyện Kiếm Hiệp',
-      cover: '/cover1.jpg',
-      chapters: Array.from({ length: 100 }, (_, i) =>
-        `Chương ${i + 1}: Nội dung chương rất dài...\n`.repeat(30)
-      ),
-      audio: '/audio-sample.mp3',
-    },
-  }
-
-  // Lấy dữ liệu và chương hiện tại
+  const [chapterAudio, setChapterAudio]= useState('');
+  // Load truyện và chapter đầu tiên
   useEffect(() => {
-    if (id && fakeData[id]) {
-      setStory(fakeData[id])
-      const chapterParam = searchParams.get('chapter')
-      if (chapterParam && !isNaN(Number(chapterParam))) {
-        setSelectedChapterIndex(Number(chapterParam))
+    const fetchStory = async () => {
+      try {
+        const res = await API.Story.detail(id)
+        if (res?.status === 200) {
+          setStory(res.data)
+          const chapterParam = searchParams.get('chapter')
+          if (chapterParam) {
+            setSelectedChapterId(chapterParam)
+          } else if (res.data.chapters?.length > 0) {
+            setSelectedChapterId(res.data.chapters[0]) // Mặc định chương đầu
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi tải truyện:', err)
       }
     }
+
+    if (id) fetchStory()
   }, [id, searchParams])
 
-  // Scroll detector để biết đang ở gần cuối trang
+  // Load nội dung chương khi selectedChapterId thay đổi
+  useEffect(() => {
+    const fetchChapter = async () => {
+      if (!selectedChapterId) return
+      try {
+        const res = await API.Chapter.detail(selectedChapterId)
+        if (res?.status === 200) {
+          setChapterContent(res.data?.content || '')
+          setChapterAudio(res?.data?.audio ? process?.env?.NEXT_PUBLIC_URL_API + res?.data?.audio : '')
+        }
+      } catch (err) {
+        console.error('Lỗi tải chương:', err)
+      }
+    }
+
+    fetchChapter()
+  }, [selectedChapterId])
+
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -54,51 +73,47 @@ export default function StoryReadPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Chống copy & chuột phải
+  // Ngăn copy & chuột phải
   useEffect(() => {
-    const disableContext = (e) => e.preventDefault()
-    const disableCopy = (e) => e.preventDefault()
-    const disableSelect = (e) => e.preventDefault()
-
-    document.addEventListener('contextmenu', disableContext)
-    document.addEventListener('copy', disableCopy)
-    document.addEventListener('selectstart', disableSelect)
+    const disable = (e) => e.preventDefault()
+    document.addEventListener('contextmenu', disable)
+    document.addEventListener('copy', disable)
+    document.addEventListener('selectstart', disable)
 
     return () => {
-      document.removeEventListener('contextmenu', disableContext)
-      document.removeEventListener('copy', disableCopy)
-      document.removeEventListener('selectstart', disableSelect)
+      document.removeEventListener('contextmenu', disable)
+      document.removeEventListener('copy', disable)
+      document.removeEventListener('selectstart', disable)
     }
   }, [])
 
-  // Đổi chương
-  const handleChangeChapter = (value) => {
-    if (value >= 0 && value < story.chapters.length) {
-      setSelectedChapterIndex(value)
-      router.push(`/story/${id}/read?chapter=${value}`)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+  const handleChangeChapter = (chapterId) => {
+    setSelectedChapterId(chapterId)
+    router.push(`/story/${id}/read?chapter=${chapterId}`)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const ChapterNavigator = ({ position = 'top' }) => {
-    const [inputChapter, setInputChapter] = useState(selectedChapterIndex + 1)
+    const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
+    const [inputChapter, setInputChapter] = useState(index + 1)
 
     useEffect(() => {
-      setInputChapter(selectedChapterIndex + 1)
-    }, [selectedChapterIndex])
+      setInputChapter(index + 1)
+    }, [index])
 
     const handleJump = () => {
       const chapterNum = Number(inputChapter)
       if (!isNaN(chapterNum) && chapterNum >= 1 && chapterNum <= story.chapters.length) {
-        handleChangeChapter(chapterNum - 1)
+        const targetId = story.chapters[chapterNum - 1]
+        handleChangeChapter(targetId)
       }
     }
 
     return (
       <div className={`flex flex-wrap items-center gap-4 justify-between bg-gray-100 p-4 rounded ${position === 'bottom' ? 'mt-8' : 'mb-4'}`}>
         <Button
-          disabled={selectedChapterIndex === 0}
-          onClick={() => handleChangeChapter(selectedChapterIndex - 1)}
+          disabled={index === 0}
+          onClick={() => handleChangeChapter(story.chapters[index - 1])}
         >
           ◀ Chương trước
         </Button>
@@ -117,8 +132,8 @@ export default function StoryReadPage() {
         </div>
 
         <Button
-          disabled={selectedChapterIndex === story.chapters.length - 1}
-          onClick={() => handleChangeChapter(selectedChapterIndex + 1)}
+          disabled={index === story.chapters.length - 1}
+          onClick={() => handleChangeChapter(story.chapters[index + 1])}
         >
           Chương sau ▶
         </Button>
@@ -126,7 +141,11 @@ export default function StoryReadPage() {
     )
   }
 
-  if (!story) return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
+  if (!story || !selectedChapterId) {
+    return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
+  }
+
+  const currentIndex = story.chapters.findIndex((id) => id === selectedChapterId)
 
   return (
     <div>
@@ -134,7 +153,7 @@ export default function StoryReadPage() {
       <div className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg relative">
 
-          {/* Nút cuộn lên/xuống cố định */}
+          {/* Nút cuộn cố định */}
           <div className="fixed bottom-6 right-6 z-40">
             <Button
               type="primary"
@@ -151,21 +170,21 @@ export default function StoryReadPage() {
             />
           </div>
 
-          {/* Tiêu đề & chọn chương */}
+          {/* Tiêu đề + dropdown chọn chương */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">{story.title}</h1>
             <Select
               showSearch
               placeholder="Chọn chương"
-              value={selectedChapterIndex}
+              value={selectedChapterId}
               onChange={handleChangeChapter}
               className="w-60"
               optionLabelProp="label"
             >
-              {story.chapters.map((_, index) => (
+              {story.chapters.map((chapterId, index) => (
                 <Option
-                  key={index}
-                  value={index}
+                  key={chapterId}
+                  value={chapterId}
                   label={`Chương ${index + 1}`}
                 >
                   Chương {index + 1}
@@ -175,32 +194,30 @@ export default function StoryReadPage() {
           </div>
 
           {/* Audio nếu có */}
-          {story.audio && (
+          {chapterAudio && (
             <div className="mb-6">
               <h3 className="text-md font-semibold mb-2">🎧 Nghe Audio</h3>
               <audio controls className="w-full">
-                <source src={story.audio} type="audio/mpeg" />
+                <source src={chapterAudio} type="audio/mpeg" />
                 Trình duyệt không hỗ trợ audio.
               </audio>
             </div>
           )}
 
           {/* Nội dung chương */}
-          {selectedChapterIndex !== null && (
-            <div className="mt-6 border-t pt-6">
-              <ChapterNavigator position="top" />
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                {`Chương ${selectedChapterIndex + 1}`}
-              </h2>
-              <div
-                className="text-gray-800 whitespace-pre-line leading-relaxed mb-6 select-none"
-                ref={contentRef}
-              >
-                {story.chapters[selectedChapterIndex]}
-              </div>
-              <ChapterNavigator position="bottom" />
+          <div className="mt-6 border-t pt-6">
+            <ChapterNavigator position="top" />
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              {`Chương ${currentIndex + 1}`}
+            </h2>
+            <div
+              className="text-gray-800 whitespace-pre-line leading-relaxed mb-6 select-none"
+              ref={contentRef}
+            >
+              {chapterContent || 'Đang tải nội dung...'}
             </div>
-          )}
+            <ChapterNavigator position="bottom" />
+          </div>
         </div>
       </div>
     </div>

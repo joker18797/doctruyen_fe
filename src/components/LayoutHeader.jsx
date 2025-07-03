@@ -69,7 +69,7 @@ export default function LayoutHeader() {
     return (
         <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
             <Link href="/">
-                <div className="text-xl font-bold text-violet-600">📚 TruyenDoc</div>
+                <div className="text-xl font-bold text-violet-600">📚 Ổ của Dưa</div>
             </Link>
 
             {user ? (
