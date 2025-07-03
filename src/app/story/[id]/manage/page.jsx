@@ -157,7 +157,7 @@ export default function ManageStoryPage() {
                       {`Chương ${chap.order || index + 1}: ${chap.title}`}
                     </h3>
                     {chap.audio && (
-                      <audio controls src={process.env.NEXT_PUBLIC_URL_API + chap.audio} className="mt-2" />
+                      <audio controls src={ chap.audio} className="mt-2" />
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -170,7 +170,7 @@ export default function ManageStoryPage() {
                           content: chap.content || '',
                           audio: null,
                         })
-                        setAudioPreview(chap.audio ? (process.env.NEXT_PUBLIC_URL_API + chap.audio) : null )
+                        setAudioPreview(chap.audio ? ( chap.audio) : null )
                         setShowModal(true)
                       }}
                     >

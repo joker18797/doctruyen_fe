@@ -50,7 +50,7 @@ export default function StoryReadPage() {
         const res = await API.Chapter.detail(selectedChapterId)
         if (res?.status === 200) {
           setChapterContent(res.data?.content || '')
-          setChapterAudio(res?.data?.audio ? process?.env?.NEXT_PUBLIC_URL_API + res?.data?.audio : '')
+          setChapterAudio(res?.data?.audio ?? '')
         }
       } catch (err) {
         console.error('Lỗi tải chương:', err)
