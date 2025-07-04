@@ -6,7 +6,8 @@ import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlin
 import Link from 'next/link'
 import { logout, login } from '@/redux/userSlice'
 import API from '@/Service/API'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function LayoutHeader() {
     const user = useSelector((state) => state.user.currentUser)
@@ -66,11 +67,43 @@ export default function LayoutHeader() {
             getInfoUser()
         }
     }, [user])
+
+    const router = useRouter()
+    const [ads, setAds] = useState([])
+    const [clickedLogo, setClickedLogo] = useState(false)
+
+    useEffect(() => {
+        const fetchAds = async () => {
+            try {
+                const res = await API.AdminAds.list()
+                const activeAds = (res.data || []).filter((ad) => ad.active)
+                setAds(activeAds)
+            } catch (err) {
+                console.error('Không thể lấy ads:', err)
+            }
+        }
+
+        fetchAds()
+    }, [])
+
+    const handleLogoClick = () => {
+        if (!clickedLogo && ads.length > 0) {
+            const randomAd = ads[Math.floor(Math.random() * ads.length)]
+            window.open(randomAd.url, '_blank')
+            setClickedLogo(true)
+            setTimeout(() => {
+                router.push('/')
+            }, 500) // đợi chút rồi mới chuyển về trang chủ
+        } else {
+            router.push('/')
+        }
+    }
     return (
         <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
-            <Link href="/">
-                <div className="text-xl font-bold text-violet-600">📚 Ổ của Dưa</div>
-            </Link>
+            <div onClick={handleLogoClick} className="cursor-pointer flex items-center space-x-2">
+                <img src="/Logo.jpg" alt="Logo" className="h-[60px] w-[60px] object-contain" />
+                <span className="text-xl font-bold text-violet-600">Ổ của Dưa</span>
+            </div>
 
             {user ? (
                 <div className="flex items-center space-x-4">

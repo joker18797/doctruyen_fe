@@ -42,7 +42,7 @@ export default function ManageStoryPage() {
   }
 
   const handleSubmitChapter = async () => {
-    if (!newChapter.title || !newChapter.content) {
+    if (!newChapter.content) {
       return toast.error('Vui lòng nhập tiêu đề và nội dung chương')
     }
 
@@ -78,21 +78,21 @@ export default function ManageStoryPage() {
   }
 
   const handleDelete = async (chapterId) => {
-  const confirmDelete = window.confirm('Bạn có chắc chắn muốn xóa chương này?')
-  if (!confirmDelete) return
+    const confirmDelete = window.confirm('Bạn có chắc chắn muốn xóa chương này?')
+    if (!confirmDelete) return
 
-  try {
-    const res = await API.Chapter.delete(id, chapterId)
-    if (res?.status === 200) {
-      toast.success('Đã xóa chương')
-      fetchStory(id)
-    } else {
-      toast.error('Xóa chương thất bại')
+    try {
+      const res = await API.Chapter.delete(id, chapterId)
+      if (res?.status === 200) {
+        toast.success('Đã xóa chương')
+        fetchStory(id)
+      } else {
+        toast.error('Xóa chương thất bại')
+      }
+    } catch (err) {
+      toast.error('Lỗi khi xóa chương')
     }
-  } catch (err) {
-    toast.error('Lỗi khi xóa chương')
   }
-}
 
 
   const handleAudioUpload = (info) => {
@@ -117,7 +117,7 @@ export default function ManageStoryPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-800">
-              📘 Quản lý truyện: {story?.title} 
+              📘 Quản lý truyện: {story?.title}
             </h1>
             {story?.coverImage && (
               <img
@@ -157,7 +157,7 @@ export default function ManageStoryPage() {
                       {`Chương ${chap.order || index + 1}: ${chap.title}`}
                     </h3>
                     {chap.audio && (
-                      <audio controls src={ chap.audio} className="mt-2" />
+                      <audio controls src={chap.audio} className="mt-2" />
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -170,7 +170,7 @@ export default function ManageStoryPage() {
                           content: chap.content || '',
                           audio: null,
                         })
-                        setAudioPreview(chap.audio ? ( chap.audio) : null )
+                        setAudioPreview(chap.audio ? (chap.audio) : null)
                         setShowModal(true)
                       }}
                     >
@@ -196,6 +196,14 @@ export default function ManageStoryPage() {
           width={800}
         >
           <div className="space-y-4">
+            <div>
+              <label className="block font-medium mb-1 text-blue-600">
+                {isEditing
+                  ? `Chương số ${editingChapter?.order || chapters.findIndex((c) => c._id === editingChapter?._id) + 1}`
+                  : `Chương số ${chapters.length + 1}`}
+              </label>
+            </div>
+
             <div>
               <label className="block font-medium mb-1">Tiêu đề chương</label>
               <Input

@@ -18,9 +18,31 @@ export default function StoryReadPage() {
   const [story, setStory] = useState(null)
   const [selectedChapterId, setSelectedChapterId] = useState(null)
   const [chapterContent, setChapterContent] = useState('')
+  const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
-  const [chapterAudio, setChapterAudio]= useState('');
-  // Load truyện và chapter đầu tiên
+
+  const [ads, setAds] = useState([])
+  const [unlockedChapters, setUnlockedChapters] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('unlockedChapters')
+      return saved ? JSON.parse(saved) : []
+    }
+    return []
+  })
+
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const res = await API.AdminAds.list()
+        const activeAds = (res.data || []).filter((ad) => ad.active)
+        setAds(activeAds)
+      } catch (err) {
+        console.error('Không thể lấy ads:', err)
+      }
+    }
+    fetchAds()
+  }, [])
+
   useEffect(() => {
     const fetchStory = async () => {
       try {
@@ -31,7 +53,7 @@ export default function StoryReadPage() {
           if (chapterParam) {
             setSelectedChapterId(chapterParam)
           } else if (res.data.chapters?.length > 0) {
-            setSelectedChapterId(res.data.chapters[0]) // Mặc định chương đầu
+            setSelectedChapterId(res.data.chapters[0])
           }
         }
       } catch (err) {
@@ -42,7 +64,6 @@ export default function StoryReadPage() {
     if (id) fetchStory()
   }, [id, searchParams])
 
-  // Load nội dung chương khi selectedChapterId thay đổi
   useEffect(() => {
     const fetchChapter = async () => {
       if (!selectedChapterId) return
@@ -51,6 +72,15 @@ export default function StoryReadPage() {
         if (res?.status === 200) {
           setChapterContent(res.data?.content || '')
           setChapterAudio(res?.data?.audio ?? '')
+
+          setUnlockedChapters((prev) => {
+            if (!prev.includes(selectedChapterId)) {
+              const updated = [...prev, selectedChapterId]
+              localStorage.setItem('unlockedChapters', JSON.stringify(updated))
+              return updated
+            }
+            return prev
+          })
         }
       } catch (err) {
         console.error('Lỗi tải chương:', err)
@@ -60,7 +90,6 @@ export default function StoryReadPage() {
     fetchChapter()
   }, [selectedChapterId])
 
-  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -73,7 +102,6 @@ export default function StoryReadPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Ngăn copy & chuột phải
   useEffect(() => {
     const disable = (e) => e.preventDefault()
     document.addEventListener('contextmenu', disable)
@@ -93,6 +121,23 @@ export default function StoryReadPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const unlockAndChangeChapter = (chapterId) => {
+    if (ads.length > 0) {
+      const randomAd = ads[Math.floor(Math.random() * ads.length)]
+      window.open(randomAd.url, '_blank')
+    }
+
+    setUnlockedChapters((prev) => {
+      const updated = [...prev, chapterId]
+      localStorage.setItem('unlockedChapters', JSON.stringify(updated))
+      return updated
+    })
+
+    setTimeout(() => {
+      handleChangeChapter(chapterId)
+    }, 500)
+  }
+
   const ChapterNavigator = ({ position = 'top' }) => {
     const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
     const [inputChapter, setInputChapter] = useState(index + 1)
@@ -109,15 +154,31 @@ export default function StoryReadPage() {
       }
     }
 
+    const renderButton = (label, chapterIndexOffset) => {
+      const targetIndex = index + chapterIndexOffset
+      if (targetIndex < 0 || targetIndex >= story.chapters.length) return null
+
+      const targetId = story.chapters[targetIndex]
+      const isUnlocked = unlockedChapters.includes(targetId)
+
+      if (isUnlocked || unlockedChapters.length < 2) {
+        return (
+          <Button onClick={() => handleChangeChapter(targetId)}>
+            {label}
+          </Button>
+        )
+      }
+
+      return (
+        <Button type="dashed" danger onClick={() => unlockAndChangeChapter(targetId)}>
+          👉 Click để hiển thị {label.toLowerCase()}
+        </Button>
+      )
+    }
+
     return (
       <div className={`flex flex-wrap items-center gap-4 justify-between bg-gray-100 p-4 rounded ${position === 'bottom' ? 'mt-8' : 'mb-4'}`}>
-        <Button
-          disabled={index === 0}
-          onClick={() => handleChangeChapter(story.chapters[index - 1])}
-        >
-          ◀ Chương trước
-        </Button>
-
+        {renderButton('◀ Chương trước', -1)}
         <div className="flex items-center gap-2">
           <span>Chuyển tới chương:</span>
           <InputNumber
@@ -130,13 +191,7 @@ export default function StoryReadPage() {
             Chuyển chương
           </Button>
         </div>
-
-        <Button
-          disabled={index === story.chapters.length - 1}
-          onClick={() => handleChangeChapter(story.chapters[index + 1])}
-        >
-          Chương sau ▶
-        </Button>
+        {renderButton('Chương sau ▶', 1)}
       </div>
     )
   }
@@ -145,7 +200,7 @@ export default function StoryReadPage() {
     return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
   }
 
-  const currentIndex = story.chapters.findIndex((id) => id === selectedChapterId)
+  const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
 
   return (
     <div>

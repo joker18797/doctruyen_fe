@@ -47,7 +47,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
-                Thích ăn dưa hấu
+                Đồng Đồng
               </a>
             </li>
           </ul>
