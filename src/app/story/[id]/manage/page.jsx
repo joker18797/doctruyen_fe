@@ -117,7 +117,7 @@ export default function ManageStoryPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-800">
-              📘 Quản lý truyện: {story?.title}
+              📘 Quản lý truyện: {story?.title} 
             </h1>
             {story?.coverImage && (
               <img
