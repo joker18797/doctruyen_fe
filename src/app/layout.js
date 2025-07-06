@@ -3,6 +3,8 @@ import "./globals.css";
 import 'antd/dist/reset.css';
 import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
+import "slick-carousel/slick/slick.css"
+import "slick-carousel/slick/slick-theme.css"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

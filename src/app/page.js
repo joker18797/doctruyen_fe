@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import { useSelector } from 'react-redux'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
+import FeaturedSlider from '@/components/FeaturedSlider'
 
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
@@ -170,6 +171,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-100">
       <LayoutHeader />
       <div className="p-6 max-w-6xl mx-auto">
+        <FeaturedSlider />
         <RandomBanner />
 
         <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>

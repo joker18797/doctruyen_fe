@@ -127,11 +127,16 @@ export default function StoryReadPage() {
       window.open(randomAd.url, '_blank')
     }
 
-    setUnlockedChapters((prev) => {
-      const updated = [...prev, chapterId]
-      localStorage.setItem('unlockedChapters', JSON.stringify(updated))
-      return updated
-    })
+    // setUnlockedChapters((prev) => {
+    //   const updated = [...prev, chapterId]
+    //   localStorage.setItem('unlockedChapters', JSON.stringify(updated))
+    //   return updated
+    // })
+    const allChapterIds = story?.chapters || []
+
+    // Unlock all chapters
+    localStorage.setItem('unlockedChapters', JSON.stringify(allChapterIds))
+    setUnlockedChapters(allChapterIds)
 
     setTimeout(() => {
       handleChangeChapter(chapterId)
