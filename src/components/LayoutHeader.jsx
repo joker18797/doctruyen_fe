@@ -112,9 +112,10 @@ export default function LayoutHeader() {
 
 
 
-            <div className="md:flex items-center space-x-3">
-                <div className="hidden md:flex flex-grow max-w-md ">
-                    <div className='mr-2'>
+            <div className="md:flex items-center flex-wrap gap-3">
+                {/* Thanh tìm kiếm + Genre */}
+                <div className="hidden md:flex flex-grow max-w-md gap-2">
+                    <div className="mr-2">
                         <GenreDropdown />
                     </div>
                     <AutoComplete
@@ -138,29 +139,52 @@ export default function LayoutHeader() {
                         />
                     </AutoComplete>
                 </div>
-                <div className='max-[700px]:hidden'>
-                {user?.role === 'admin' && (
-                    <>
-                        <Link href="/admin/users"><Button type="dashed" icon={<UserOutlined />}>QL Người dùng</Button></Link>
-                        <Link href="/admin/ads"><Button type="dashed" icon={<LinkOutlined />}>QL Quảng cáo</Button></Link>
-                        <Link href="/admin/banners"><Button type="dashed" icon={<PictureOutlined />}>QL Banner</Button></Link>
-                    </>
-                )}
+
+                {/* Các button quản trị viên */}
+                <div className="hidden max-[700px]:hidden md:flex gap-2">
+                    {user?.role === 'admin' && (
+                        <>
+                            <Link href="/admin/users">
+                                <Button type="dashed" icon={<UserOutlined />}>
+                                    QL Người dùng
+                                </Button>
+                            </Link>
+                            <Link href="/admin/ads">
+                                <Button type="dashed" icon={<LinkOutlined />}>
+                                    QL Quảng cáo
+                                </Button>
+                            </Link>
+                            <Link href="/admin/banners">
+                                <Button type="dashed" icon={<PictureOutlined />}>
+                                    QL Banner
+                                </Button>
+                            </Link>
+                        </>
+                    )}
                 </div>
-                {user ? (
-                    <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
-                        <div className="cursor-pointer flex items-center space-x-2">
-                            <Avatar src={user.avatar} icon={!user.avatar && <UserOutlined />} />
-                            <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
-                        </div>
-                    </Dropdown>
-                ) : (
-                    <>
-                        <Link href="/login"><Button>Đăng nhập</Button></Link>
-                        <Link href="/register"><Button type="primary">Đăng ký</Button></Link>
-                    </>
-                )}
+
+                {/* Avatar hoặc login/register */}
+                <div className="flex items-center gap-2">
+                    {user ? (
+                        <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
+                            <div className="cursor-pointer flex items-center gap-2">
+                                <Avatar src={user.avatar} icon={!user.avatar && <UserOutlined />} />
+                                <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
+                            </div>
+                        </Dropdown>
+                    ) : (
+                        <>
+                            <Link href="/login">
+                                <Button>Đăng nhập</Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button type="primary">Đăng ký</Button>
+                            </Link>
+                        </>
+                    )}
+                </div>
             </div>
+
 
             <Drawer title="Tìm kiếm & Thể loại" placement="left" onClose={() => setOpenDrawer(false)} open={openDrawer}>
                 <div className="mb-4">
