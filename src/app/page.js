@@ -153,25 +153,29 @@ function StorySection({ title, filter }) {
             </div>
 
             {user?.role === 'admin' && (
-              <Popconfirm
-                title="Bạn có chắc muốn xóa truyện này?"
-                okText="Xóa"
-                cancelText="Hủy"
-                onConfirm={() => handleDeleteStory(story._id)}
-                onCancel={(e) => e?.stopPropagation()}
+              <div
+                className="absolute top-2 right-2 z-10"
+                onClick={(e) => e.stopPropagation()} // chặn mọi sự kiện click tại đây
               >
-                <Button
-                  danger
-                  size="small"
-                  className="absolute top-2 right-2 z-10"
-                  onClick={(e) => {
-                    e.stopPropagation(); // chặn sự kiện click lan ra ngoài
-                  }}
+                <Popconfirm
+                  title="Bạn có chắc muốn xóa truyện này?"
+                  okText="Xóa"
+                  cancelText="Hủy"
+                  onConfirm={() => handleDeleteStory(story._id)}
+                  onCancel={(e) => e?.stopPropagation()}
                 >
-                  Xóa
-                </Button>
-              </Popconfirm>
-
+                  <Button
+                    danger
+                    size="small"
+                    className="absolute top-2 right-2 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation(); // chặn sự kiện click lan ra ngoài
+                    }}
+                  >
+                    Xóa
+                  </Button>
+                </Popconfirm>
+              </div>
             )}
           </div>
         ))}
