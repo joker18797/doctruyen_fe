@@ -1,55 +1,46 @@
 'use client'
 
 import { useSelector, useDispatch } from 'react-redux'
-import { Button, Dropdown, Avatar } from 'antd'
-import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined } from '@ant-design/icons'
+import { Input, Button, Dropdown, Avatar, AutoComplete, Drawer, Select } from 'antd'
+import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined, MenuOutlined } from '@ant-design/icons'
 import Link from 'next/link'
 import { logout, login } from '@/redux/userSlice'
 import API from '@/Service/API'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { debounce } from 'lodash'
+import GenreDropdown from './GenreDropdown'
+const allGenres = [
+    'Bách Hợp', 'BE', 'Bình Luận Cốt Truyện', 'Chữa Lành', 'Cổ Đại', 'Cung Đấu', 'Cưới Trước Yêu Sau',
+    'Cường Thủ Hào Đoạt', 'Dị Năng', 'Dưỡng Thê', 'Đam Mỹ', 'Điền Văn', 'Đô Thị', 'Đoản Văn', 'Đọc Tâm',
+    'Gả Thay', 'Gia Đấu', 'Gia Đình', 'Gương Vỡ Không Lành', 'Gương Vỡ Lại Lành', 'Hài Hước', 'Hành Động',
+    'Hào Môn Thế Gia', 'HE', 'Hệ Thống', 'Hiện Đại', 'Hoán Đổi Thân Xác', 'Học Bá', 'Học Đường',
+    'Hư Cấu Kỳ Ảo', 'Huyền Huyễn', 'Không CP', 'Kinh Dị', 'Linh Dị', 'Mạt Thế', 'Mỹ Thực', 'Ngôn Tình',
+    'Ngọt', 'Ngược', 'Ngược Luyến Tàn Tâm', 'Ngược Nam', 'Ngược Nữ', 'Nhân Thú', 'Niên Đại', 'Nữ Cường',
+    'OE', 'Phép Thuật', 'Phiêu Lưu', 'Phương Đông', 'Phương Tây', 'Quy tắc', 'Sảng Văn', 'SE', 'Showbiz',
+    'Sủng', 'Thanh Xuân Vườn Trường', 'Thức Tỉnh Nhân Vật', 'Tiên Hiệp', 'Tiểu Thuyết', 'Tổng Tài',
+    'Trả Thù', 'Trinh thám', 'Trọng Sinh', 'Truy Thê', 'Vả Mặt', 'Vô Tri', 'Xuyên Không', 'Xuyên Sách'
+]
+
+const genreOptions = allGenres.map((genre) => ({
+    label: genre,
+    value: genre,
+}))
 
 export default function LayoutHeader() {
     const user = useSelector((state) => state.user.currentUser)
     const dispatch = useDispatch()
+    const router = useRouter()
     const hasFetched = useRef(false)
+
+    const [searchValue, setSearchValue] = useState('')
+    const [suggestions, setSuggestions] = useState([])
+    const [openDrawer, setOpenDrawer] = useState(false)
+
     const handleLogout = () => {
         localStorage.removeItem("jwt")
         dispatch(logout())
     }
-
-    const userMenu = {
-        items: [
-            {
-                key: 'profile',
-                label: (
-                    <Link href="/profile" className="w-full inline-block">
-                        <UserOutlined className="mr-2" />
-                        Hồ sơ cá nhân
-                    </Link>
-                ),
-            },
-            {
-                key: 'my-stories',
-                label: (
-                    <Link href="/my-stories" className="w-full inline-block">
-                        <BookOutlined className="mr-2" />
-                        Truyện của tôi
-                    </Link>
-                ),
-            },
-            {
-                key: 'logout',
-                label: (
-                    <button onClick={handleLogout} className="w-full text-left">
-                        <LogoutOutlined className="mr-2" />
-                        Đăng xuất
-                    </button>
-                ),
-            },
-        ],
-    }
-
 
     const getInfoUser = async () => {
         try {
@@ -57,10 +48,9 @@ export default function LayoutHeader() {
             if (res?.status === 200) {
                 dispatch(login(res?.data))
             }
-        } catch (error) {
-
-        }
+        } catch { }
     }
+
     useEffect(() => {
         if (!hasFetched.current && !user) {
             hasFetched.current = true
@@ -68,84 +58,145 @@ export default function LayoutHeader() {
         }
     }, [user])
 
-    const router = useRouter()
-    const [ads, setAds] = useState([])
-    const [clickedLogo, setClickedLogo] = useState(false)
-
-    useEffect(() => {
-        const fetchAds = async () => {
-            try {
-                const res = await API.AdminAds.list()
-                const activeAds = (res.data || []).filter((ad) => ad.active)
-                setAds(activeAds)
-            } catch (err) {
-                console.error('Không thể lấy ads:', err)
+    const fetchSuggestions = debounce(async (keyword) => {
+        if (!keyword.trim()) return setSuggestions([])
+        try {
+            const res = await API.Story.list({ search: keyword })
+            if (res?.data?.data) {
+                const formatted = res.data.data.slice(0, 5).map((story) => ({
+                    value: story.title,
+                    label: (
+                        <div className="flex gap-3 items-center">
+                            <img src={story.coverImage} alt="cover" className="w-10 h-14 object-cover rounded" />
+                            <div>
+                                <div className="font-medium">{story.title}</div>
+                                <div className="text-xs text-gray-500 line-clamp-2">{story.description?.slice(0, 60)}...</div>
+                            </div>
+                        </div>
+                    ),
+                    storyId: story._id,
+                }))
+                setSuggestions(formatted)
             }
+        } catch {
+            setSuggestions([])
         }
+    }, 300)
 
-        fetchAds()
-    }, [])
-
-    const handleLogoClick = () => {
-        if (!clickedLogo && ads.length > 0) {
-            const randomAd = ads[Math.floor(Math.random() * ads.length)]
-            window.open(randomAd.url, '_blank')
-            setClickedLogo(true)
-            setTimeout(() => {
-                router.push('/')
-            }, 500) // đợi chút rồi mới chuyển về trang chủ
-        } else {
-            router.push('/')
-        }
+    const userMenu = {
+        items: [
+            {
+                key: 'profile',
+                label: <Link href="/profile"><UserOutlined className="mr-2" />Hồ sơ cá nhân</Link>,
+            },
+            {
+                key: 'my-stories',
+                label: <Link href="/my-stories"><BookOutlined className="mr-2" />Truyện của tôi</Link>,
+            },
+            {
+                key: 'logout',
+                label: <button onClick={handleLogout} className="w-full text-left"><LogoutOutlined className="mr-2" />Đăng xuất</button>,
+            },
+        ],
     }
+
     return (
-        <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
-            <div onClick={handleLogoClick} className="cursor-pointer flex items-center space-x-2">
-                <img src="/Logo.jpg" alt="Logo" className="h-[60px] w-[60px] object-contain" />
-                <span className="text-xl font-bold text-violet-600">Ổ của Dưa</span>
+        <div className="w-full bg-white border-b px-4 py-2 flex justify-between items-center shadow-sm">
+            <div className="flex items-center gap-2">
+                <MenuOutlined className="md:hidden text-lg" onClick={() => setOpenDrawer(true)} />
+                <Link href="/" className="flex items-center gap-2 cursor-pointer">
+                    <img src="/Logo.jpg" alt="Logo" className="h-[60px] w-[60px] object-contain" />
+                    <span className="text-xl font-bold text-violet-600 hidden md:block">Ổ của Dưa</span>
+                </Link>
             </div>
 
-            {user ? (
-                <div className="flex items-center space-x-4">
-                    {user.role === 'admin' && (
-                        <>
-                            <Link href="/admin/users">
-                                <Button type="dashed" icon={<UserOutlined />}>
-                                    <div className='max-[700px]:hidden'>Quản lý người dùng</div>
-                                </Button>
-                            </Link>
-                            <Link href="/admin/ads">
-                                <Button type="dashed" icon={<LinkOutlined />}>
-                                    <div className='max-[700px]:hidden'>Quản lý quảng cáo</div>
-                                </Button>
-                            </Link>
-                            <Link href="/admin/banners">
-                                <Button type="dashed" icon={<PictureOutlined />}>
-                                    <div className="max-[700px]:hidden">Quản lý banner</div>
-                                </Button>
-                            </Link>
-                        </>
-                    )}
+
+
+            <div className="md:flex items-center space-x-3">
+                <div className="hidden md:flex flex-grow max-w-md ">
+                    <div className='mr-2'>
+                        <GenreDropdown />
+                    </div>
+                    <AutoComplete
+                        className="w-full"
+                        options={suggestions}
+                        onSearch={(value) => {
+                            setSearchValue(value)
+                            fetchSuggestions(value)
+                        }}
+                        onSelect={(value, option) => {
+                            if (option?.storyId) router.push(`/story/${option.storyId}`)
+                        }}
+                    >
+                        <Input.Search
+                            placeholder="Tìm kiếm truyện..."
+                            allowClear
+                            enterButton
+                            onSearch={(value) => {
+                                if (value.trim()) router.push(`/search?keyword=${value.trim()}`)
+                            }}
+                        />
+                    </AutoComplete>
+                </div>
+                <div className='max-[700px]:hidden'>
+                {user?.role === 'admin' && (
+                    <>
+                        <Link href="/admin/users"><Button type="dashed" icon={<UserOutlined />}>QL Người dùng</Button></Link>
+                        <Link href="/admin/ads"><Button type="dashed" icon={<LinkOutlined />}>QL Quảng cáo</Button></Link>
+                        <Link href="/admin/banners"><Button type="dashed" icon={<PictureOutlined />}>QL Banner</Button></Link>
+                    </>
+                )}
+                </div>
+                {user ? (
                     <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
                         <div className="cursor-pointer flex items-center space-x-2">
-                            <Avatar
-                                src={ user.avatar}
-                                icon={!user.avatar && <UserOutlined />}
-                            />
+                            <Avatar src={user.avatar} icon={!user.avatar && <UserOutlined />} />
                             <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
                         </div>
                     </Dropdown>
+                ) : (
+                    <>
+                        <Link href="/login"><Button>Đăng nhập</Button></Link>
+                        <Link href="/register"><Button type="primary">Đăng ký</Button></Link>
+                    </>
+                )}
+            </div>
+
+            <Drawer title="Tìm kiếm & Thể loại" placement="left" onClose={() => setOpenDrawer(false)} open={openDrawer}>
+                <div className="mb-4">
+                    <AutoComplete
+                        className="w-full"
+                        options={suggestions}
+                        onSearch={(value) => {
+                            setSearchValue(value)
+                            fetchSuggestions(value)
+                        }}
+                        onSelect={(value, option) => {
+                            if (option?.storyId) router.push(`/story/${option.storyId}`)
+                        }}
+                    >
+                        <Input.Search
+                            placeholder="Tìm kiếm truyện..."
+                            allowClear
+                            enterButton
+                            onSearch={(value) => {
+                                if (value.trim()) router.push(`/search?keyword=${value.trim()}`)
+                            }}
+                        />
+                    </AutoComplete>
                 </div>
-            ) : (
-                <div className="flex space-x-3">
-                    <Link href="/login">
-                        <Button type="default">Đăng nhập</Button>
-                    </Link>
-                    <Link href="/register">
-                        <Button type="primary">Đăng ký</Button>
-                    </Link>
-                </div>
-            )}
+
+                <Select
+                    showSearch
+                    placeholder="Chọn thể loại"
+                    className="w-full"
+                    options={genreOptions}
+                    onChange={(value) => {
+                        setOpenDrawer(false)
+                        router.push(`/search?genre=${encodeURIComponent(value)}`)
+                    }}
+                />
+            </Drawer>
         </div>
     )
 }

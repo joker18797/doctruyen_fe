@@ -128,6 +128,21 @@ function StorySection({ title, filter }) {
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p>
+                {story.genres?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {story.genres.slice(0, 4).map((genre) => (
+                      <span
+                        key={genre}
+                        className="bg-violet-100 text-violet-600 text-xs px-2 py-0.5 rounded-full"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                    {story.genres.length > 4 && (
+                      <span className="text-xs text-gray-400">+{story.genres.length - 4}</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between items-center mt-4">
