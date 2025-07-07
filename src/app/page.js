@@ -155,7 +155,7 @@ function StorySection({ title, filter }) {
             {user?.role === 'admin' && (
               <div
                 className="absolute top-2 right-2 z-10"
-                onClick={(e) => e.stopPropagation()} // chặn mọi sự kiện click tại đây
+                onClick={(e) => e.stopPropagation()} 
               >
                 <Popconfirm
                   title="Bạn có chắc muốn xóa truyện này?"
@@ -169,7 +169,7 @@ function StorySection({ title, filter }) {
                     size="small"
                     className="absolute top-2 right-2 z-10"
                     onClick={(e) => {
-                      e.stopPropagation(); // chặn sự kiện click lan ra ngoài
+                      e.stopPropagation(); 
                     }}
                   >
                     Xóa
