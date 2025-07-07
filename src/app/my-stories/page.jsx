@@ -83,7 +83,7 @@ export default function MyStoriesPage() {
                                 {stories.map((story) => (
                                     <div key={story._id} className="bg-white rounded-xl shadow hover:shadow-md transition">
                                         <img
-                                            src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
+                                            src={ story.coverImage}
                                             alt={story.title}
                                             className="w-full h-48 object-cover rounded-t-xl"
                                         />

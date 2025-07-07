@@ -56,7 +56,7 @@ export default function FeaturedSlider() {
       <div
         className="absolute inset-0 bg-cover bg-center blur-sm scale-105 z-0 transition-all duration-700"
         style={{
-          backgroundImage: `url(${process.env.NEXT_PUBLIC_URL_API + currentStory.coverImage})`
+          backgroundImage: `url(${ currentStory.coverImage})`
         }}
       />
       {/* Overlay */}
@@ -70,7 +70,7 @@ export default function FeaturedSlider() {
     onClick={() => router.push(`/story/${currentStory._id}`)}
   >
     <img
-      src={process.env.NEXT_PUBLIC_URL_API + currentStory.coverImage}
+      src={ currentStory.coverImage}
       alt={currentStory.title}
       className="object-cover w-full h-full"
     />
@@ -92,7 +92,7 @@ export default function FeaturedSlider() {
       {stories.map((story, index) => (
         <img
           key={story._id}
-          src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
+          src={ story.coverImage}
           alt={story.title}
           className={`h-16 w-24 object-cover rounded-md transition-all duration-300 cursor-pointer ${
             index === currentSlide ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-80'

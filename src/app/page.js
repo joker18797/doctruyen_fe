@@ -34,7 +34,7 @@ function RandomBanner() {
     <div className="mb-6">
       <a href={banner.url} target="_blank" rel="noopener noreferrer">
         <img
-          src={process.env.NEXT_PUBLIC_URL_API + banner.image}
+          src={banner.image}
           alt="banner quảng cáo"
           className="w-full max-h-60 object-cover rounded-lg shadow"
         />
@@ -111,11 +111,18 @@ function StorySection({ title, filter }) {
             className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
             onClick={() => handleStoryClick(story._id)}
           >
-            <img
-              src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
-              alt={story.title}
-              className="w-full h-52 object-cover"
-            />
+            <div className="relative">
+              <img
+                src={story.coverImage}
+                alt={story.title}
+                className="w-full h-52 object-cover"
+              />
+              {story.isCompleted && (
+                <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded shadow">
+                  ✅ Hoàn thành
+                </span>
+              )}
+            </div>
 
             <div className="p-4 flex flex-col justify-between h-52">
               <div>

@@ -8,10 +8,16 @@ import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
 
-const genreOptions = [
-  'Kiếm hiệp',
-  'Huyền bí',
-  'Xuyên không',
+const allGenres = [
+  'Bách Hợp', 'BE', 'Bình Luận Cốt Truyện', 'Chữa Lành', 'Cổ Đại', 'Cung Đấu', 'Cưới Trước Yêu Sau',
+  'Cường Thủ Hào Đoạt', 'Dị Năng', 'Dưỡng Thê', 'Đam Mỹ', 'Điền Văn', 'Đô Thị', 'Đoản Văn', 'Đọc Tâm',
+  'Gả Thay', 'Gia Đấu', 'Gia Đình', 'Gương Vỡ Không Lành', 'Gương Vỡ Lại Lành', 'Hài Hước', 'Hành Động',
+  'Hào Môn Thế Gia', 'HE', 'Hệ Thống', 'Hiện Đại', 'Hoán Đổi Thân Xác', 'Học Bá', 'Học Đường',
+  'Hư Cấu Kỳ Ảo', 'Huyền Huyễn', 'Không CP', 'Kinh Dị', 'Linh Dị', 'Mạt Thế', 'Mỹ Thực', 'Ngôn Tình',
+  'Ngọt', 'Ngược', 'Ngược Luyến Tàn Tâm', 'Ngược Nam', 'Ngược Nữ', 'Nhân Thú', 'Niên Đại', 'Nữ Cường',
+  'OE', 'Phép Thuật', 'Phiêu Lưu', 'Phương Đông', 'Phương Tây', 'Quy tắc', 'Sảng Văn', 'SE', 'Showbiz',
+  'Sủng', 'Thanh Xuân Vườn Trường', 'Thức Tỉnh Nhân Vật', 'Tiên Hiệp', 'Tiểu Thuyết', 'Tổng Tài',
+  'Trả Thù', 'Trinh thám', 'Trọng Sinh', 'Truy Thê', 'Vả Mặt', 'Vô Tri', 'Xuyên Không', 'Xuyên Sách'
 ]
 
 export default function NewStoryPage() {
@@ -22,6 +28,7 @@ export default function NewStoryPage() {
     status: 'draft',
     coverFile: null,
     genres: [],
+    isCompleted: false,
   })
 
   const handleChange = (e) => {
@@ -43,7 +50,7 @@ export default function NewStoryPage() {
     formData.append('status', form.status)
     formData.append('coverImage', form.coverFile)
     formData.append('genres', form.genres.join(','))
-
+    formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
     try {
       const res = await API.Story.create(formData)
       if (res?.status === 201) {
@@ -95,22 +102,43 @@ export default function NewStoryPage() {
             </div>
 
             <div>
-              <label className="block mb-1 font-medium">Thể loại</label>
-              <Select
-                mode="tags"
-                value={form.genres}
-                onChange={(value) => setForm((prev) => ({ ...prev, genres: value }))}
-                placeholder="Nhập hoặc chọn thể loại"
-                className="w-full"
-                tokenSeparators={[',']}
-              >
-                {genreOptions.map((genre) => (
-                  <Select.Option key={genre} value={genre}>
+              <label className="block mb-2 font-medium text-gray-700">Thể loại</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto border p-3 rounded bg-white">
+                {allGenres.map((genre) => (
+                  <label key={genre} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={form.genres.includes(genre)}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setForm((prev) => ({
+                          ...prev,
+                          genres: checked
+                            ? [...prev.genres, genre]
+                            : prev.genres.filter((g) => g !== genre),
+                        }))
+                      }}
+                    />
                     {genre}
-                  </Select.Option>
+                  </label>
                 ))}
-              </Select>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">{form.genres.length} thể loại đã chọn</p>
             </div>
+            <div>
+              <label className="block mb-1 font-medium">Trạng thái hoàn thành</label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.isCompleted}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, isCompleted: e.target.checked }))
+                  }
+                />
+                Đã hoàn thành
+              </label>
+            </div>
+
 
             <div>
               <label className="block mb-1 font-medium">Ảnh bìa</label>

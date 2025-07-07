@@ -129,7 +129,7 @@ export default function LayoutHeader() {
                     <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
                         <div className="cursor-pointer flex items-center space-x-2">
                             <Avatar
-                                src={process.env.NEXT_PUBLIC_URL_API + user.avatar}
+                                src={ user.avatar}
                                 icon={!user.avatar && <UserOutlined />}
                             />
                             <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>

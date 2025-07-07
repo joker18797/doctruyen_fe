@@ -36,7 +36,7 @@ export default function AdminBannersPage() {
   const handleEdit = (record) => {
     setEditingBanner(record)
     form.setFieldsValue(record)
-    setImageUrl(process.env.NEXT_PUBLIC_URL_API + record.image)
+    setImageUrl( record.image)
     setIsModalOpen(true)
   }
 
@@ -93,7 +93,7 @@ export default function AdminBannersPage() {
     {
       title: 'Ảnh banner',
       dataIndex: 'image',
-      render: (src) => <Image width={100} src={process.env.NEXT_PUBLIC_URL_API + src} alt="banner" />,
+      render: (src) => <Image width={100} src={ src} alt="banner" />,
     },
     {
       title: 'Liên kết khi bấm',

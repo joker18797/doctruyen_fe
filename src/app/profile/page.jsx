@@ -73,7 +73,7 @@ export default function ProfilePage() {
                     <div className="flex items-center space-x-4">
                         <Avatar
                             size={64}
-                            src={form.avatar ? process.env.NEXT_PUBLIC_URL_API + form.avatar : undefined}
+                            src={form.avatar ?  form.avatar : undefined}
                             icon={!form.avatar && <UserOutlined />}
                         />
                         <input

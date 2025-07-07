@@ -108,7 +108,7 @@ export default function StoryInfoPage() {
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
                         <img
-                            src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
+                            src={ story.coverImage}
                             alt="Bìa truyện"
                             className="w-full md:w-60 h-64 object-cover rounded-lg"
                         />
@@ -123,7 +123,7 @@ export default function StoryInfoPage() {
                             )}
                             <div className="flex items-center gap-2 mb-2">
                                 <img
-                                    src={process.env.NEXT_PUBLIC_URL_API + story?.author?.avatar}
+                                    src={ story?.author?.avatar}
                                     alt="Avatar tác giả"
                                     className="w-8 h-8 rounded-full object-cover"
                                 />
@@ -199,7 +199,7 @@ export default function StoryInfoPage() {
                                 >
                                     <div className="flex items-start gap-3">
                                         <Avatar
-                                            src={item.user?.avatar ? process.env.NEXT_PUBLIC_URL_API + item.user.avatar : undefined}
+                                            src={item.user?.avatar ?  item.user.avatar : undefined}
                                             icon={!item.user?.avatar && <UserOutlined />}
                                         />
                                         <div>

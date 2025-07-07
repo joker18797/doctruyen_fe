@@ -110,6 +110,35 @@ export default function ManageStoryPage() {
     setShowModal(false)
   }
 
+  const handleSubmitAndContinue = async () => {
+    if (!newChapter.content) {
+      return toast.error('Vui lòng nhập tiêu đề và nội dung chương')
+    }
+
+    try {
+      const formData = new FormData()
+      formData.append('title', newChapter.title)
+      formData.append('content', newChapter.content)
+      if (newChapter.audio) {
+        formData.append('audio', newChapter.audio)
+      }
+      formData.append('story', id)
+
+      const res = await API.Chapter.create(id, formData)
+
+      if (res?.status === 200 || res?.status === 201) {
+        toast.success('Đã thêm chương')
+        fetchStory(id)
+        setNewChapter({ title: '', content: '', audio: null }) // reset nội dung
+        setAudioPreview('')
+      } else {
+        toast.error('Thêm chương thất bại')
+      }
+    } catch (err) {
+      toast.error('Lỗi khi thêm chương')
+    }
+  }
+
   return (
     <div>
       <LayoutHeader />
@@ -121,7 +150,7 @@ export default function ManageStoryPage() {
             </h1>
             {story?.coverImage && (
               <img
-                src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
+                src={story.coverImage}
                 alt="cover"
                 className="h-40 mt-4 rounded shadow"
               />
@@ -189,12 +218,27 @@ export default function ManageStoryPage() {
         <Modal
           title={isEditing ? 'Chỉnh sửa chương' : 'Thêm chương mới'}
           open={showModal}
-          onOk={handleSubmitChapter}
           onCancel={resetForm}
-          okText={isEditing ? 'Cập nhật' : 'Thêm'}
-          cancelText="Hủy"
           width={800}
+          footer={[
+            !isEditing && (
+              <Button key="continue" type="primary" onClick={handleSubmitAndContinue}>
+                Thêm & Tiếp tục
+              </Button>
+            ),
+            <Button key="cancel" type="link" onClick={resetForm}>
+              Hủy
+            </Button>,
+            <Button
+              key="submit"
+              type="default"
+              onClick={handleSubmitChapter}
+            >
+              {isEditing ? 'Cập nhật' : 'Thêm'}
+            </Button>,
+          ]}
         >
+
           <div className="space-y-4">
             <div>
               <label className="block font-medium mb-1 text-blue-600">
