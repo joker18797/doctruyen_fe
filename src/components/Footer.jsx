@@ -42,12 +42,12 @@ export default function Footer() {
             <li>
               Facebook:{" "}
               <a
-                href="https://www.fb.com/share/1VCEh6hh4A/"
+                href="https://www.facebook.com/profile.php?id=61555754257080"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
-                Đồng Đồng
+                Thích ăn dưa hấu
               </a>
             </li>
           </ul>
