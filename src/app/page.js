@@ -89,8 +89,9 @@ function StorySection({ title, filter }) {
     }
   }
 
-  const handleDeleteStory = (id) => {
+  const handleDeleteStory = async (id) => {
     const updated = storyList.filter((s) => s._id !== id)
+    await API.Story.delete(id)
     setStoryList(updated)
     toast.success('Đã xóa truyện!')
     if ((currentPage - 1) * pageSize >= updated.length) {
@@ -163,11 +164,14 @@ function StorySection({ title, filter }) {
                   danger
                   size="small"
                   className="absolute top-2 right-2 z-10"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation(); // chặn sự kiện click lan ra ngoài
+                  }}
                 >
                   Xóa
                 </Button>
               </Popconfirm>
+
             )}
           </div>
         ))}
