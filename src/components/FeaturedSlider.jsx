@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import API from '@/Service/API'
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
+import { LeftOutlined, RightOutlined } from '@ant-design/icons'
+import API from '@/Service/API'
+
 export default function FeaturedSlider() {
   const [stories, setStories] = useState([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const timeoutRef = useRef(null)
-const router = useRouter()
+  const router = useRouter()
+
   const delay = 5000 // 5 giây
 
   useEffect(() => {
@@ -23,22 +25,18 @@ const router = useRouter()
     fetchFeaturedStories()
   }, [])
 
-  // Tự động chuyển slide
   useEffect(() => {
+    if (stories.length === 0) return
     resetTimeout()
     timeoutRef.current = setTimeout(() => {
-      setCurrentSlide((prevIndex) =>
-        prevIndex === stories.length - 1 ? 0 : prevIndex + 1
-      )
+      setCurrentSlide((prev) => (prev === stories.length - 1 ? 0 : prev + 1))
     }, delay)
 
     return () => resetTimeout()
   }, [currentSlide, stories])
 
   const resetTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
   }
 
   const handlePrev = () => {
@@ -50,68 +48,81 @@ const router = useRouter()
   }
 
   if (stories.length === 0) return null
+  const currentStory = stories[currentSlide]
 
   return (
-    <div className="relative w-full h-[400px] rounded-xl overflow-hidden shadow mb-10">
-      {/* Nền mờ */}
+    <div className="relative w-full rounded-xl overflow-hidden shadow mb-10">
+      {/* Background blur */}
       <div
         className="absolute inset-0 bg-cover bg-center blur-sm scale-105 z-0 transition-all duration-700"
         style={{
-          backgroundImage: `url(${process.env.NEXT_PUBLIC_URL_API + stories[currentSlide]?.coverImage})`
+          backgroundImage: `url(${process.env.NEXT_PUBLIC_URL_API + currentStory.coverImage})`
         }}
       />
-
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30 z-10" />
 
-      {/* Nội dung chính */}
-      <div className="relative z-20 flex h-full items-center justify-between px-8 transition-all duration-700">
-        {/* Ảnh chính */}
-        <div  onClick={() => router.push(`/story/${stories[currentSlide]?._id}`)} className="flex-shrink-0 w-[250px] h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 transition-all duration-700 cursor-pointer">
-          <img
-            src={process.env.NEXT_PUBLIC_URL_API + stories[currentSlide]?.coverImage}
-            alt={stories[currentSlide]?.title}
-            className="object-cover w-full h-full"
-          />
-        </div>
+      {/* Content */}
+      <div className="relative z-20 flex flex-col lg:flex-row items-center lg:items-stretch px-4 md:px-8 py-6 gap-6 w-full">
+  {/* Cột trái: Ảnh chính */}
+  <div
+    className="w-full lg:w-1/2 h-[300px] md:h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 cursor-pointer"
+    onClick={() => router.push(`/story/${currentStory._id}`)}
+  >
+    <img
+      src={process.env.NEXT_PUBLIC_URL_API + currentStory.coverImage}
+      alt={currentStory.title}
+      className="object-cover w-full h-full"
+    />
+  </div>
 
-        {/* Văn bản */}
-        <div className="ml-10 max-w-[50%] text-white transition-opacity duration-700">
-          <h2 className="text-3xl font-bold mb-4 italic">{stories[currentSlide]?.title}</h2>
-          <p className="line-clamp-5 text-sm leading-relaxed">{stories[currentSlide]?.description}</p>
-        </div>
+  {/* Cột phải: nội dung + mini ảnh + nút */}
+  <div className="flex flex-col justify-between text-white w-full lg:w-1/2 gap-4">
+    <div>
+      <h2 className="text-xl md:text-3xl font-bold mb-3 italic text-center lg:text-left">
+        {currentStory.title}
+      </h2>
+      <p className="text-sm md:text-base leading-relaxed text-center lg:text-left line-clamp-5">
+        {currentStory.description}
+      </p>
+    </div>
 
-        {/* Mini ảnh */}
-        <div className="flex flex-col gap-2 ml-auto mr-4 w-[100px]">
-          {stories.map((story, index) => (
-            <img
-              key={story._id}
-              src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
-              alt={story.title}
-              className={`w-full h-16 object-cover rounded-md transition-all duration-300 cursor-pointer ${
-                index === currentSlide ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-80'
-              }`}
-              onClick={() => setCurrentSlide(index)}
-            />
-          ))}
-        </div>
-      </div>
+    {/* Mini ảnh */}
+    <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide mt-4">
+      {stories.map((story, index) => (
+        <img
+          key={story._id}
+          src={process.env.NEXT_PUBLIC_URL_API + story.coverImage}
+          alt={story.title}
+          className={`h-16 w-24 object-cover rounded-md transition-all duration-300 cursor-pointer ${
+            index === currentSlide ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-80'
+          }`}
+          onClick={() => {
+            setCurrentSlide(index)
+            router.push(`/story/${story._id}`)
+          }}
+        />
+      ))}
+    </div>
 
-      {/* Nút điều hướng */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 z-30">
-        <button
-          onClick={handlePrev}
-          className="bg-white/20 p-2 rounded-full hover:bg-white/40 text-white"
-        >
-          <LeftOutlined />
-        </button>
-        <button
-          onClick={handleNext}
-          className="bg-white/20 p-2 rounded-full hover:bg-white/40 text-white"
-        >
-          <RightOutlined />
-        </button>
-      </div>
+    {/* Nút điều hướng */}
+    <div className="flex justify-center lg:justify-start gap-4 mt-4">
+      <button
+        onClick={handlePrev}
+        className="bg-white/20 p-2 rounded-full hover:bg-white/40 text-white"
+      >
+        <LeftOutlined />
+      </button>
+      <button
+        onClick={handleNext}
+        className="bg-white/20 p-2 rounded-full hover:bg-white/40 text-white"
+      >
+        <RightOutlined />
+      </button>
+    </div>
+  </div>
+</div>
+
     </div>
   )
 }
