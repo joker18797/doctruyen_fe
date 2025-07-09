@@ -423,3 +423,34 @@ export const  calculateEndTime = (start_time, duration_minutes)=>   {
 
     return `${endHours}:${endMinutes}:${endSeconds}`;
 }
+
+export const sanitizeText = (text) => {
+  if (!text) return ''
+
+  const replacements = [
+    { regex: /chết/gi, replaceWith: 'chếc' },
+    { regex: /giết/gi, replaceWith: 'giếc' },
+    { regex: /hãm/gi, replaceWith: 'h.ã.m' },
+    { regex: /hiếp/gi, replaceWith: 'h.i.ế.p' },
+    { regex: /dâm/gi, replaceWith: 'd.â.m' },
+    { regex: /chặt tay/gi, replaceWith: 'c.h.ặ.t t.a.y' },
+    { regex: /máu/gi, replaceWith: 'm.á.u' },
+    { regex: /điên/gi, replaceWith: 'đ.i.ê.n' },
+    { regex: /chó/gi, replaceWith: 'c.h.ó' },
+  ]
+
+  let sanitized = text
+
+  for (const { regex, replaceWith } of replacements) {
+    sanitized = sanitized.replace(regex, (match) => {
+      // Nếu từ gốc có chữ cái đầu viết hoa thì viết hoa tương ứng từ thay thế
+      const isCapitalized = match[0] === match[0].toUpperCase()
+      if (isCapitalized) {
+        return replaceWith.charAt(0).toUpperCase() + replaceWith.slice(1)
+      }
+      return replaceWith
+    })
+  }
+
+  return sanitized
+}

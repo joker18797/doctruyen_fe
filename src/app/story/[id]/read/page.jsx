@@ -6,6 +6,7 @@ import { Button, Select, InputNumber } from 'antd'
 import { DownOutlined, UpOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
+import { sanitizeText } from '@/Helper/helpFunction'
 
 const { Option } = Select
 
@@ -70,7 +71,7 @@ export default function StoryReadPage() {
       try {
         const res = await API.Chapter.detail(selectedChapterId)
         if (res?.status === 200) {
-          setChapterContent(res.data?.content || '')
+          setChapterContent(sanitizeText(res.data?.content || ''))
           setChapterAudio(res?.data?.audio ?? '')
 
           setUnlockedChapters((prev) => {
