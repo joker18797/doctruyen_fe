@@ -440,7 +440,6 @@ export const sanitizeText = (text) => {
   ]
 
   let sanitized = text
-
   for (const { regex, replaceWith } of replacements) {
     sanitized = sanitized.replace(regex, (match) => {
       const isCapitalized = match[0] === match[0].toUpperCase()
