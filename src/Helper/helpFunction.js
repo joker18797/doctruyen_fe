@@ -443,7 +443,6 @@ export const sanitizeText = (text) => {
 
   for (const { regex, replaceWith } of replacements) {
     sanitized = sanitized.replace(regex, (match) => {
-      // Nếu từ gốc có chữ cái đầu viết hoa thì viết hoa tương ứng từ thay thế
       const isCapitalized = match[0] === match[0].toUpperCase()
       if (isCapitalized) {
         return replaceWith.charAt(0).toUpperCase() + replaceWith.slice(1)
