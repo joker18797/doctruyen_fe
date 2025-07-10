@@ -105,7 +105,7 @@ function StorySection({ title, filter }) {
     <div className="mt-10">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6">
         {currentStories.map((story) => (
           <div
             key={story._id}
@@ -125,7 +125,7 @@ function StorySection({ title, filter }) {
               )}
             </div>
 
-            <div className="p-4 flex flex-col justify-between h-50">
+            <div className="p-4 flex flex-col justify-between h-40">
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p>
@@ -145,11 +145,7 @@ function StorySection({ title, filter }) {
                   </div>
                 )}
               </div>
-
-              <div className="flex justify-between items-center mt-4">
-                <Button type="primary" size="small">Đọc</Button>
-                {story.hasAudio && <span className="text-xl">🔊</span>}
-              </div>
+              
             </div>
 
             {user?.role === 'admin' && (
