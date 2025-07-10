@@ -143,43 +143,28 @@ export default function StoryReadPage() {
 
   const ChapterNavigator = ({ position = 'top', floating = false }) => {
     const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
-    const [inputChapter, setInputChapter] = useState(index + 1)
-
-    useEffect(() => {
-      setInputChapter(index + 1)
-    }, [index])
-
-    const handleJump = () => {
-      const chapterNum = Number(inputChapter)
-      if (!isNaN(chapterNum) && chapterNum >= 1 && chapterNum <= story.chapters.length) {
-        const targetId = story.chapters[chapterNum - 1]
-        handleChangeChapter(targetId)
-      }
-    }
-
     const renderButton = (label, chapterIndexOffset) => {
       const targetIndex = index + chapterIndexOffset
       if (targetIndex < 0 || targetIndex >= story.chapters.length) return null
-
       const targetId = story.chapters[targetIndex]
       const isUnlocked = unlockedChapters.includes(targetId)
-
+  
       if (isUnlocked || unlockedChapters.length < 2) {
         return <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
       }
-
+  
       return (
         <Button type="dashed" danger onClick={() => unlockAndChangeChapter(targetId)}>
           👉 Click để hiển thị
         </Button>
       )
     }
-
+  
     return (
       <div
         className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
-    ${position === 'bottom' ? 'mt-8' : 'mb-4'}
-    ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t shadow-md' : ''}`}
+        ${position === 'bottom' ? 'mt-8' : 'mb-4'}
+        ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t shadow-md' : ''}`}
       >
         {/* Nút chương trước */}
         <div className="flex-1 flex justify-start">
@@ -190,38 +175,26 @@ export default function StoryReadPage() {
             -1
           )}
         </div>
-
-        {/* Input nhảy chương (ẩn ở mobile) */}
-        {/* PC: hiện đầy đủ */}
-        <div className="hidden sm:flex items-center gap-3 justify-center">
-          <span>Chuyển tới chương:</span>
-          <InputNumber
-            min={1}
-            max={story.chapters.length}
-            value={inputChapter}
-            onChange={(val) => setInputChapter(val)}
-            className="w-[90px] text-base"
-          />
-          <Button type="primary" size="large" onClick={handleJump}>
-            Chuyển
-          </Button>
+  
+        {/* Dropdown chọn chương */}
+        <div className="flex items-center gap-2 justify-center">
+          <span className="hidden sm:inline">Chuyển tới chương:</span>
+          <Select
+            value={selectedChapterId}
+            onChange={handleChangeChapter}
+            className="min-w-[150px]"
+            size="large"
+            showSearch
+            optionLabelProp="label"
+          >
+            {story.chapters.map((chapterId, idx) => (
+              <Option key={chapterId} value={chapterId} label={`Chương ${idx + 1}`}>
+                Chương {idx + 1}
+              </Option>
+            ))}
+          </Select>
         </div>
-
-        {/* Mobile: chỉ hiện input + nút Chuyển */}
-        <div className="flex sm:hidden items-center gap-2 justify-center">
-          <InputNumber
-            min={1}
-            max={story.chapters.length}
-            value={inputChapter}
-            onChange={(val) => setInputChapter(val)}
-            className="w-[70px] text-base"
-          />
-          <Button type="primary" size="large" onClick={handleJump}>
-            Chuyển
-          </Button>
-        </div>
-
-
+  
         {/* Nút chương sau */}
         <div className="flex-1 flex justify-end">
           {renderButton(
