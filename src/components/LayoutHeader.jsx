@@ -220,6 +220,26 @@ export default function LayoutHeader() {
                         router.push(`/search?genre=${encodeURIComponent(value)}`)
                     }}
                 />
+                {user?.role === 'admin' && (
+                    <div className="mt-6 flex flex-col space-y-3">
+                        <Link href="/admin/users">
+                            <Button block icon={<UserOutlined />}>
+                                QL Người dùng
+                            </Button>
+                        </Link>
+                        <Link href="/admin/ads">
+                            <Button block icon={<LinkOutlined />}>
+                                QL Quảng cáo
+                            </Button>
+                        </Link>
+                        <Link href="/admin/banners">
+                            <Button block icon={<PictureOutlined />}>
+                                QL Banner
+                            </Button>
+                        </Link>
+                    </div>
+                )}
+
             </Drawer>
         </div>
     )

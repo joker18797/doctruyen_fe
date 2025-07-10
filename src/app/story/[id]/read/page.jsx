@@ -12,6 +12,7 @@ const { Option } = Select
 
 export default function StoryReadPage() {
   const contentRef = useRef(null)
+  const fakeBottomRef = useRef(null)
   const { id } = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -21,6 +22,7 @@ export default function StoryReadPage() {
   const [chapterContent, setChapterContent] = useState('')
   const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
+  const [isAtTop, setIsAtTop] = useState(true)
 
   const [ads, setAds] = useState([])
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
@@ -96,10 +98,12 @@ export default function StoryReadPage() {
       const scrollY = window.scrollY
       const windowHeight = window.innerHeight
       const documentHeight = document.documentElement.scrollHeight
-      setIsAtBottom(scrollY + windowHeight + 200 >= documentHeight)
+      setIsAtBottom(scrollY + windowHeight >= documentHeight - 100)
+      setIsAtTop(scrollY <= 100)
     }
 
     window.addEventListener('scroll', handleScroll)
+    handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -128,14 +132,7 @@ export default function StoryReadPage() {
       window.open(randomAd.url, '_blank')
     }
 
-    // setUnlockedChapters((prev) => {
-    //   const updated = [...prev, chapterId]
-    //   localStorage.setItem('unlockedChapters', JSON.stringify(updated))
-    //   return updated
-    // })
     const allChapterIds = story?.chapters || []
-
-    // Unlock all chapters
     localStorage.setItem('unlockedChapters', JSON.stringify(allChapterIds))
     setUnlockedChapters(allChapterIds)
 
@@ -144,7 +141,7 @@ export default function StoryReadPage() {
     }, 500)
   }
 
-  const ChapterNavigator = ({ position = 'top' }) => {
+  const ChapterNavigator = ({ position = 'top', floating = false }) => {
     const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
     const [inputChapter, setInputChapter] = useState(index + 1)
 
@@ -168,36 +165,72 @@ export default function StoryReadPage() {
       const isUnlocked = unlockedChapters.includes(targetId)
 
       if (isUnlocked || unlockedChapters.length < 2) {
-        return (
-          <Button onClick={() => handleChangeChapter(targetId)}>
-            {label}
-          </Button>
-        )
+        return <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
       }
 
       return (
         <Button type="dashed" danger onClick={() => unlockAndChangeChapter(targetId)}>
-          👉 Click để hiển thị {label.toLowerCase()}
+          👉 Click để hiển thị
         </Button>
       )
     }
 
     return (
-      <div className={`flex flex-wrap items-center gap-4 justify-between bg-gray-100 p-4 rounded ${position === 'bottom' ? 'mt-8' : 'mb-4'}`}>
-        {renderButton('◀ Chương trước', -1)}
-        <div className="flex items-center gap-2">
+      <div
+        className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
+    ${position === 'bottom' ? 'mt-8' : 'mb-4'}
+    ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t shadow-md' : ''}`}
+      >
+        {/* Nút chương trước */}
+        <div className="flex-1 flex justify-start">
+          {renderButton(
+            <>
+              ◀ <span className="hidden sm:inline ml-1 text-lg">Chương trước</span>
+            </>,
+            -1
+          )}
+        </div>
+
+        {/* Input nhảy chương (ẩn ở mobile) */}
+        {/* PC: hiện đầy đủ */}
+        <div className="hidden sm:flex items-center gap-3 justify-center">
           <span>Chuyển tới chương:</span>
           <InputNumber
             min={1}
             max={story.chapters.length}
             value={inputChapter}
             onChange={(val) => setInputChapter(val)}
+            className="w-[90px] text-base"
           />
-          <Button type="primary" onClick={handleJump}>
-            Chuyển chương
+          <Button type="primary" size="large" onClick={handleJump}>
+            Chuyển
           </Button>
         </div>
-        {renderButton('Chương sau ▶', 1)}
+
+        {/* Mobile: chỉ hiện input + nút Chuyển */}
+        <div className="flex sm:hidden items-center gap-2 justify-center">
+          <InputNumber
+            min={1}
+            max={story.chapters.length}
+            value={inputChapter}
+            onChange={(val) => setInputChapter(val)}
+            className="w-[70px] text-base"
+          />
+          <Button type="primary" size="large" onClick={handleJump}>
+            Chuyển
+          </Button>
+        </div>
+
+
+        {/* Nút chương sau */}
+        <div className="flex-1 flex justify-end">
+          {renderButton(
+            <>
+              <span className="hidden sm:inline mr-1 text-lg">Chương sau</span> ▶
+            </>,
+            1
+          )}
+        </div>
       </div>
     )
   }
@@ -209,13 +242,11 @@ export default function StoryReadPage() {
   const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
 
   return (
-    <div>
+    <div className="pb-[90px]">
       <LayoutHeader />
       <div className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg relative">
-
-          {/* Nút cuộn cố định */}
-          <div className="fixed bottom-6 right-6 z-40">
+          <div className="fixed bottom-20 right-6 z-40">
             <Button
               type="primary"
               shape="circle"
@@ -225,13 +256,12 @@ export default function StoryReadPage() {
                 if (isAtBottom) {
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 } else {
-                  contentRef.current?.scrollIntoView({ behavior: 'smooth' })
+                  fakeBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
                 }
               }}
             />
           </div>
 
-          {/* Tiêu đề + dropdown chọn chương */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">{story.title}</h1>
             <Select
@@ -243,18 +273,13 @@ export default function StoryReadPage() {
               optionLabelProp="label"
             >
               {story.chapters.map((chapterId, index) => (
-                <Option
-                  key={chapterId}
-                  value={chapterId}
-                  label={`Chương ${index + 1}`}
-                >
+                <Option key={chapterId} value={chapterId} label={`Chương ${index + 1}`}>
                   Chương {index + 1}
                 </Option>
               ))}
             </Select>
           </div>
 
-          {/* Audio nếu có */}
           {chapterAudio && (
             <div className="mb-6">
               <h3 className="text-md font-semibold mb-2">🎧 Nghe Audio</h3>
@@ -265,22 +290,24 @@ export default function StoryReadPage() {
             </div>
           )}
 
-          {/* Nội dung chương */}
           <div className="mt-6 border-t pt-6">
             <ChapterNavigator position="top" />
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               {`Chương ${currentIndex + 1}`}
             </h2>
             <div
-              className="text-gray-800 whitespace-pre-line leading-relaxed mb-6 select-none"
+              className="text-gray-800 whitespace-pre-line leading-loose mb-6 select-none text-[20px]"
               ref={contentRef}
             >
               {chapterContent || 'Đang tải nội dung...'}
             </div>
-            <ChapterNavigator position="bottom" />
           </div>
         </div>
       </div>
+
+      {/* Fake bottom để scroll xuống sát đáy */}
+      <div ref={fakeBottomRef} className="h-4" />
+      <ChapterNavigator position="bottom" floating />
     </div>
   )
 }
