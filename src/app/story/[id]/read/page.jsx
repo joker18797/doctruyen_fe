@@ -283,7 +283,6 @@ export default function StoryReadPage() {
           </div>
         </div>
 
-        {/* Hiển thị nếu có chương bị khóa */}
         {hasLockedChapters && (
           <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
             <h3 className="text-xl font-bold mb-2 text-orange-800">🔒 Một số chương đã bị khóa</h3>
