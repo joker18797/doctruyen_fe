@@ -94,6 +94,10 @@ export default function LayoutHeader() {
                 label: <Link href="/my-stories"><BookOutlined className="mr-2" />Truyện của tôi</Link>,
             },
             {
+                key: 'create-story',
+                label: <Link href="/story/new"><BookOutlined className="mr-2" />Đăng truyện mới</Link>,
+            },
+            {
                 key: 'logout',
                 label: <button onClick={handleLogout} className="w-full text-left"><LogoutOutlined className="mr-2" />Đăng xuất</button>,
             },
