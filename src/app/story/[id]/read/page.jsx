@@ -23,8 +23,9 @@ export default function StoryReadPage() {
   const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true)
-
   const [ads, setAds] = useState([])
+  const [hasLockedChapters, setHasLockedChapters] = useState(false)
+
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('unlockedChapters')
@@ -120,6 +121,14 @@ export default function StoryReadPage() {
     }
   }, [])
 
+  // Cập nhật kiểm tra chương nào bị khóa
+  useEffect(() => {
+    if (story?.chapters) {
+      const locked = story.chapters.some((cid) => !unlockedChapters.includes(cid))
+      setHasLockedChapters(locked)
+    }
+  }, [story, unlockedChapters])
+
   const handleChangeChapter = (chapterId) => {
     setSelectedChapterId(chapterId)
     router.push(`/story/${id}/read?chapter=${chapterId}`)
@@ -148,25 +157,24 @@ export default function StoryReadPage() {
       if (targetIndex < 0 || targetIndex >= story.chapters.length) return null
       const targetId = story.chapters[targetIndex]
       const isUnlocked = unlockedChapters.includes(targetId)
-  
+
       if (isUnlocked || unlockedChapters.length < 2) {
         return <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
       }
-  
+
       return (
         <Button type="dashed" danger onClick={() => unlockAndChangeChapter(targetId)}>
           👉 Click để hiển thị
         </Button>
       )
     }
-  
+
     return (
       <div
         className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
         ${position === 'bottom' ? 'mt-8' : 'mb-4'}
         ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t shadow-md' : ''}`}
       >
-        {/* Nút chương trước */}
         <div className="flex-1 flex justify-start">
           {renderButton(
             <>
@@ -175,8 +183,7 @@ export default function StoryReadPage() {
             -1
           )}
         </div>
-  
-        {/* Dropdown chọn chương */}
+
         <div className="flex items-center gap-2 justify-center">
           <span className="hidden sm:inline">Chuyển tới chương:</span>
           <Select
@@ -194,8 +201,7 @@ export default function StoryReadPage() {
             ))}
           </Select>
         </div>
-  
-        {/* Nút chương sau */}
+
         <div className="flex-1 flex justify-end">
           {renderButton(
             <>
@@ -276,9 +282,19 @@ export default function StoryReadPage() {
             </div>
           </div>
         </div>
+
+        {/* Hiển thị nếu có chương bị khóa */}
+        {hasLockedChapters && (
+          <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
+            <h3 className="text-xl font-bold mb-2 text-orange-800">🔒 Một số chương đã bị khóa</h3>
+            <p className="text-base text-gray-700">
+              Vui lòng click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục đọc truyện.
+            </p>
+            <p className="text-sm mt-2 text-gray-500 italic">(*) Bạn có thể được yêu cầu xem quảng cáo để mở khóa.</p>
+          </div>
+        )}
       </div>
 
-      {/* Fake bottom để scroll xuống sát đáy */}
       <div ref={fakeBottomRef} className="h-4" />
       <ChapterNavigator position="bottom" floating />
     </div>

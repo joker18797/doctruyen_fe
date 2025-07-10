@@ -105,7 +105,7 @@ export default function LayoutHeader() {
     }
 
     return (
-        <div className="w-full bg-white border-b px-4 py-2 flex justify-between items-center shadow-sm">
+        <div className="w-full bg-[#FFEBCB] border-b px-4 py-2 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-2">
                 <MenuOutlined className="md:hidden text-lg" onClick={() => setOpenDrawer(true)} />
                 <Link href="/" className="flex items-center gap-2 cursor-pointer">
