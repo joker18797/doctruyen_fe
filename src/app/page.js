@@ -51,7 +51,7 @@ function StorySection({ title, filter }) {
   const [storyList, setStoryList] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
-  const pageSize = 6
+  const pageSize = 10
 
   useEffect(() => {
     const fetchStories = async () => {
