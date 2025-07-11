@@ -114,7 +114,13 @@ export default function StoryInfoPage() {
                         />
                         <div className="flex-1">
                             <h1 className="text-2xl font-bold text-gray-800 mb-2">{story.title}</h1>
-                            <p className="text-gray-600 mb-4">{story.description}</p>
+                            <p
+                                className="text-gray-600 mb-4"
+                                dangerouslySetInnerHTML={{
+                                    __html: story.description?.replace(/\n/g, '<br />'),
+                                }}
+                            ></p>
+
                             {story.genres?.length > 0 && (
                                 <p className="text-sm text-gray-700 mb-4">
                                     <span className="font-medium text-gray-800">Thể loại:</span>{' '}
