@@ -83,12 +83,10 @@ function StorySection({ title, filter }) {
   const alreadyClicked = clickedStories.includes(storyId)
   const story = storyList.find((s) => s._id === storyId)
 
-  console.log('222222', story);
   
   if (!alreadyClicked && story) {
     
     const relatedAds = ads.filter((ad) => ad.created_by === story.author._id  )
-    console.log('222222' ,relatedAds);
 
     if (relatedAds.length > 0) {
       const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
