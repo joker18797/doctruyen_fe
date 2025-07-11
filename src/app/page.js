@@ -10,7 +10,8 @@ import { useSelector } from 'react-redux'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
 import FeaturedSlider from '@/components/FeaturedSlider'
-
+import { EyeOutlined } from '@ant-design/icons'
+import RankingSidebar from '@/components/RankingSidebar'
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
 
@@ -79,15 +80,25 @@ function StorySection({ title, filter }) {
   }, [])
 
   const handleStoryClick = (storyId) => {
-    const alreadyClicked = clickedStories.includes(storyId)
-    if (!alreadyClicked && ads.length > 0) {
-      const randomAd = ads[Math.floor(Math.random() * ads.length)]
+  const alreadyClicked = clickedStories.includes(storyId)
+  const story = storyList.find((s) => s._id === storyId)
+
+  console.log('222222', story);
+  
+  if (!alreadyClicked && story) {
+    
+    const relatedAds = ads.filter((ad) => ad.created_by === story.author._id  )
+    console.log('222222' ,relatedAds);
+
+    if (relatedAds.length > 0) {
+      const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
       window.open(randomAd.url, '_blank')
-      setClickedStories([...clickedStories, storyId])
-    } else {
-      router.push(`/story/${storyId}`)
+      setClickedStories((prev) => [...prev, storyId])
+      return
     }
   }
+  router.push(`/story/${storyId}`)
+}
 
   const handleDeleteStory = async (id) => {
     const updated = storyList.filter((s) => s._id !== id)
@@ -123,11 +134,14 @@ function StorySection({ title, filter }) {
                   ✅ Hoàn thành
                 </span>
               )}
+              <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1 px-2">
+                <EyeOutlined /> {story.totalRead || 0}
+              </span>
             </div>
 
             <div className="p-4 flex flex-col justify-between ">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
+                <h2 className="text-[16px] font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
                 {/* <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p> */}
                 {/* {story.genres?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -145,13 +159,13 @@ function StorySection({ title, filter }) {
                   </div>
                 )} */}
               </div>
-              
+
             </div>
 
             {user?.role === 'admin' && (
               <div
                 className="absolute top-2 right-2 z-10"
-                onClick={(e) => e.stopPropagation()} 
+                onClick={(e) => e.stopPropagation()}
               >
                 <Popconfirm
                   title="Bạn có chắc muốn xóa truyện này?"
@@ -165,7 +179,7 @@ function StorySection({ title, filter }) {
                     size="small"
                     className="absolute top-2 right-2 z-10"
                     onClick={(e) => {
-                      e.stopPropagation(); 
+                      e.stopPropagation();
                     }}
                   >
                     Xóa
@@ -196,14 +210,24 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100">
       <LayoutHeader />
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="p-6 max-w-[1400px] mx-auto">
         <FeaturedSlider />
         <RandomBanner />
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
-        <StorySection title="🔥 Truyện phổ biến" filter="popular" />
-        <StorySection title="💖 Được yêu thích nhất" filter="favorite" />
-        <StorySection title="🆕 Mới cập nhật" filter="recent" />
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Cột trái: nội dung chính */}
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
+            <StorySection title="🔥 Truyện hot" filter="popular" />
+            <StorySection title="🆕 Mới cập nhật" filter="recent" />
+            <StorySection title="💖 Được yêu thích nhất" filter="favorite" />
+          </div>
+
+          {/* Cột phải: bảng xếp hạng */}
+          <div className="w-full lg:w-[300px] shrink-0">
+            <RankingSidebar />
+          </div>
+        </div>
       </div>
       <Footer />
     </div>

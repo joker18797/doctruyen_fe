@@ -23,6 +23,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="vi">
+      
       <body>
       <ToastContainer />
         <Providers>{children}</Providers>
