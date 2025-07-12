@@ -17,8 +17,12 @@ export default class Story {
     delete(id) {
         return axiosDELETE('api_gw', `/api/story/${id}`);
     }
-    list (data){
+    list(data) {
         const stringUrl = urlParseParams(data);
         return axiosGET("api_gw", `/api/story?${stringUrl}`);
     }
+    createAudio(data) {
+        return axiosPOST("api_gw", '/api/tts/speak', data);
+    }
+
 }

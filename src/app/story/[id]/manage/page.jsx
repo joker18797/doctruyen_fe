@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Button, Input, Modal, Upload } from 'antd'
+import { Button, Input, Modal, Spin, Upload } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 import LayoutHeader from '@/components/LayoutHeader'
@@ -18,7 +18,7 @@ export default function ManageStoryPage() {
   const [audioPreview, setAudioPreview] = useState('')
   const [editingChapter, setEditingChapter] = useState(null)
   const isEditing = !!editingChapter
-
+  const [ttsLoading, setTtsLoading] = useState(false)
   useEffect(() => {
     if (id) fetchStory(id)
   }, [id])
@@ -136,6 +136,24 @@ export default function ManageStoryPage() {
       }
     } catch (err) {
       toast.error('Lỗi khi thêm chương')
+    }
+  }
+
+  const handleGenerateTTS = async () => {
+    setTtsLoading(true)
+    try {
+      const res = await API.Story.createAudio({ text: newChapter.content });
+      const audioUrl = res.data?.url;
+
+      if (audioUrl) {
+        setAudioPreview(audioUrl);
+        setNewChapter((prev) => ({ ...prev, audio: audioUrl }));
+      }
+    } catch (err) {
+      console.error('Tạo TTS thất bại:', err);
+      toast.error('Tạo audio thất bại');
+    } finally {
+      setTtsLoading(false)
     }
   }
 
@@ -284,7 +302,29 @@ export default function ManageStoryPage() {
               >
                 <Button icon={<UploadOutlined />}>Chọn file audio</Button>
               </Upload>
-              {audioPreview && <audio controls src={audioPreview} className="mt-2" />}
+
+              {audioPreview && (
+                <div className="mt-2">
+                  <audio controls src={audioPreview} className="w-full" />
+                  <div className="flex gap-2 mt-2">
+                    <Button danger size="small" onClick={() => setAudioPreview(null)}>
+                      Xóa audio
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-3">
+                <Spin spinning={ttsLoading}>
+                  <Button
+                    type="dashed"
+                    onClick={handleGenerateTTS}
+                    disabled={!newChapter.content.trim()}
+                  >
+                    Tạo audio từ nội dung chương
+                  </Button>
+                </Spin>
+              </div>
             </div>
           </div>
         </Modal>
