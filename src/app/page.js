@@ -44,7 +44,7 @@ function RandomBanner() {
   )
 }
 
-function StorySection({ title, filter }) {
+function StorySection({ title, filter, pin = false }) {
   const router = useRouter()
   const user = useSelector((state) => state.user.currentUser)
   const [clickedStories, setClickedStories] = useState([])
@@ -57,7 +57,9 @@ function StorySection({ title, filter }) {
   useEffect(() => {
     const fetchStories = async () => {
       try {
-        const res = await API.Story.list({ filter })
+        const params = { filter }
+        if (pin) params.pin = true
+        const res = await API.Story.list(params)
         setStoryList(res.data?.data || [])
       } catch (err) {
         console.error('Không thể lấy truyện:', err)
@@ -80,23 +82,23 @@ function StorySection({ title, filter }) {
   }, [])
 
   const handleStoryClick = (storyId) => {
-  const alreadyClicked = clickedStories.includes(storyId)
-  const story = storyList.find((s) => s._id === storyId)
+    const alreadyClicked = clickedStories.includes(storyId)
+    const story = storyList.find((s) => s._id === storyId)
 
-  
-  if (!alreadyClicked && story) {
-    
-    const relatedAds = ads.filter((ad) => ad.created_by === story.author._id  )
 
-    if (relatedAds.length > 0) {
-      const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
-      window.open(randomAd.url, '_blank')
-      setClickedStories((prev) => [...prev, storyId])
-      return
+    if (!alreadyClicked && story) {
+
+      const relatedAds = ads.filter((ad) => ad.created_by === story.author._id)
+
+      if (relatedAds.length > 0) {
+        const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
+        window.open(randomAd.url, '_blank')
+        setClickedStories((prev) => [...prev, storyId])
+        return
+      }
     }
+    router.push(`/story/${storyId}`)
   }
-  router.push(`/story/${storyId}`)
-}
 
   const handleDeleteStory = async (id) => {
     const updated = storyList.filter((s) => s._id !== id)
@@ -216,6 +218,7 @@ export default function Home() {
           {/* Cột trái: nội dung chính */}
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
+            <StorySection title="📌 Truyện nổi bật" pin />
             <StorySection title="🔥 Truyện hot" filter="popular" />
             <StorySection title="🆕 Mới cập nhật" filter="recent" />
             <StorySection title="💖 Được yêu thích nhất" filter="favorite" />

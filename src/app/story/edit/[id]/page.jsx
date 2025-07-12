@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Input, Button, Select } from 'antd'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
 
 const allGenres = [
   'Bách Hợp', 'BE', 'Bình Luận Cốt Truyện', 'Chữa Lành', 'Cổ Đại', 'Cung Đấu', 'Cưới Trước Yêu Sau',
@@ -29,8 +30,9 @@ export default function EditStoryPage() {
     coverFile: null,
     genres: [],
     isCompleted: false,
+    pin: false,
   })
-
+  const user = useSelector((state) => state.user.currentUser)
   useEffect(() => {
     if (id) fetchData(id)
   }, [id])
@@ -47,6 +49,7 @@ export default function EditStoryPage() {
           status: data.status,
           coverImage: data.coverImage,
           isCompleted: !!data.isCompleted,
+          pin: !!data.pin,
           genres: typeof data.genres === 'string' ? data.genres.split(',').map(g => g.trim()) : data.genres || [],
         }))
       }
@@ -155,7 +158,19 @@ export default function EditStoryPage() {
               Đã hoàn thành
             </label>
           </div>
-
+          {user?.role === 'admin' && (
+            <div>
+              <label className="block mb-1 font-medium">Ghim truyện (pin)</label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.pin}
+                  onChange={(e) => setForm((prev) => ({ ...prev, pin: e.target.checked }))}
+                />
+                Đánh dấu truyện là nổi bật (pin)
+              </label>
+            </div>
+          )}
           <div>
             <label className="block mb-1 font-medium">Ảnh bìa</label>
             <input
