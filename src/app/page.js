@@ -218,7 +218,7 @@ export default function Home() {
           {/* Cột trái: nội dung chính */}
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
-            <StorySection title="📌 Truyện nổi bật" pin />
+            {/* <StorySection title="📌 Truyện nổi bật" pin /> */}
             <StorySection title="🔥 Truyện hot" filter="popular" />
             <StorySection title="🆕 Mới cập nhật" filter="recent" />
             <StorySection title="💖 Được yêu thích nhất" filter="favorite" />

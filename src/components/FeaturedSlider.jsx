@@ -37,7 +37,7 @@ export default function FeaturedSlider() {
   useEffect(() => {
     const fetchFeaturedStories = async () => {
       try {
-        const res = await API.Story.list({ filter: 'featured' })
+        const res = await API.Story.list({ pin: true })
         setStories(res.data?.data || [])
       } catch (err) {
         console.error('Lỗi khi lấy featured stories:', err)
