@@ -262,7 +262,7 @@ export default function StoryReadPage() {
           {chapterAudio && (
             <div className="mb-6">
               <h3 className="text-md font-semibold mb-2">🎧 Nghe Audio</h3>
-              <audio controls className="w-full">
+              <audio controls className="w-full" key={selectedChapterId}>
                 <source src={chapterAudio} type="audio/mpeg" />
                 Trình duyệt không hỗ trợ audio.
               </audio>
