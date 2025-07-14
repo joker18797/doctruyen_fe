@@ -5,7 +5,11 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        rounded: ['"M PLUS Rounded 1c"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }
