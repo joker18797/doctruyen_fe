@@ -1,29 +1,56 @@
-// components/RankingSidebar.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import API from '@/Service/API'
 import { useRouter } from 'next/navigation'
+import clsx from 'clsx' // cài: npm install clsx
+
+const tabs = [
+  { label: 'Tuần', value: 'weekly' },
+  { label: 'Tháng', value: 'monthly' },
+  { label: 'Tất cả', value: 'top' },
+]
 
 export default function RankingSidebar() {
+  const [activeTab, setActiveTab] = useState('weekly')
   const [ranking, setRanking] = useState([])
   const router = useRouter()
 
   useEffect(() => {
     const fetchRanking = async () => {
       try {
-        const res = await API.Story.list({ filter: 'top' }) // Đảm bảo backend có filter này
+        const res = await API.Story.list({ filter: activeTab })
         setRanking(res.data?.data || [])
       } catch (err) {
         console.error('Không thể lấy bảng xếp hạng:', err)
       }
     }
     fetchRanking()
-  }, [])
+  }, [activeTab])
 
   return (
     <div className="bg-white p-4 rounded-xl shadow space-y-3">
       <h3 className="text-lg font-bold text-gray-800 mb-2">🏆 Bảng xếp hạng</h3>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-3">
+        {tabs.map(tab => (
+          <button
+            key={tab.value}
+            className={clsx(
+              'text-sm px-3 py-1 rounded-full',
+              activeTab === tab.value
+                ? 'bg-violet-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            )}
+            onClick={() => setActiveTab(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Danh sách */}
       {ranking.map((story, index) => (
         <div
           key={story._id}
@@ -38,7 +65,13 @@ export default function RankingSidebar() {
           />
           <div className="flex-1">
             <div className="font-medium text-gray-700 line-clamp-1">{story.title}</div>
-            <div className="text-xs text-gray-500">{story.totalRead || 0} lượt xem</div>
+            <div className="text-xs text-gray-500">
+              {activeTab === 'weekly'
+                ? `${story.weeklyReadCount || 0} lượt xem/tuần`
+                : activeTab === 'monthly'
+                ? `${story.monthlyReadCount || 0} lượt xem/tháng`
+                : `${story.totalRead || 0} lượt xem`}
+            </div>
           </div>
         </div>
       ))}
