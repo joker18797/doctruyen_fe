@@ -164,9 +164,23 @@ export default function StoryInfoPage() {
                                 </Select>
                             </div>
 
-                            <Button type="primary" onClick={handleRead}>
-                                📖 Đọc truyện
-                            </Button>
+                            <div className="flex items-center gap-3">
+                                <Button type="primary" onClick={handleRead}>
+                                    📖 Đọc truyện
+                                </Button>
+
+                                <Button
+                                    onClick={() => {
+                                        if (selectedChapterId !== null) {
+                                            router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
+                                        } else {
+                                            router.push(`/story/${id}/audio`)
+                                        }
+                                    }}
+                                >
+                                    🎧 Nghe audio
+                                </Button>
+                            </div>
                         </div>
                     </div>
 

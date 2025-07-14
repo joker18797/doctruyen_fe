@@ -259,7 +259,7 @@ export default function StoryReadPage() {
             </Select>
           </div>
 
-          {chapterAudio && (
+          {/* {chapterAudio && (
             <div className="mb-6">
               <h3 className="text-md font-semibold mb-2">🎧 Nghe Audio</h3>
               <audio controls className="w-full" key={selectedChapterId}>
@@ -267,8 +267,24 @@ export default function StoryReadPage() {
                 Trình duyệt không hỗ trợ audio.
               </audio>
             </div>
+          )} */}
+          {chapterAudio && (
+            <div className="mb-6">
+              <h3 className="text-md font-semibold mb-2">🎧 Nghe Audio</h3>
+              <Button
+                type="primary"
+                onClick={() => {
+                  if (ads.length > 0) {
+                    const randomAd = ads[Math.floor(Math.random() * ads.length)]
+                    window.open(randomAd.url, '_blank')
+                  }
+                  router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
+                }}
+              >
+                ▶ Nghe chương {currentIndex + 1}
+              </Button>
+            </div>
           )}
-
           <div className="mt-6 border-t pt-6">
             <ChapterNavigator position="top" />
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
