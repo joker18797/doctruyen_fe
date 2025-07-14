@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import API from '@/Service/API'
 import { useRouter } from 'next/navigation'
-import clsx from 'clsx' // cài: npm install clsx
+import clsx from 'clsx'
 
 const tabs = [
+  { label: 'Ngày', value: 'daily' },
   { label: 'Tuần', value: 'weekly' },
   { label: 'Tháng', value: 'monthly' },
-  { label: 'Tất cả', value: 'top' },
+  { label: 'Năm', value: 'yearly' },
 ]
 
 export default function RankingSidebar() {
@@ -28,12 +29,27 @@ export default function RankingSidebar() {
     fetchRanking()
   }, [activeTab])
 
+  const getViewCountText = (story) => {
+    switch (activeTab) {
+      case 'daily':
+        return `${story.dailyReadCount || 0} lượt xem/hôm nay`
+      case 'weekly':
+        return `${story.weeklyReadCount || 0} lượt xem/tuần`
+      case 'monthly':
+        return `${story.monthlyReadCount || 0} lượt xem/tháng`
+      case 'yearly':
+        return `${story.yearlyReadCount || 0} lượt xem/năm`
+      default:
+        return `${story.totalRead || 0} lượt xem`
+    }
+  }
+
   return (
     <div className="bg-white p-4 rounded-xl shadow space-y-3">
       <h3 className="text-lg font-bold text-gray-800 mb-2">🏆 Bảng xếp hạng</h3>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-3 flex-wrap">
         {tabs.map(tab => (
           <button
             key={tab.value}
@@ -50,7 +66,7 @@ export default function RankingSidebar() {
         ))}
       </div>
 
-      {/* Danh sách */}
+      {/* Danh sách xếp hạng */}
       {ranking.map((story, index) => (
         <div
           key={story._id}
@@ -65,13 +81,7 @@ export default function RankingSidebar() {
           />
           <div className="flex-1">
             <div className="font-medium text-gray-700 line-clamp-1">{story.title}</div>
-            <div className="text-xs text-gray-500">
-              {activeTab === 'weekly'
-                ? `${story.weeklyReadCount || 0} lượt xem/tuần`
-                : activeTab === 'monthly'
-                ? `${story.monthlyReadCount || 0} lượt xem/tháng`
-                : `${story.totalRead || 0} lượt xem`}
-            </div>
+            <div className="text-xs text-gray-500">{getViewCountText(story)}</div>
           </div>
         </div>
       ))}
