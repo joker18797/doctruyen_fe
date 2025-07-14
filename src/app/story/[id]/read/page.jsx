@@ -77,6 +77,7 @@ export default function StoryReadPage() {
           setChapterContent(sanitizeText(res.data?.content || ''))
           setChapterAudio(res?.data?.audio ?? '')
 
+          // 🔓 Lưu chương đã mở
           setUnlockedChapters((prev) => {
             if (!prev.includes(selectedChapterId)) {
               const updated = [...prev, selectedChapterId]
@@ -85,6 +86,17 @@ export default function StoryReadPage() {
             }
             return prev
           })
+
+          // 📢 Hiển thị quảng cáo nếu gần cuối
+          const currentIndex = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
+          const isNearEnd = story && currentIndex === story.chapters.length - 2
+          const hasShownAdKey = `hasShownAd_read_${id}_${selectedChapterId}`
+
+          if (isNearEnd && ads.length > 0 && !localStorage.getItem(hasShownAdKey)) {
+            const randomAd = ads[Math.floor(Math.random() * ads.length)]
+            window.open(randomAd.url, '_blank')
+            localStorage.setItem(hasShownAdKey, 'true')
+          }
         }
       } catch (err) {
         console.error('Lỗi tải chương:', err)
@@ -92,7 +104,7 @@ export default function StoryReadPage() {
     }
 
     fetchChapter()
-  }, [selectedChapterId])
+  }, [selectedChapterId, story, ads])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -301,9 +313,8 @@ export default function StoryReadPage() {
 
         {hasLockedChapters && (
           <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
-            <h3 className="text-xl font-bold mb-2 text-orange-800">🔒 Một số chương đã bị khóa</h3>
             <p className="text-base text-gray-700">
-              Vui lòng click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục đọc truyện.
+             Mời đọc giả click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục đọc truyện.
             </p>
             <p className="text-sm mt-2 text-gray-500 italic">(*) Bạn có thể được yêu cầu xem quảng cáo để mở khóa.</p>
           </div>
