@@ -9,7 +9,7 @@ import { UserOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Avatar } from 'antd'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
-
+import Head from 'next/head'
 const { Option } = Select
 const { TextArea } = Input
 
@@ -103,6 +103,13 @@ export default function StoryInfoPage() {
 
     return (
         <div>
+            <Head>
+                <title>{story?.title || 'Chi tiết truyện'}</title>
+                <meta name="description" content={story?.description?.slice(0, 150) || 'Thông tin chi tiết về truyện'} />
+                <meta property="og:title" content={story?.title} />
+                <meta property="og:description" content={story?.description?.slice(0, 150)} />
+                <meta property="og:image" content={story?.coverImage} />
+            </Head>
             <LayoutHeader />
             <div className="min-h-screen bg-gray-50 py-10 px-4">
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
