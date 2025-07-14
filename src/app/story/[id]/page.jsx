@@ -106,9 +106,19 @@ export default function StoryInfoPage() {
             <Head>
                 <title>{story?.title || 'Chi tiết truyện'}</title>
                 <meta name="description" content={story?.description?.slice(0, 150) || 'Thông tin chi tiết về truyện'} />
+
+                {/* Open Graph for Facebook */}
                 <meta property="og:title" content={story?.title} />
                 <meta property="og:description" content={story?.description?.slice(0, 150)} />
                 <meta property="og:image" content={story?.coverImage} />
+                <meta property="og:type" content="article" />
+                <meta property="og:url" content={`https://yourdomain.com/story/${id}`} />
+
+                {/* Twitter Card */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={story?.title} />
+                <meta name="twitter:description" content={story?.description?.slice(0, 150)} />
+                <meta name="twitter:image" content={story?.coverImage} />
             </Head>
             <LayoutHeader />
             <div className="min-h-screen bg-gray-50 py-10 px-4">
