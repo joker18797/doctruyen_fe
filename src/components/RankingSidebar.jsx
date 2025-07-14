@@ -32,13 +32,13 @@ export default function RankingSidebar() {
   const getViewCountText = (story) => {
     switch (activeTab) {
       case 'daily':
-        return `${story.dailyReadCount || 0} lượt xem/hôm nay`
+        return `${story.dailyReadCount || 0} lượt xem`
       case 'weekly':
-        return `${story.weeklyReadCount || 0} lượt xem/tuần`
+        return `${story.weeklyReadCount || 0} lượt xem`
       case 'monthly':
-        return `${story.monthlyReadCount || 0} lượt xem/tháng`
+        return `${story.monthlyReadCount || 0} lượt xem`
       case 'yearly':
-        return `${story.yearlyReadCount || 0} lượt xem/năm`
+        return `${story.yearlyReadCount || 0} lượt xem`
       default:
         return `${story.totalRead || 0} lượt xem`
     }
