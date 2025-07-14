@@ -169,17 +169,20 @@ export default function StoryInfoPage() {
                                     📖 Đọc truyện
                                 </Button>
 
-                                <Button
-                                    onClick={() => {
-                                        if (selectedChapterId !== null) {
-                                            router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
-                                        } else {
-                                            router.push(`/story/${id}/audio`)
-                                        }
-                                    }}
-                                >
-                                    🎧 Nghe audio
-                                </Button>
+                                {story.hasAudio && (
+                                    <Button
+                                        type="default"
+                                        onClick={() => {
+                                            if (selectedChapterId !== null) {
+                                                router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
+                                            } else {
+                                                router.push(`/story/${id}/audio`)
+                                            }
+                                        }}
+                                    >
+                                        🎧 Nghe audio
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
