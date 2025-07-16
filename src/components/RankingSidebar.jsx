@@ -13,7 +13,7 @@ const tabs = [
 ]
 
 export default function RankingSidebar() {
-  const [activeTab, setActiveTab] = useState('weekly')
+  const [activeTab, setActiveTab] = useState('daily')
   const [ranking, setRanking] = useState([])
   const router = useRouter()
 
