@@ -149,7 +149,10 @@ export default function StoryInfoPage() {
                                     ✅ Truyện đã hoàn thành
                                 </p>
                             )}
-                            <div className="flex items-center gap-2 mb-2">
+                            <div
+                                className="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80"
+                                onClick={() => router.push(`/author/${story.author._id}`)}
+                            >
                                 <img
                                     src={story?.author?.avatar}
                                     alt="Avatar tác giả"
