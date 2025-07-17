@@ -10,30 +10,28 @@ import { toast } from 'react-toastify'
 
 const pageSize = 10
 
-export default function AuthorStoriesSection({ authorId }) {
+export const AuthorStoriesSection = ({ authorId }) => {
   const router = useRouter()
   const user = useSelector((state) => state.user.currentUser)
-  const [stories, setStories] = useState([])
-  const [total, setTotal] = useState(0)
+  const [allStories, setAllStories] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
-  const fetchStories = async (page = 1) => {
+  // Gọi API 1 lần lấy tất cả truyện
+  const fetchStories = async () => {
     try {
       const res = await API.Story.list({
         author: authorId,
-        page,
-        limit: pageSize,
+        limit: 1000, // Số lớn để lấy gần như toàn bộ
       })
-      setStories(res.data.data)
-      setTotal(res.data.pagination.total)
+      setAllStories(res.data.data || [])
     } catch (err) {
       console.error('Lỗi khi lấy truyện tác giả:', err)
     }
   }
 
   useEffect(() => {
-    if (authorId) fetchStories(currentPage)
-  }, [authorId, currentPage])
+    if (authorId) fetchStories()
+  }, [authorId])
 
   const handleClickStory = (storyId) => {
     router.push(`/story/${storyId}`)
@@ -43,20 +41,24 @@ export default function AuthorStoriesSection({ authorId }) {
     try {
       await API.Story.delete(id)
       toast.success('Đã xóa truyện!')
-      const newPage = (currentPage - 1) * pageSize >= total - 1 ? currentPage - 1 : currentPage
-      setCurrentPage(Math.max(newPage, 1))
-      fetchStories(newPage)
+      const newList = allStories.filter((story) => story._id !== id)
+      setAllStories(newList)
+      const maxPage = Math.ceil(newList.length / pageSize)
+      setCurrentPage((prev) => Math.min(prev, maxPage))
     } catch (err) {
       toast.error('Không thể xóa truyện')
     }
   }
+
+  // Cắt dữ liệu theo trang hiện tại
+  const pagedStories = allStories.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   return (
     <div className="mt-10">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">📚 Truyện của tác giả</h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6">
-        {stories.map((story) => (
+        {pagedStories.map((story) => (
           <div
             key={story._id}
             className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
@@ -100,12 +102,12 @@ export default function AuthorStoriesSection({ authorId }) {
         ))}
       </div>
 
-      {total > pageSize && (
+      {allStories.length > pageSize && (
         <div className="mt-6 text-center">
           <Pagination
             current={currentPage}
             pageSize={pageSize}
-            total={total}
+            total={allStories.length}
             onChange={(page) => setCurrentPage(page)}
             showSizeChanger={false}
           />
