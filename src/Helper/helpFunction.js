@@ -149,9 +149,15 @@ export function slugify(string) {
 }
 
 export function getUrlDevLinkV3(type) {
-  let URL_GET_FROM_ENV = "";
-  if (type === "api_gw") { URL_GET_FROM_ENV = process?.env?.NEXT_PUBLIC_URL_API; }
-  return URL_GET_FROM_ENV;
+  if (type === 'api_gw') {
+    return ''; // ✅ Dùng rewrite proxy từ Next.js
+  }
+
+  // Nếu có các loại khác thì vẫn giữ nguyên
+  if (process.env.NODE_ENV === 'development') {
+    return process?.env?.NEXT_PUBLIC_URL_API; 
+  }
+  return 'https://doctruyen-be-yn10.onrender.com'; // fallback production (nếu không rewrite)
 }
 
 
