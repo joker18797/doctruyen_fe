@@ -119,7 +119,7 @@ export default function StoryAudioPage() {
               disabled={currentIndex >= story?.chapters.length - 1}
               onClick={() => handleChangeChapter(1)}
             >
-              {hasLockedChapters ? '👉 Click để hiển thị' : 'Chương sau ▶' }
+              {hasLockedChapters ? '👉 Click để hiển thị' : 'Chương sau ▶'}
             </Button>
           </div>
 

@@ -1,17 +1,18 @@
-'use client'
+"use client"
 
-import { Button, Popconfirm, message, Pagination } from 'antd'
-import Link from 'next/link'
-import LayoutHeader from '@/components/LayoutHeader'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import Footer from '@/components/Footer'
-import { useSelector } from 'react-redux'
-import API from '@/Service/API'
-import { toast } from 'react-toastify'
-import FeaturedSlider from '@/components/FeaturedSlider'
-import { EyeOutlined } from '@ant-design/icons'
-import RankingSidebar from '@/components/RankingSidebar'
+import { Button, Popconfirm, Pagination } from "antd"
+import Link from "next/link"
+import LayoutHeader from "@/components/LayoutHeader"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import Footer from "@/components/Footer"
+import { useSelector } from "react-redux"
+import API from "@/Service/API"
+import { toast } from "react-toastify"
+import FeaturedSlider from "@/components/FeaturedSlider"
+import { EyeOutlined } from "@ant-design/icons"
+import RankingSidebar from "@/components/RankingSidebar"
+
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
 
@@ -23,7 +24,7 @@ function RandomBanner() {
         const random = banners[Math.floor(Math.random() * banners.length)]
         setBanner(random)
       } catch (err) {
-        console.error('Không thể lấy banner:', err)
+        console.error("Không thể lấy banner:", err)
       }
     }
     fetchBanner()
@@ -38,6 +39,7 @@ function RandomBanner() {
           src={banner.image}
           alt="banner quảng cáo"
           className="w-full max-h-60 object-cover rounded-lg shadow"
+          loading="lazy"
         />
       </a>
     </div>
@@ -62,11 +64,11 @@ function StorySection({ title, filter, pin = false }) {
         const res = await API.Story.list(params)
         setStoryList(res.data?.data || [])
       } catch (err) {
-        console.error('Không thể lấy truyện:', err)
+        console.error("Không thể lấy truyện:", err)
       }
     }
     fetchStories()
-  }, [filter])
+  }, [filter, pin])
 
   useEffect(() => {
     const fetchAds = async () => {
@@ -75,7 +77,7 @@ function StorySection({ title, filter, pin = false }) {
         const activeAds = (res.data || []).filter((ad) => ad.active)
         setAds(activeAds)
       } catch (err) {
-        console.error('Không thể lấy ads:', err)
+        console.error("Không thể lấy ads:", err)
       }
     }
     fetchAds()
@@ -85,14 +87,11 @@ function StorySection({ title, filter, pin = false }) {
     const alreadyClicked = clickedStories.includes(storyId)
     const story = storyList.find((s) => s._id === storyId)
 
-
     if (!alreadyClicked && story) {
-
       const relatedAds = ads.filter((ad) => ad.created_by === story.author._id)
-
       if (relatedAds.length > 0) {
         const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
-        window.open(randomAd.url, '_blank')
+        window.open(randomAd.url, "_blank")
         setClickedStories((prev) => [...prev, storyId])
         return
       }
@@ -101,12 +100,16 @@ function StorySection({ title, filter, pin = false }) {
   }
 
   const handleDeleteStory = async (id) => {
-    const updated = storyList.filter((s) => s._id !== id)
-    await API.Story.delete(id)
-    setStoryList(updated)
-    toast.success('Đã xóa truyện!')
-    if ((currentPage - 1) * pageSize >= updated.length) {
-      setCurrentPage(Math.max(1, currentPage - 1))
+    try {
+      await API.Story.delete(id)
+      const updated = storyList.filter((s) => s._id !== id)
+      setStoryList(updated)
+      toast.success("Đã xóa truyện!")
+      if ((currentPage - 1) * pageSize >= updated.length) {
+        setCurrentPage(Math.max(1, currentPage - 1))
+      }
+    } catch (err) {
+      toast.error("Xóa thất bại!")
     }
   }
 
@@ -115,7 +118,6 @@ function StorySection({ title, filter, pin = false }) {
   return (
     <div className="mt-10">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
-
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6">
         {currentStories.map((story) => (
           <div
@@ -128,6 +130,7 @@ function StorySection({ title, filter, pin = false }) {
                 src={story.coverImage}
                 alt={story.title}
                 className="w-full h-52 object-cover"
+                loading="lazy"
               />
               {story.isCompleted && (
                 <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded shadow">
@@ -138,50 +141,18 @@ function StorySection({ title, filter, pin = false }) {
                 <EyeOutlined /> {story.totalRead || 0}
               </span>
             </div>
-
-            <div className="p-4 flex flex-col justify-between ">
-              <div>
-                <h2 className="text-[16px] font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
-                {/* <p className="text-sm text-gray-600 mt-1 line-clamp-2">{story.description}</p> */}
-                {/* {story.genres?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {story.genres.slice(0, 4).map((genre) => (
-                      <span
-                        key={genre}
-                        className="bg-violet-100 text-violet-600 text-xs px-2 py-0.5 rounded-full"
-                      >
-                        {genre}
-                      </span>
-                    ))}
-                    {story.genres.length > 4 && (
-                      <span className="text-xs text-gray-400">+{story.genres.length - 4}</span>
-                    )}
-                  </div>
-                )} */}
-              </div>
-
+            <div className="p-4">
+              <h2 className="text-[16px] font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
             </div>
-
-            {user?.role === 'admin' && (
-              <div
-                className="absolute top-2 right-2 z-10"
-                onClick={(e) => e.stopPropagation()}
-              >
+            {user?.role === "admin" && (
+              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                 <Popconfirm
                   title="Bạn có chắc muốn xóa truyện này?"
                   okText="Xóa"
                   cancelText="Hủy"
                   onConfirm={() => handleDeleteStory(story._id)}
-                  onCancel={(e) => e?.stopPropagation()}
                 >
-                  <Button
-                    danger
-                    size="small"
-                    className="absolute top-2 right-2 z-10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
+                  <Button danger size="small" onClick={(e) => e.stopPropagation()}>
                     Xóa
                   </Button>
                 </Popconfirm>
@@ -213,18 +184,13 @@ export default function Home() {
       <div className="p-6 max-w-[1400px] mx-auto">
         <FeaturedSlider />
         <RandomBanner />
-
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Cột trái: nội dung chính */}
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
-            {/* <StorySection title="📌 Truyện nổi bật" pin /> */}
             <StorySection title="🔥 Truyện hot" filter="popular" />
             <StorySection title="🆕 Mới cập nhật" filter="recent" />
             <StorySection title="💖 Được yêu thích nhất" filter="favorite" />
           </div>
-
-          {/* Cột phải: bảng xếp hạng */}
           <div className="w-full lg:w-[300px] shrink-0">
             <RankingSidebar />
           </div>
