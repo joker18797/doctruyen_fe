@@ -74,7 +74,7 @@ function StorySection({ title, filter, pin = false }) {
     const fetchAds = async () => {
       try {
         const res = await API.AdminAds.list()
-        const activeAds = (res.data || []).filter((ad) => ad.active)
+        const activeAds = (res.data || [])?.filter((ad) => ad.active)
         setAds(activeAds)
       } catch (err) {
         console.error("Không thể lấy ads:", err)
