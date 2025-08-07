@@ -1,5 +1,4 @@
 'use client'
-
 import { Button, Modal, Pagination } from 'antd'
 import Link from 'next/link'
 import { useSelector } from 'react-redux'
@@ -12,15 +11,17 @@ export default function MyStoriesPage() {
     const user = useSelector((state) => state.user.currentUser)
 
     const [stories, setStories] = useState([])
-    const MyPage = localStorage.getItem('Page-My-Story')
-
-    const [pagination, setPagination] = useState({ page: MyPage, limit: 9, total: 0 })
+    const [pagination, setPagination] = useState({ page: 1, limit: 9, total: 0 })
 
     useEffect(() => {
-        if (MyPage && MyPage?.toString() !== pagination?.page?.toString()) {
-            setPagination((prev) => ({ ...prev, page: MyPage }))
+        if (typeof window !== 'undefined') {
+            const MyPage = localStorage.getItem('Page-My-Story')
+            if (MyPage) {
+                setPagination((prev) => ({ ...prev, page: Number(MyPage) }))
+            }
         }
-    }, [MyPage])
+    }, [])
+
     const fetchStories = async () => {
         try {
             const res = await API.Story.myStory({
@@ -46,7 +47,9 @@ export default function MyStoriesPage() {
     }, [user, pagination.page])
 
     const handlePageChange = (page) => {
-        localStorage.setItem('Page-My-Story', page)
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('Page-My-Story', page)
+        }
         setPagination((prev) => ({ ...prev, page }))
     }
 
@@ -66,10 +69,6 @@ export default function MyStoriesPage() {
             toast.error('Lỗi khi xóa truyện!')
         }
     }
-
-    //   if (!user) {
-    //     return <div className="text-center py-20 text-gray-500">Bạn cần đăng nhập để xem truyện của mình.</div>
-    //   }
 
     return (
         <div>
@@ -98,7 +97,6 @@ export default function MyStoriesPage() {
                                         <div className="p-4">
                                             <h2 className="text-lg font-semibold text-gray-800 mb-2">{story.title}</h2>
                                             <p className="text-sm text-gray-600 mb-2">👁️ {story.totalRead ?? 0} lượt đọc</p>
-
                                             <p className="text-sm text-gray-500 mb-3">
                                                 {story.status === 'published' ? 'Đã xuất bản' : 'Nháp'}
                                             </p>
