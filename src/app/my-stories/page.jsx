@@ -12,8 +12,15 @@ export default function MyStoriesPage() {
     const user = useSelector((state) => state.user.currentUser)
 
     const [stories, setStories] = useState([])
-    const [pagination, setPagination] = useState({ page: 1, limit: 9, total: 0 })
+    const MyPage = localStorage.getItem('Page-My-Story')
 
+    const [pagination, setPagination] = useState({ page: MyPage, limit: 9, total: 0 })
+
+    useEffect(() => {
+        if (MyPage && MyPage?.toString() !== pagination?.page?.toString()) {
+            setPagination((prev) => ({ ...prev, page: MyPage }))
+        }
+    }, [MyPage])
     const fetchStories = async () => {
         try {
             const res = await API.Story.myStory({
@@ -39,6 +46,7 @@ export default function MyStoriesPage() {
     }, [user, pagination.page])
 
     const handlePageChange = (page) => {
+        localStorage.setItem('Page-My-Story', page)
         setPagination((prev) => ({ ...prev, page }))
     }
 
@@ -83,7 +91,7 @@ export default function MyStoriesPage() {
                                 {stories.map((story) => (
                                     <div key={story._id} className="bg-white rounded-xl shadow hover:shadow-md transition">
                                         <img
-                                            src={ story.coverImage}
+                                            src={story.coverImage}
                                             alt={story.title}
                                             className="w-full h-48 object-cover rounded-t-xl"
                                         />
