@@ -1,5 +1,5 @@
 'use client'
-import { Button, Modal, Pagination } from 'antd'
+import { Button, Pagination } from 'antd'
 import Link from 'next/link'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
@@ -10,15 +10,15 @@ import { toast } from 'react-toastify'
 export default function MyStoriesPage() {
     const user = useSelector((state) => state.user.currentUser)
 
+    const [isClient, setIsClient] = useState(false)
     const [stories, setStories] = useState([])
     const [pagination, setPagination] = useState({ page: 1, limit: 9, total: 0 })
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const MyPage = localStorage.getItem('Page-My-Story')
-            if (MyPage) {
-                setPagination((prev) => ({ ...prev, page: Number(MyPage) }))
-            }
+            const MyPage = Number(localStorage.getItem('Page-My-Story')) || 1
+            setPagination((prev) => ({ ...prev, page: MyPage }))
+            setIsClient(true)
         }
     }, [])
 
@@ -43,8 +43,8 @@ export default function MyStoriesPage() {
     }
 
     useEffect(() => {
-        if (user) fetchStories()
-    }, [user, pagination.page])
+        if (user && isClient) fetchStories()
+    }, [user, pagination.page, isClient])
 
     const handlePageChange = (page) => {
         if (typeof window !== 'undefined') {
@@ -54,7 +54,7 @@ export default function MyStoriesPage() {
     }
 
     const handleDelete = async (id) => {
-        const confirmed = window.confirm('Bạn có chắc muốn xóa truyện này? Hành động này không thể hoàn tác.')
+        const confirmed = window.confirm('Bạn có chắc muốn xóa truyện này?')
         if (!confirmed) return
 
         try {
@@ -69,6 +69,8 @@ export default function MyStoriesPage() {
             toast.error('Lỗi khi xóa truyện!')
         }
     }
+
+    if (!isClient) return null // ⛔ Đợi tới khi client render mới tiếp tục
 
     return (
         <div>
