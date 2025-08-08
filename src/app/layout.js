@@ -5,6 +5,7 @@ import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
+import Head from 'next/head';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,7 +37,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="vi">
-      
+      <Head>
+        <meta name="google-adsense-account" content="ca-pub-4321788066240073" />
+      </Head>
       <body>
       <ToastContainer />
         <Providers>{children}</Providers>
