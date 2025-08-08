@@ -6,6 +6,7 @@ import { ToastContainer } from 'react-toastify';
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
 import Head from 'next/head';
+import Script from 'next/script';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,14 +38,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="vi">
-      <Head>
-        <script
+      <body>
+        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4321788066240073"
-          crossorigin="anonymous"
-        ></script>
-      </Head>
-      <body>
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>
