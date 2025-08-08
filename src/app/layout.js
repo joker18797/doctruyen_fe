@@ -38,11 +38,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="vi">
       <Head>
-        <meta name="google-adsense-account" content="ca-pub-4321788066240073" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4321788066240073"
-          crossOrigin="anonymous"
+          crossorigin="anonymous"
         ></script>
       </Head>
       <body>
