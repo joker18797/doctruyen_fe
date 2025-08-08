@@ -39,12 +39,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="vi">
       <body>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4321788066240073"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-        />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4321788066240073"
+          crossorigin="anonymous"></script>
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>
