@@ -6,6 +6,7 @@ import { Input, Button, Select } from 'antd'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
+import LayoutHeader from '@/components/LayoutHeader'
 
 const allGenres = [
   'Bách Hợp', 'BE', 'Bình Luận Cốt Truyện', 'Chữa Lành', 'Cổ Đại', 'Cung Đấu', 'Cưới Trước Yêu Sau',
@@ -32,6 +33,8 @@ export default function EditStoryPage() {
     isCompleted: false,
     pin: false,
   })
+  const [loading, setLoading] = useState(false)
+
   const user = useSelector((state) => state.user.currentUser)
   useEffect(() => {
     if (id) fetchData(id)
@@ -50,7 +53,7 @@ export default function EditStoryPage() {
           coverImage: data.coverImage,
           isCompleted: !!data.isCompleted,
           pin: !!data.pin,
-          genres: typeof data.genres === 'string' ? data.genres.split(',').map(g => g.trim()) : data.genres || [],
+          genres: data.genres || [],
         }))
       }
     } catch (err) {
@@ -65,7 +68,7 @@ export default function EditStoryPage() {
 
   const handleSubmit = async () => {
     if (!form.title) return toast.error('Vui lòng nhập tiêu đề')
-
+    setLoading(true)
     const formData = new FormData()
     formData.append('title', form.title)
     formData.append('description', form.description)
@@ -85,117 +88,131 @@ export default function EditStoryPage() {
       }
     } catch (err) {
       toast.error('Lỗi khi cập nhật truyện')
+    } finally {
+      setLoading(false) // tắt loading
     }
   }
 
+  const columns = 2 // số cột trong cột phải
+  const itemsPerColumn = Math.ceil(allGenres.length / columns)
+  const categoryColumns = Array.from({ length: columns }, (_, i) =>
+    allGenres.slice(i * itemsPerColumn, (i + 1) * itemsPerColumn)
+  )
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">✏️ Chỉnh sửa truyện</h1>
+    <div>
+      <LayoutHeader />
+      <div className="min-h-screen bg-gray-50 py-10 px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-6 text-gray-800">📝 Đăng truyện mới</h1>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block mb-1 font-medium">Tiêu đề</label>
-            <Input name="title" value={form.title} onChange={handleChange} placeholder="Nhập tiêu đề" />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Cột trái: Nội dung chính */}
+            <div className="lg:col-span-3 space-y-5">
+              <div>
+                <label className="block mb-1 font-medium">Tiêu đề</label>
+                <Input name="title" value={form.title} onChange={handleChange} placeholder="Nhập tiêu đề" />
+              </div>
 
-          <div>
-            <label className="block mb-1 font-medium">Mô tả</label>
-            <Input.TextArea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Nhập mô tả"
-            />
-          </div>
+              <div>
+                <label className="block mb-1 font-medium">Mô tả</label>
+                <Input.TextArea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Nhập mô tả"
+                />
+              </div>
 
-          <div>
-            <label className="block mb-1 font-medium">Trạng thái</label>
-            <Select
-              value={form.status}
-              onChange={(value) => setForm((prev) => ({ ...prev, status: value }))}
-              className="w-40"
-            >
-              <Select.Option value="published">Xuất bản</Select.Option>
-              <Select.Option value="draft">Nháp</Select.Option>
-            </Select>
-          </div>
+              <div>
+                <label className="block mb-1 font-medium">Trạng thái</label>
+                <Select
+                  value={form.status}
+                  onChange={(value) => setForm((prev) => ({ ...prev, status: value }))}
+                  className="w-40"
+                >
+                  <Select.Option value="published">Xuất bản</Select.Option>
+                  <Select.Option value="draft">Nháp</Select.Option>
+                </Select>
+              </div>
 
-          <div>
-            <label className="block mb-1 font-medium">Thể loại</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto border p-3 rounded bg-white">
-              {allGenres.map((genre) => (
-                <label key={genre} className="flex items-center gap-2 text-sm">
+              <div>
+                <label className="block mb-1 font-medium">Trạng thái hoàn thành</label>
+                <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
-                    checked={form.genres.includes(genre)}
-                    onChange={(e) => {
-                      const checked = e.target.checked
+                    checked={form.isCompleted}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, isCompleted: e.target.checked }))
+                    }
+                  />
+                  Đã hoàn thành
+                </label>
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">Ảnh bìa</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  name="cover"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
                       setForm((prev) => ({
                         ...prev,
-                        genres: checked
-                          ? [...prev.genres, genre]
-                          : prev.genres.filter((g) => g !== genre),
+                        coverFile: file,
                       }))
-                    }}
-                  />
-                  {genre}
-                </label>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-1">{form.genres.length} thể loại đã chọn</p>
-          </div>
-          <div>
-            <label className="block mb-1 font-medium">Trạng thái hoàn thành</label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.isCompleted}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, isCompleted: e.target.checked }))
-                }
-              />
-              Đã hoàn thành
-            </label>
-          </div>
-          {user?.role === 'admin' && (
-            <div>
-              <label className="block mb-1 font-medium">Ghim truyện (pin)</label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.pin}
-                  onChange={(e) => setForm((prev) => ({ ...prev, pin: e.target.checked }))}
+                    }
+                  }}
+                  className="w-full text-sm text-[black] border rounded p-2"
                 />
-                Đánh dấu truyện là nổi bật (pin)
-              </label>
-            </div>
-          )}
-          <div>
-            <label className="block mb-1 font-medium">Ảnh bìa</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  setForm((prev) => ({
-                    ...prev,
-                    coverFile: file,
-                    coverImage: URL.createObjectURL(file),
-                  }))
-                }
-              }}
-              className="w-full text-sm text-[black]"
-            />
-            {form.coverImage && <img src={form.coverImage} alt="preview" className="mt-3 h-40 rounded" />}
-          </div>
+                {form.coverFile && (
+                  <img
+                    src={URL.createObjectURL(form.coverFile)}
+                    alt="preview"
+                    className="mt-3 h-40 rounded"
+                  />
+                )}
+              </div>
 
-          <div>
-            <Button type="primary" onClick={handleSubmit}>
-              Lưu thay đổi
-            </Button>
+              <div>
+                <Button type="primary" onClick={handleSubmit}>
+                  {loading ? 'Đang đăng...' : 'Lưu thay đổi'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Cột phải: Thể loại */}
+            <div className="lg:col-span-2 bg-gray-50 p-4 rounded-lg shadow-sm h-fit sticky top-6">
+              <label className="block mb-2 font-medium text-gray-700">Thể loại</label>
+              <div className="grid grid-cols-2 gap-x-4 max-h-[500px] overflow-y-auto">
+                {categoryColumns.map((col, colIndex) => (
+                  <div key={colIndex} className="flex flex-col gap-2">
+                    {col.map((genre) => (
+                      <label key={genre} className="flex items-center gap-2 text-sm bg-white p-2 rounded shadow-sm hover:bg-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={form.genres.includes(genre)}
+                          onChange={(e) => {
+                            const checked = e.target.checked
+                            setForm((prev) => ({
+                              ...prev,
+                              genres: checked
+                                ? [...prev.genres, genre]
+                                : prev.genres.filter((g) => g !== genre),
+                            }))
+                          }}
+                        />
+                        {genre}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">{form.genres.length} thể loại đã chọn</p>
+            </div>
           </div>
         </div>
       </div>
