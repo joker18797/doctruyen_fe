@@ -64,8 +64,8 @@ export default function SearchPageClient() {
                   className="w-full h-40 object-cover rounded mb-3"
                   alt={story.title}
                 />
-                <h3 className="font-semibold text-lg line-clamp-2">{story.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2 mt-1">{story.description}</p>
+                <h3 className="font-semibold text-lg">{story.title}</h3>
+                <p className="text-sm text-gray-600 mt-1">{story.description}</p>
 
                 {story.genres?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">

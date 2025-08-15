@@ -70,7 +70,7 @@ export default function LayoutHeader() {
                             <img src={story.coverImage} alt="cover" className="w-10 h-14 object-cover rounded" />
                             <div>
                                 <div className="font-medium">{story.title}</div>
-                                <div className="text-xs text-gray-500 line-clamp-2">{story.description?.slice(0, 60)}...</div>
+                                <div className="text-xs text-gray-500">{story.description?.slice(0, 60)}...</div>
                             </div>
                         </div>
                     ),

@@ -81,7 +81,7 @@ export const AuthorStoriesSection = ({ authorId }) => {
             </div>
 
             <div className="p-4">
-              <h2 className="text-[16px] font-semibold text-gray-800 line-clamp-2">{story.title}</h2>
+              <h2 className="text-[16px] font-semibold text-gray-800">{story.title}</h2>
             </div>
 
             {user?.role === 'admin' && (
