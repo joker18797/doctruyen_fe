@@ -12,6 +12,7 @@ import { toast } from "react-toastify"
 import FeaturedSlider from "@/components/FeaturedSlider"
 import { EyeOutlined } from "@ant-design/icons"
 import RankingSidebar from "@/components/RankingSidebar"
+import Image from "next/image"
 
 function RandomBanner() {
   const [banner, setBanner] = useState(null)
@@ -35,10 +36,13 @@ function RandomBanner() {
   return (
     <div className="mb-6">
       <a href={banner.url} target="_blank" rel="noopener noreferrer">
-        <img
+        <Image
           src={banner.image}
           alt="banner quảng cáo"
+          width={1200}
+          height={200}
           className="w-full max-h-60 object-cover rounded-lg shadow"
+          priority={false}
           loading="lazy"
         />
       </a>
@@ -46,11 +50,10 @@ function RandomBanner() {
   )
 }
 
-function StorySection({ title, filter, pin = false }) {
+function StorySection({ title, filter, pin = false, ads }) {
   const router = useRouter()
   const user = useSelector((state) => state.user.currentUser)
   const [clickedStories, setClickedStories] = useState([])
-  const [ads, setAds] = useState([])
   const [storyList, setStoryList] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -69,19 +72,6 @@ function StorySection({ title, filter, pin = false }) {
     }
     fetchStories()
   }, [filter, pin])
-
-  useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const res = await API.AdminAds.list()
-        const activeAds = (res.data || [])?.filter((ad) => ad.active)
-        setAds(activeAds)
-      } catch (err) {
-        console.error("Không thể lấy ads:", err)
-      }
-    }
-    fetchAds()
-  }, [])
 
   const handleStoryClick = (storyId) => {
     const alreadyClicked = clickedStories.includes(storyId)
@@ -126,9 +116,11 @@ function StorySection({ title, filter, pin = false }) {
             onClick={() => handleStoryClick(story._id)}
           >
             <div className="relative">
-              <img
+              <Image
                 src={story.coverImage}
                 alt={story.title}
+                width={500}
+                height={208}   
                 className="w-full h-52 object-cover"
                 loading="lazy"
               />
@@ -178,6 +170,19 @@ function StorySection({ title, filter, pin = false }) {
 }
 
 export default function Home() {
+  const [ads, setAds] = useState([])
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const res = await API.AdminAds.list()
+        const activeAds = (res.data || [])?.filter((ad) => ad.active)
+        setAds(activeAds)
+      } catch (err) {
+        console.error("Không thể lấy ads:", err)
+      }
+    }
+    fetchAds()
+  }, [])
   return (
     <div className="min-h-screen bg-gray-100">
       <LayoutHeader />
@@ -187,9 +192,9 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">📖 Danh sách truyện</h1>
-            <StorySection title="🔥 Truyện hot" filter="popular" />
-            <StorySection title="🆕 Mới cập nhật" filter="recent" />
-            <StorySection title="💖 Được yêu thích nhất" filter="favorite" />
+            <StorySection ads={ads} title="🔥 Truyện hot" filter="popular" />
+            <StorySection ads={ads} title="🆕 Mới cập nhật" filter="recent" />
+            <StorySection ads={ads} title="💖 Được yêu thích nhất" filter="favorite" />
           </div>
           <div className="w-full lg:w-[300px] shrink-0">
             <RankingSidebar />

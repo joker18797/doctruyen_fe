@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
+import Image from 'next/image'
 import API from '@/Service/API'
 
 export default function FeaturedSlider() {
@@ -87,17 +88,20 @@ export default function FeaturedSlider() {
       <div className="relative z-20 flex flex-col lg:flex-row items-center lg:items-stretch px-4 md:px-8 py-6 gap-6 w-full">
         {/* Cột trái: Ảnh chính */}
         <div
-          className="w-full lg:w-1/2 h-[300px] md:h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 cursor-pointer"
+          className="relative w-full lg:w-1/2 h-[300px] md:h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 cursor-pointer"
           onClick={() => router.push(`/story/${currentStory._id}`)}
         >
-          <img
+          <Image
             src={currentStory.coverImage}
             alt={currentStory.title}
-            className="object-cover w-full h-full"
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
 
-        {/* Cột phải: nội dung + mini ảnh + nút */}
+        {/* Cột phải */}
         <div className="flex flex-col justify-between text-white w-full lg:w-1/2 gap-4">
           <div>
             <h2 className="text-xl md:text-3xl font-bold mb-3 italic text-center lg:text-left">
@@ -114,18 +118,24 @@ export default function FeaturedSlider() {
             ref={thumbContainerRef}
           >
             {stories.map((story, index) => (
-              <img
+              <div
                 key={story._id}
                 ref={(el) => (thumbRefs.current[index] = el)}
-                src={story.coverImage}
-                alt={story.title}
-                className={`h-16 w-24 object-cover rounded-md transition-all duration-300 cursor-pointer ${index === currentSlide ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-80'
+                className={`relative h-16 w-24 rounded-md cursor-pointer overflow-hidden transition-all duration-300 ${index === currentSlide ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-80'
                   }`}
                 onClick={() => setCurrentSlide(index)}
-              />
+              >
+                <Image
+                  src={story.coverImage}
+                  alt={story.title}
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="96px"
+                />
+              </div>
             ))}
           </div>
-
 
           {/* Nút điều hướng */}
           <div className="flex justify-center lg:justify-start gap-4 mt-4">
@@ -144,7 +154,6 @@ export default function FeaturedSlider() {
           </div>
         </div>
       </div>
-
     </div>
   )
 }

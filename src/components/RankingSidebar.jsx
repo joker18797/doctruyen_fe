@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import API from '@/Service/API'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-
+import Image from "next/image";
 const tabs = [
   { label: 'Ngày', value: 'daily' },
   { label: 'Tuần', value: 'weekly' },
@@ -74,9 +74,11 @@ export default function RankingSidebar() {
           onClick={() => router.push(`/story/${story._id}`)}
         >
           <div className="text-xl font-bold text-violet-600 w-5">{index + 1}</div>
-          <img
+          <Image
             src={story.coverImage || '/no-image.jpg'}
             alt={story.title}
+            width={48}   // bắt buộc khai báo width
+            height={64}  // bắt buộc khai báo height
             className="w-12 h-16 object-cover rounded"
           />
           <div className="flex-1">
