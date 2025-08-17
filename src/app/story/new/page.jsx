@@ -65,8 +65,6 @@ export default function NewStoryPage() {
       setLoading(false)
     }
   }
-
-  // Chia thể loại thành nhiều cột
   const columns = 2 // số cột trong cột phải
   const itemsPerColumn = Math.ceil(allGenres.length / columns)
   const categoryColumns = Array.from({ length: columns }, (_, i) =>
