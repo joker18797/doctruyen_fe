@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Popconfirm, Pagination } from "antd"
+import { Button, Popconfirm, Pagination, Spin } from "antd"
 import Link from "next/link"
 import LayoutHeader from "@/components/LayoutHeader"
 import { useRouter } from "next/navigation"
@@ -53,25 +53,34 @@ function RandomBanner() {
 function StorySection({ title, filter, pin = false, ads }) {
   const router = useRouter()
   const user = useSelector((state) => state.user.currentUser)
+
   const [clickedStories, setClickedStories] = useState([])
   const [storyList, setStoryList] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalStories, setTotalStories] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const pageSize = 10
 
-  useEffect(() => {
-    const fetchStories = async () => {
-      try {
-        const params = { filter }
-        if (pin) params.pin = true
-        const res = await API.Story.list(params)
-        setStoryList(res.data?.data || [])
-      } catch (err) {
-        console.error("Không thể lấy truyện:", err)
-      }
+  const fetchStories = async (page = 1) => {
+    try {
+      setLoading(true)
+      const params = { filter, page, limit: pageSize }
+      if (pin) params.pin = true
+
+      const res = await API.Story.list(params)
+      setStoryList(res.data?.data || [])
+      setTotalStories(res.data?.pagination?.total || 0)
+    } catch (err) {
+      console.error("Không thể lấy truyện:", err)
+    } finally {
+      setLoading(false)
     }
-    fetchStories()
-  }, [filter, pin])
+  }
+
+  useEffect(() => {
+    fetchStories(currentPage)
+  }, [filter, pin, currentPage])
 
   const handleStoryClick = (storyId) => {
     const alreadyClicked = clickedStories.includes(storyId)
@@ -92,78 +101,86 @@ function StorySection({ title, filter, pin = false, ads }) {
   const handleDeleteStory = async (id) => {
     try {
       await API.Story.delete(id)
-      const updated = storyList.filter((s) => s._id !== id)
-      setStoryList(updated)
       toast.success("Đã xóa truyện!")
-      if ((currentPage - 1) * pageSize >= updated.length) {
-        setCurrentPage(Math.max(1, currentPage - 1))
-      }
+      fetchStories(currentPage) // reload danh sách sau khi xóa
     } catch (err) {
       toast.error("Xóa thất bại!")
     }
   }
 
-  const currentStories = storyList?.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-
   return (
     <div className="mt-10">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6">
-        {currentStories.map((story) => (
-          <div
-            key={story._id}
-            className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
-            onClick={() => handleStoryClick(story._id)}
-          >
-            <div className="relative">
-              <Image
-                src={story.coverImage}
-                alt={story.title}
-                width={500}
-                height={208}   
-                className="w-full h-52 object-cover"
-                loading="lazy"
-              />
-              {story.isCompleted && (
-                <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded shadow">
-                  ✅ Hoàn thành
-                </span>
-              )}
-              <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1 px-2">
-                <EyeOutlined /> {story.totalRead || 0}
-              </span>
-            </div>
-            <div className="p-4">
-              <h2 className="text-[16px] font-semibold text-gray-800">{story.title}</h2>
-            </div>
-            {user?.role === "admin" && (
-              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-                <Popconfirm
-                  title="Bạn có chắc muốn xóa truyện này?"
-                  okText="Xóa"
-                  cancelText="Hủy"
-                  onConfirm={() => handleDeleteStory(story._id)}
-                >
-                  <Button danger size="small" onClick={(e) => e.stopPropagation()}>
-                    Xóa
-                  </Button>
-                </Popconfirm>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      {storyList.length > pageSize && (
-        <div className="mt-6 text-center">
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={storyList.length}
-            onChange={(page) => setCurrentPage(page)}
-            showSizeChanger={false}
-          />
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Spin size="large" />
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6">
+            {storyList.map((story) => (
+              <div
+                key={story._id}
+                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
+                onClick={() => handleStoryClick(story._id)}
+              >
+                <div className="relative">
+                  <Image
+                    src={story.coverImage}
+                    alt={story.title}
+                    width={500}
+                    height={208}
+                    className="w-full h-52 object-cover"
+                    loading="lazy"
+                  />
+                  {story.isCompleted && (
+                    <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded shadow">
+                      ✅ Hoàn thành
+                    </span>
+                  )}
+                  <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
+                    <EyeOutlined /> {story.totalRead || 0}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h2 className="text-[16px] font-semibold text-gray-800">
+                    {story.title}
+                  </h2>
+                </div>
+                {user?.role === "admin" && (
+                  <div
+                    className="absolute top-2 right-2 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Popconfirm
+                      title="Bạn có chắc muốn xóa truyện này?"
+                      okText="Xóa"
+                      cancelText="Hủy"
+                      onConfirm={() => handleDeleteStory(story._id)}
+                    >
+                      <Button danger size="small" onClick={(e) => e.stopPropagation()}>
+                        Xóa
+                      </Button>
+                    </Popconfirm>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {totalStories > pageSize && (
+            <div className="mt-6 text-center">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={totalStories}
+                onChange={(page) => setCurrentPage(page)}
+                showSizeChanger={false}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   )

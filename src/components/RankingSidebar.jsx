@@ -5,6 +5,8 @@ import API from '@/Service/API'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import Image from "next/image";
+import { Spin } from 'antd'
+
 const tabs = [
   { label: 'Ngày', value: 'daily' },
   { label: 'Tuần', value: 'weekly' },
@@ -15,15 +17,19 @@ const tabs = [
 export default function RankingSidebar() {
   const [activeTab, setActiveTab] = useState('daily')
   const [ranking, setRanking] = useState([])
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const fetchRanking = async () => {
       try {
+        setLoading(true)
         const res = await API.Story.list({ filter: activeTab })
         setRanking(res.data?.data || [])
       } catch (err) {
         console.error('Không thể lấy bảng xếp hạng:', err)
+      } finally {
+        setLoading(false)
       }
     }
     fetchRanking()
@@ -66,27 +72,36 @@ export default function RankingSidebar() {
         ))}
       </div>
 
-      {/* Danh sách xếp hạng */}
-      {ranking.map((story, index) => (
-        <div
-          key={story._id}
-          className="flex items-start gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
-          onClick={() => router.push(`/story/${story._id}`)}
-        >
-          <div className="text-xl font-bold text-violet-600 w-5">{index + 1}</div>
-          <Image
-            src={story.coverImage || '/no-image.jpg'}
-            alt={story.title}
-            width={48}   // bắt buộc khai báo width
-            height={64}  // bắt buộc khai báo height
-            className="w-12 h-16 object-cover rounded"
-          />
-          <div className="flex-1">
-            <div className="font-medium text-gray-700 line-clamp-1">{story.title}</div>
-            <div className="text-xs text-gray-500">{getViewCountText(story)}</div>
-          </div>
+      {/* Loading */}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Spin size="large" />
         </div>
-      ))}
+      ) : (
+        <>
+          {/* Danh sách xếp hạng */}
+          {ranking.map((story, index) => (
+            <div
+              key={story._id}
+              className="flex items-start gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+              onClick={() => router.push(`/story/${story._id}`)}
+            >
+              <div className="text-xl font-bold text-violet-600 w-5">{index + 1}</div>
+              <Image
+                src={story.coverImage || '/no-image.jpg'}
+                alt={story.title}
+                width={48}
+                height={64}
+                className="w-12 h-16 object-cover rounded"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-gray-700 line-clamp-1">{story.title}</div>
+                <div className="text-xs text-gray-500">{getViewCountText(story)}</div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   )
 }
