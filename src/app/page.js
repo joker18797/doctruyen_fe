@@ -87,7 +87,7 @@ function StorySection({ title, filter, pin = false, ads }) {
     const story = storyList.find((s) => s._id === storyId)
 
     if (!alreadyClicked && story) {
-      const relatedAds = ads.filter((ad) => ad.created_by === story.author._id)
+      const relatedAds = ads
       if (relatedAds.length > 0) {
         const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
         window.open(randomAd.url, "_blank")
