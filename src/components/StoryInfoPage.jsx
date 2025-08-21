@@ -155,7 +155,13 @@ export default function StoryInfoPage() {
                             </div>
 
                             <p className="text-gray-600 mb-4">Tổng số chương: {story.chapters?.length || 0}</p>
-
+                            <p className="text-gray-600 mb-4">
+                                Lượt xem: {Number(story.totalRead).toLocaleString("en-US")}
+                            </p>
+                            {story?.authorName &&
+                             <p className="text-gray-600 mb-4">
+                                Tác giả: {story?.authorName}
+                            </p>}
                             <Select
                                 showSearch
                                 placeholder="Chọn chương để đọc"

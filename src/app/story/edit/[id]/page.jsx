@@ -32,6 +32,7 @@ export default function EditStoryPage() {
     genres: [],
     isCompleted: false,
     pin: false,
+    authorName: ''
   })
   const [loading, setLoading] = useState(false)
 
@@ -49,6 +50,7 @@ export default function EditStoryPage() {
           ...prev,
           title: data.title,
           description: data.description,
+          authorName: data.authorName,
           status: data.status,
           coverImage: data.coverImage,
           isCompleted: !!data.isCompleted,
@@ -76,6 +78,7 @@ export default function EditStoryPage() {
     formData.append('genres', form.genres.join(','))
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
     formData.append('pin', form.pin ? 'true' : 'false')
+    formData.append('authorName', form.authorName)
     if (form.coverFile) {
       formData.append('coverImage', form.coverFile)
     }
@@ -124,7 +127,10 @@ export default function EditStoryPage() {
                   placeholder="Nhập mô tả"
                 />
               </div>
-
+              <div>
+                <label className="block mb-1 font-medium">Tác giả</label>
+                <Input name="authorName" value={form.authorName} onChange={handleChange} placeholder="Nhập tên tác giả" />
+              </div>
               <div>
                 <label className="block mb-1 font-medium">Trạng thái</label>
                 <Select

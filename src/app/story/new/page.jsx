@@ -24,6 +24,7 @@ export default function NewStoryPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
+    authorName: '',
     status: 'draft',
     coverFile: null,
     genres: [],
@@ -47,6 +48,7 @@ export default function NewStoryPage() {
     formData.append('description', form.description)
     formData.append('status', form.status)
     formData.append('coverImage', form.coverFile)
+    formData.append('authorName', form.authorName)
     formData.append('genres', form.genres)
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
 
@@ -96,7 +98,10 @@ export default function NewStoryPage() {
                   placeholder="Nhập mô tả"
                 />
               </div>
-
+              <div>
+                <label className="block mb-1 font-medium">Tác giả</label>
+                <Input name="authorName" value={form.authorName} onChange={handleChange} placeholder="Nhập tên tác giả" />
+              </div>
               <div>
                 <label className="block mb-1 font-medium">Trạng thái</label>
                 <Select

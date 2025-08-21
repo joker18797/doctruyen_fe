@@ -20,6 +20,7 @@ export default function StoryReadPage() {
   const [story, setStory] = useState(null)
   const [selectedChapterId, setSelectedChapterId] = useState(null)
   const [chapterContent, setChapterContent] = useState('')
+  const [chapterTitle, setChapterTitle]= useState('');
   const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true)
@@ -75,6 +76,7 @@ export default function StoryReadPage() {
         const res = await API.Chapter.detail(selectedChapterId)
         if (res?.status === 200) {
           setChapterContent(sanitizeText(res.data?.content || ''))
+          setChapterTitle(res?.data?.title || '')
           setChapterAudio(res?.data?.audio ?? '')
 
           // 🔓 Lưu chương đã mở
@@ -300,7 +302,7 @@ export default function StoryReadPage() {
           <div className="mt-6 border-t pt-6">
             <ChapterNavigator position="top" />
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              {`Chương ${currentIndex + 1}`}
+              {`Chương ${currentIndex + 1}: ${chapterTitle}`}
             </h2>
             <div
               className="text-gray-800 whitespace-pre-line leading-loose mb-6 select-none text-[20px]"
