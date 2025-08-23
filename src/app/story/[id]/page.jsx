@@ -1,9 +1,9 @@
-// app/story/[id]/page.tsx
-import StoryInfoPage from '@/components/StoryInfoPage'
+// app/story/[id]/page.js
 import API from '@/Service/API'
+import StoryInfoPage from '@/components/StoryInfoPage'
 
 export async function generateMetadata({ params }) {
-  const { id } = await params 
+  const { id } = await params
   const story = await API.Story.detail(id)
   const s = story?.data
 
@@ -43,6 +43,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { id } =await params
-  return <StoryInfoPage id={id} />
+  const { id } = await params
+  const res = await API.Story.detail(id)
+  const story = res?.data || null
+  return <StoryInfoPage story={story} />
 }

@@ -1,46 +1,30 @@
-'use client'
-
+"use client"
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button, Select, Input, List, Popconfirm, Avatar } from 'antd'
 import LayoutHeader from '@/components/LayoutHeader'
 import { useSelector } from 'react-redux'
 import { UserOutlined, DeleteOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
-import Head from 'next/head'
 
 const { Option } = Select
 const { TextArea } = Input
 
-export default function StoryInfoPage() {
-    const { id } = useParams()
+export default function StoryInfoPage({ story }) {
     const router = useRouter()
     const user = useSelector((state) => state.user.currentUser)
 
-    const [story, setStory] = useState(null)
-    const [selectedChapterId, setSelectedChapterId] = useState(null)
+    const [selectedChapterId, setSelectedChapterId] = useState(story?.chapters?.[0] || null)
     const [commentInput, setCommentInput] = useState('')
     const [comments, setComments] = useState([])
 
+    // ✅ Chỉ fetch comments trên client
     useEffect(() => {
-        if (id) {
-            fetchStory()
-            fetchComments()
-        }
-    }, [id])
+        if (story?._id) fetchComments(story._id)
+    }, [story?._id])
 
-    const fetchStory = async () => {
-        try {
-            const res = await API.Story.detail(id)
-            setStory(res.data)
-            setSelectedChapterId(res?.data?.chapters?.[0])
-        } catch (err) {
-            console.error('Lỗi khi lấy chi tiết truyện:', err)
-        }
-    }
-
-    const fetchComments = async () => {
+    const fetchComments = async (id) => {
         try {
             const res = await API.Comment.list(id)
             if (res?.status === 200) {
@@ -52,23 +36,17 @@ export default function StoryInfoPage() {
     }
 
     const handleRead = () => {
-        const basePath = `/story/${id}`
-        const chapterPath = selectedChapterId ? `?chapter=${selectedChapterId}` : ''
-        router.push(`${basePath}/read${chapterPath}`)
+        router.push(`/story/${story._id}/read?chapter=${selectedChapterId}`)
     }
 
     const handleAudio = () => {
-        const basePath = `/story/${id}`
-        const chapterPath = selectedChapterId ? `?chapter=${selectedChapterId}` : ''
-        router.push(`${basePath}/audio${chapterPath}`)
+        router.push(`/story/${story._id}/audio?chapter=${selectedChapterId}`)
     }
 
     const handleCommentSubmit = async () => {
-        if (!commentInput.trim()) {
-            return toast.warning('Vui lòng nhập nội dung bình luận.')
-        }
+        if (!commentInput.trim()) return toast.warning('Vui lòng nhập nội dung bình luận.')
         try {
-            const res = await API.Comment.create(id, { content: commentInput.trim() })
+            const res = await API.Comment.create(story._id, { content: commentInput.trim() })
             if (res?.status === 201) {
                 setCommentInput('')
                 setComments([res.data.data, ...comments])
@@ -76,7 +54,6 @@ export default function StoryInfoPage() {
             }
         } catch (err) {
             toast.error('Không thể gửi bình luận.')
-            console.error(err)
         }
     }
 
@@ -89,30 +66,15 @@ export default function StoryInfoPage() {
             }
         } catch (err) {
             toast.error('Không thể xóa bình luận')
-            console.error(err)
         }
     }
 
     const isOwnerOrAdmin = (userId) => user && (user._id === userId || user.role === 'admin')
 
-    if (!story) return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
+    if (!story) return <div className="text-center py-20 text-gray-600">Không tìm thấy truyện</div>
 
     return (
         <div>
-            <Head>
-                <title>{story.title || 'Chi tiết truyện'}</title>
-                <meta name="description" content={story.description?.slice(0, 150) || ''} />
-                <meta property="og:title" content={story.title} />
-                <meta property="og:description" content={story.description?.slice(0, 150)} />
-                <meta property="og:image" content={story.coverImage} />
-                <meta property="og:type" content="article" />
-                <meta property="og:url" content={`https://yourdomain.com/story/${id}`} />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={story.title} />
-                <meta name="twitter:description" content={story.description?.slice(0, 150)} />
-                <meta name="twitter:image" content={story.coverImage} />
-            </Head>
-
             <LayoutHeader />
             <div className="min-h-screen bg-gray-50 py-10 px-4">
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
