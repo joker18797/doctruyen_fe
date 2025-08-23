@@ -44,6 +44,5 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const { id } =await params
-  const story = await API.Story.detail(id)
-  return <StoryInfoPage id={id} story={story?.data} />
+  return <StoryInfoPage id={id} />
 }
