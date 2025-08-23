@@ -2,7 +2,7 @@
 import StoryInfoPage from '@/components/StoryInfoPage'
 
 async function getStory(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/story/${id}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/story/${id}`, {
     // ISR: cache lại sau 60s
     next: { revalidate: 60 },
   })
