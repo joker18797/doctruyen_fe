@@ -24,6 +24,25 @@ export default function StoryInfoPage() {
     const [comments, setComments] = useState([])
 
     useEffect(() => {
+    const ua = navigator.userAgent || navigator.vendor || window.opera
+    const isFacebookApp = ua.includes("FBAN") || ua.includes("FBAV")
+
+    if (isFacebookApp) {
+      // Chuyển sang Chrome hoặc trình duyệt mặc định
+      const url = window.location.href
+
+      // Cách 1: dùng intent:// (Android Chrome)
+      if (/android/i.test(ua)) {
+        window.location.href = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`
+      } 
+      // Cách 2: fallback cho iOS (mở Safari)
+      else if (/iPad|iPhone|iPod/.test(ua)) {
+        window.location.href = url
+      }
+    }
+  }, [])
+  
+    useEffect(() => {
         if (id) {
             fetchStory()
             fetchComments()
