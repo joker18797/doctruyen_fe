@@ -1,18 +1,10 @@
 // app/story/[id]/page.tsx
 import StoryInfoPage from '@/components/StoryInfoPage'
-
-async function getStory(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/story/${id}`, {
-    // ISR: cache lại sau 60s
-    next: { revalidate: 60 },
-  })
-  if (!res.ok) return null
-  return res.json()
-}
+import API from '@/Service/API'
 
 export async function generateMetadata({ params }) {
   const { id } = await params 
-  const story = await getStory(id)
+  const story = await API.Story.detail(id)
   const s = story?.data
 
   if (!s) {
@@ -52,6 +44,6 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const { id } =await params
-  const story = await getStory(id)
+  const story = await API.Story.detail(id)
   return <StoryInfoPage id={id} story={story?.data} />
 }
