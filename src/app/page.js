@@ -36,7 +36,7 @@ function RandomBanner() {
   return (
     <div className="mb-6">
       <a href={banner.url} target="_blank" rel="noopener noreferrer">
-        <Image
+        <img
           src={banner.image}
           alt="banner quảng cáo"
           width={1200}

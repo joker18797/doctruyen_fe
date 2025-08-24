@@ -91,7 +91,7 @@ export default function FeaturedSlider() {
           className="relative w-full lg:w-1/2 h-[300px] md:h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 cursor-pointer"
           onClick={() => router.push(`/story/${currentStory._id}`)}
         >
-          <Image
+          <img
             src={currentStory.coverImage}
             alt={currentStory.title}
             fill
@@ -125,7 +125,7 @@ export default function FeaturedSlider() {
                   }`}
                 onClick={() => setCurrentSlide(index)}
               >
-                <Image
+                <img
                   src={story.coverImage}
                   alt={story.title}
                   fill
