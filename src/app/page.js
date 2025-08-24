@@ -126,7 +126,7 @@ function StorySection({ title, filter, pin = false, ads }) {
                 onClick={() => handleStoryClick(story._id)}
               >
                 <div className="relative">
-                  <Image
+                  <img
                     src={story.coverImage}
                     alt={story.title}
                     width={500}

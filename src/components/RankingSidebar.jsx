@@ -86,7 +86,7 @@ export default function RankingSidebar() {
               className="flex items-start gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
               onClick={() => router.push(`/story/${story._id}`)}
             >
-              <div className="text-xl font-bold text-violet-600 w-5">{index + 1}</div>
+              <div className="text-xl font-bold  w-5">{index + 1}</div>
               <Image
                 src={story.coverImage || '/no-image.jpg'}
                 alt={story.title}
@@ -95,7 +95,7 @@ export default function RankingSidebar() {
                 className="w-12 h-16 object-cover rounded"
               />
               <div className="flex-1">
-                <div className="font-medium text-gray-700 line-clamp-1">{story.title}</div>
+                <div className="font-medium text-gray-700">{story.title}</div>
                 <div className="text-xs text-gray-500">{getViewCountText(story)}</div>
               </div>
             </div>
