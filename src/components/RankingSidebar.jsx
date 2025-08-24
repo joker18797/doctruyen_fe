@@ -87,7 +87,7 @@ export default function RankingSidebar() {
               onClick={() => router.push(`/story/${story._id}`)}
             >
               <div className="text-xl font-bold  w-5">{index + 1}</div>
-              <Image
+              <img
                 src={story.coverImage || '/no-image.jpg'}
                 alt={story.title}
                 width={48}
