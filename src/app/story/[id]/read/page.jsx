@@ -20,7 +20,7 @@ export default function StoryReadPage() {
   const [story, setStory] = useState(null)
   const [selectedChapterId, setSelectedChapterId] = useState(null)
   const [chapterContent, setChapterContent] = useState('')
-  const [chapterTitle, setChapterTitle]= useState('');
+  const [chapterTitle, setChapterTitle] = useState('');
   const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true)
@@ -229,7 +229,7 @@ export default function StoryReadPage() {
   }
 
   if (!story || !selectedChapterId) {
-    return <div className="text-center py-20 text-gray-600">Đang tải truyện...</div>
+    return <div className="pb-[90px]"> <LayoutHeader /> <div className="text-center py-20 text-gray-600">Đang tải truyện...</div> </div>
   }
 
   const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
@@ -316,7 +316,7 @@ export default function StoryReadPage() {
         {hasLockedChapters && (
           <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
             <p className="text-base text-gray-700">
-             Mời đọc giả click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục đọc truyện.
+              Mời đọc giả click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục đọc truyện.
             </p>
             <p className="text-sm mt-2 text-gray-500 italic">(*) Bạn có thể được yêu cầu xem quảng cáo để mở khóa.</p>
           </div>
