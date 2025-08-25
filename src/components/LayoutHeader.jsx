@@ -109,7 +109,7 @@ export default function LayoutHeader() {
             <div className="flex items-center gap-2">
                 <MenuOutlined className="md:hidden text-lg" onClick={() => setOpenDrawer(true)} />
                 <Link href="/" className="flex items-center gap-2 cursor-pointer">
-                    <img src="https://res.cloudinary.com/dnoecg9cb/image/upload/v1753784173/images/Logo.jpg" alt="Logo" className="h-[60px] w-[60px] object-contain" />
+                    <img src="https://cdn.jsdelivr.net/gh/joker18797/doctruyen_storage@main/uploads/1756106895153-z6768944788849_7bdce7562fe6f812db182c83bdc66ee0.jpg" alt="Logo" className="h-[60px] w-[60px] object-contain" />
                     <span className="text-xl font-bold text-violet-600 hidden md:block">Ổ của Dưa</span>
                 </Link>
             </div>
