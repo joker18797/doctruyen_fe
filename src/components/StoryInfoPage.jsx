@@ -122,7 +122,7 @@ export default function StoryInfoPage({ story }) {
                             </p>
                             {story?.authorName &&
                              <p className="text-gray-600 mb-4">
-                                Tác giả: {story?.authorName}
+                                Tác giả: {story?.authorName ?? ''}
                             </p>}
                             <Select
                                 showSearch
