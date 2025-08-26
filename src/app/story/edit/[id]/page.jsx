@@ -78,7 +78,7 @@ export default function EditStoryPage() {
     formData.append('genres', form.genres.join(','))
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
     formData.append('pin', form.pin ? 'true' : 'false')
-    formData.append('authorName', form.authorName)
+    formData.append('authorName', form?.authorName ?? '')
     if (form.coverFile) {
       formData.append('coverImage', form.coverFile)
     }

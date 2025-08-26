@@ -120,7 +120,7 @@ export default function StoryInfoPage({ story }) {
                             <p className="text-gray-600 mb-4">
                                 Lượt xem: {Number(story.totalRead).toLocaleString("en-US")}
                             </p>
-                            {story?.authorName &&
+                            {story?.authorName && story?.authorName  !== 'undefined' &&
                              <p className="text-gray-600 mb-4">
                                 Tác giả: {story?.authorName ?? ''}
                             </p>}

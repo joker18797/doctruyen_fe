@@ -48,7 +48,7 @@ export default function NewStoryPage() {
     formData.append('description', form.description)
     formData.append('status', form.status)
     formData.append('coverImage', form.coverFile)
-    formData.append('authorName', form.authorName)
+    formData.append('authorName', form?.authorName ?? '')
     formData.append('genres', form.genres)
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
 
