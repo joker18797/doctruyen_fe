@@ -24,6 +24,7 @@ export default function StoryReadPage() {
   const [chapterTitle, setChapterTitle] = useState('')
   const [chapterAudio, setChapterAudio] = useState('')
   const [isAtBottom, setIsAtBottom] = useState(false)
+  const [isPrefetching, setIsPrefetching] = useState(false)
   const [ads, setAds] = useState([])
   const [hasLockedChapters, setHasLockedChapters] = useState(false)
 
@@ -74,12 +75,13 @@ export default function StoryReadPage() {
       }
 
       try {
+        setIsPrefetching(true)
         const res = await API.Chapter.detail(selectedChapterId)
         if (res?.status === 200) {
           const content = sanitizeText(res.data?.content || '')
           const title = res?.data?.title || ''
           const audio = res?.data?.audio ?? ''
-
+          setIsPrefetching(false)
           setChapterContent(content)
           setChapterTitle(title)
           setChapterAudio(audio)
@@ -96,12 +98,42 @@ export default function StoryReadPage() {
           })
         }
       } catch (err) {
+        setIsPrefetching(false)
         console.error('Lỗi tải chương:', err)
       }
     }
 
     loadChapter()
   }, [selectedChapterId])
+
+  useEffect(() => {
+    if (!story || !selectedChapterId) return
+
+    const index = story.chapters.findIndex((cid) => cid === selectedChapterId)
+    const nextId = story.chapters[index + 1]
+    if (!nextId) return
+
+    const timer = setTimeout(async () => {
+      if (!chapterCache.has(nextId)) {
+        try {
+          const res = await API.Chapter.detail(nextId)
+          if (res?.status === 200) {
+            const content = sanitizeText(res.data?.content || '')
+            const title = res?.data?.title || ''
+            const audio = res?.data?.audio ?? ''
+
+            chapterCache.set(nextId, { content, title, audio })
+            console.log(`Prefetched chapter ${nextId}`)
+          }
+        } catch (err) {
+          console.error('Prefetch error:', err)
+        }
+      }
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [story, selectedChapterId])
+
 
   // Theo dõi scroll
   useEffect(() => {
@@ -125,6 +157,9 @@ export default function StoryReadPage() {
   }, [story, unlockedChapters])
 
   const handleChangeChapter = (chapterId) => {
+    setChapterContent('')
+    setChapterTitle('')
+    setChapterAudio('')
     setSelectedChapterId(chapterId)
     router.replace(`/story/${id}/read?chapter=${chapterId}`)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -269,6 +304,11 @@ export default function StoryReadPage() {
               </div>
             ) : (
               <Skeleton active paragraph={{ rows: 12 }} />
+            )}
+            {isPrefetching && (
+              <div className="mt-4 text-center text-gray-500 text-sm">
+                Đang tải chương tiếp theo...
+              </div>
             )}
           </div>
         </div>
