@@ -188,18 +188,18 @@ function StorySection({ title, filter, pin = false, ads }) {
 
 export default function Home() {
   const [ads, setAds] = useState([])
-  useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const res = await API.AdminAds.list()
-        const activeAds = (res.data || [])?.filter((ad) => ad.active)
-        setAds(activeAds)
-      } catch (err) {
-        console.error("Không thể lấy ads:", err)
-      }
-    }
-    fetchAds()
-  }, [])
+  // useEffect(() => {
+  //   const fetchAds = async () => {
+  //     try {
+  //       const res = await API.AdminAds.list()
+  //       const activeAds = (res.data || [])?.filter((ad) => ad.active)
+  //       setAds(activeAds)
+  //     } catch (err) {
+  //       console.error("Không thể lấy ads:", err)
+  //     }
+  //   }
+  //   fetchAds()
+  // }, [])
   return (
     <div className="min-h-screen bg-gray-100">
       <LayoutHeader />

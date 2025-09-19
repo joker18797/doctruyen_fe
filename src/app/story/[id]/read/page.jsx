@@ -26,7 +26,7 @@ export default function StoryReadPage() {
   const [isAtBottom, setIsAtBottom] = useState(false)
   const [isPrefetching, setIsPrefetching] = useState(false)
   const [ads, setAds] = useState([])
-  const [hasLockedChapters, setHasLockedChapters] = useState(false)
+  const [lockedChapterId, setLockedChapterId] = useState(null)
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -35,6 +35,8 @@ export default function StoryReadPage() {
     }
     return []
   })
+
+  const [lockState, setLockState] = useState({ locked: false })
 
   // Load story + ads song song
   useEffect(() => {
@@ -91,7 +93,6 @@ export default function StoryReadPage() {
           setUnlockedChapters((prev) => {
             if (!prev.includes(selectedChapterId)) {
               const updated = [...prev, selectedChapterId]
-              localStorage.setItem('unlockedChapters', JSON.stringify(updated))
               return updated
             }
             return prev
@@ -106,6 +107,7 @@ export default function StoryReadPage() {
     loadChapter()
   }, [selectedChapterId])
 
+  // Prefetch chương tiếp theo
   useEffect(() => {
     if (!story || !selectedChapterId) return
 
@@ -134,7 +136,6 @@ export default function StoryReadPage() {
     return () => clearTimeout(timer)
   }, [story, selectedChapterId])
 
-
   // Theo dõi scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -148,35 +149,46 @@ export default function StoryReadPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Kiểm tra chương nào khóa
-  useEffect(() => {
-    if (story?.chapters) {
-      const locked = story.chapters.some((cid) => !unlockedChapters.includes(cid))
-      setHasLockedChapters(locked)
-    }
-  }, [story, unlockedChapters])
-
   const handleChangeChapter = (chapterId) => {
-    setChapterContent('')
-    setChapterTitle('')
-    setChapterAudio('')
+    const unlocked = localStorage.getItem(`unlockedStory_${id}`)
+    if (!unlocked) {
+      setLockState({ locked: true })
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
+    // Load chương
+    setLockState({ locked: false })
+    setChapterContent("") // TODO: fetch content API
+    setChapterTitle("")   // TODO: fetch title
+    setChapterAudio("")   // TODO: fetch audio
     setSelectedChapterId(chapterId)
     router.replace(`/story/${id}/read?chapter=${chapterId}`)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const unlockAndChangeChapter = (chapterId) => {
+  // Hàm unlock truyện
+  const unlockStory = () => {
     if (ads.length > 0) {
       const randomAd = ads[Math.floor(Math.random() * ads.length)]
-      window.open(randomAd.url, '_blank')
+      window.open(randomAd.url, "_blank")
     }
-    const allChapterIds = story?.chapters || []
-    localStorage.setItem('unlockedChapters', JSON.stringify(allChapterIds))
-    setUnlockedChapters(allChapterIds)
-    setTimeout(() => handleChangeChapter(chapterId), 300)
+
+    // Lưu trạng thái unlock theo storyId
+    localStorage.setItem(`unlockedStory_${id}`, "true")
+    setLockState({ locked: false })
+    if (story?.chapters?.length > 1) {
+      const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
+      const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
+
+      if (nextChapterId) {
+        setTimeout(() => {
+          handleChangeChapter(nextChapterId)
+        }, 300)
+      }
+    }
   }
 
-  // 👉 Giữ nguyên ChapterNavigator
+  // 👉 ChapterNavigator giữ nguyên
   const ChapterNavigator = ({ position = 'top', floating = false }) => {
     const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
 
@@ -184,15 +196,8 @@ export default function StoryReadPage() {
       const targetIndex = index + offset
       if (targetIndex < 0 || targetIndex >= story.chapters.length) return null
       const targetId = story.chapters[targetIndex]
-      const isUnlocked = unlockedChapters.includes(targetId)
-
-      if (isUnlocked || unlockedChapters.length < 2) {
-        return <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
-      }
       return (
-        <Button type="dashed" danger onClick={() => unlockAndChangeChapter(targetId)}>
-          👉 Click để hiển thị
-        </Button>
+        <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
       )
     }
 
@@ -272,7 +277,7 @@ export default function StoryReadPage() {
           </div>
 
           {/* Audio */}
-          {chapterAudio && (
+          {!lockState.locked && chapterAudio && (
             <div className="mb-6">
               <Button
                 type="primary"
@@ -290,40 +295,51 @@ export default function StoryReadPage() {
           )}
 
           {/* Nội dung */}
-          <div className="mt-6 border-t pt-6">
-            <ChapterNavigator position="top" />
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              {`Chương ${currentIndex + 1}: ${chapterTitle}`}
-            </h2>
-            {chapterContent ? (
-              <div
-                className="text-gray-800 whitespace-pre-line leading-loose mb-6 select-none text-[20px]"
-                ref={contentRef}
-              >
-                {chapterContent}
+          <div className="max-w-4xl mx-auto mt-6">
+            {!lockState.locked ? (
+              <div className="mt-6 border-t pt-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                  {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
+                </h2>
+                {chapterContent ? (
+                  <div className="text-gray-800 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
+                    {chapterContent}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Đang tải nội dung...</p>
+                )}
               </div>
             ) : (
-              <Skeleton active paragraph={{ rows: 12 }} />
-            )}
-            {isPrefetching && (
-              <div className="mt-4 text-center text-gray-500 text-sm">
-                Đang tải chương tiếp theo...
+              <div className='text-center'>
+                <p className="text-base font-bold mb-3">
+                  MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
+                  <span className="text-orange-600">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC ĐỌC TOÀN BỘ TRUYỆN
+                </p>
+
+                <div onClick={unlockStory} className="cursor-pointer">
+                  <div className="bg-[#00B2FF] rounded-xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
+                    <div className="bg-white border-2 border-orange-400 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
+                      <p className="text-lg font-semibold text-gray-700 mb-2">ẤN VÀO ĐÂY</p>
+                      <p className="text-2xl font-bold text-gray-900 mb-3">
+                        ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        HÀNH ĐỘNG NÀY CHỈ THỰC HIỆN MỘT LẦN. <br /> MONG CÁC CẬU ỦNG HỘ CHÚNG MÌNH NHA.
+                      </p>
+                      <div className="absolute bottom-3 right-3">
+                        <span className="text-4xl">👉</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {hasLockedChapters && (
-          <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
-            <p className="text-base text-gray-700">
-              Mời đọc giả click <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo.
-            </p>
-          </div>
-        )}
+        <div ref={fakeBottomRef} className="h-4" />
+        <ChapterNavigator position="bottom" floating />
       </div>
-
-      <div ref={fakeBottomRef} className="h-4" />
-      <ChapterNavigator position="bottom" floating />
     </div>
   )
 }
