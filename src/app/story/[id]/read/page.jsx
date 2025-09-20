@@ -54,7 +54,7 @@ export default function StoryReadPage() {
           setSelectedChapterId(chapterParam || s.chapters?.[0])
         }
 
-        const activeAds = (adsRes?.data || []).filter((ad) => ad.active)
+        const activeAds = (adsRes?.data || []).filter((ad) => ad.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
         setAds(activeAds)
       } catch (err) {
         console.error('Fetch data error:', err)
