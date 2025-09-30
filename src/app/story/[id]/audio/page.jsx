@@ -34,7 +34,7 @@ export default function StoryAudioPage() {
           setAudioUrl(chapterRes?.data?.audio || '')
 
           const adRes = await API.AdminAds.list()
-          const activeAds = (adRes?.data || []).filter(a => a.active)
+          const activeAds = (adRes?.data || []).filter(a => a.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
           setAds(activeAds)
         }
       } catch (err) {
