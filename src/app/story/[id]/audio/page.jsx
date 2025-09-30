@@ -15,61 +15,61 @@ export default function StoryAudioPage() {
   const [story, setStory] = useState(null)
   const [audioUrl, setAudioUrl] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [unlockedChapters, setUnlockedChapters] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('unlockedChapters')
-      return saved ? JSON.parse(saved) : []
-    }
-    return []
-  })
   const [ads, setAds] = useState([])
-  const [lockState, setLockState] = useState({ locked: false })
+  // thay đổi: chỉ cần 1 flag unlock cho toàn bộ truyện
+  const [isStoryUnlocked, setIsStoryUnlocked] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await API.Story.detail(id)
-        if (res.status === 200) {
+        if (res?.status === 200) {
           const storyData = res.data
           setStory(storyData)
 
           const index = storyData.chapters.findIndex((cid) => cid === chapterId)
-          setCurrentIndex(index)
+          setCurrentIndex(index >= 0 ? index : 0)
 
           const chapterRes = await API.Chapter.detail(chapterId)
-          setAudioUrl(chapterRes.data?.audio || '')
+          setAudioUrl(chapterRes?.data?.audio || '')
 
           const adRes = await API.AdminAds.list()
-          const activeAds = adRes.data?.filter((a) => a.active) || []
+          const activeAds = (adRes?.data || []).filter(a => a.active)
           setAds(activeAds)
-
-          // kiểm tra khóa
-          if (!unlockedChapters.includes(chapterId)) {
-            setLockState({ locked: true })
-          } else {
-            setLockState({ locked: false })
-          }
         }
       } catch (err) {
         console.error('Lỗi tải truyện/audio:', err)
       }
     }
 
-    if (id && chapterId) fetchData()
+    if (id && chapterId) {
+      // kiểm tra key unlock cho toàn truyện (một lần)
+      try {
+        const unlockedKey = `unlockedStory_${id}`
+        const unlocked = typeof window !== 'undefined' && localStorage.getItem(unlockedKey) === 'true'
+        setIsStoryUnlocked(Boolean(unlocked))
+      } catch (e) {
+        setIsStoryUnlocked(false)
+      }
+
+      fetchData()
+    }
   }, [id, chapterId])
 
-  const unlockChapter = () => {
+  const unlockStory = () => {
+    // mở ad (nếu có) rồi đánh dấu unlock cho toàn truyện
     if (ads.length > 0) {
       const randomAd = ads[Math.floor(Math.random() * ads.length)]
-      window.open(randomAd.url, '_blank')
+      try {
+        window.open(randomAd.url, '_blank')
+      } catch (e) {
+        console.warn('Không thể mở ad:', e)
+      }
     }
 
-    if (!unlockedChapters.includes(chapterId)) {
-      const updated = [...unlockedChapters, chapterId]
-      setUnlockedChapters(updated)
-      localStorage.setItem('unlockedChapters', JSON.stringify(updated))
-    }
-    setLockState({ locked: false })
+    const unlockedKey = `unlockedStory_${id}`
+    localStorage.setItem(unlockedKey, 'true')
+    setIsStoryUnlocked(true)
   }
 
   const handleChangeChapter = (offset) => {
@@ -78,7 +78,6 @@ export default function StoryAudioPage() {
     if (nextIndex < 0 || nextIndex >= story.chapters.length) return
 
     const nextId = story.chapters[nextIndex]
-    setLockState({ locked: !unlockedChapters.includes(nextId) })
     router.push(`/story/${id}/audio?chapter=${nextId}`)
   }
 
@@ -91,7 +90,8 @@ export default function StoryAudioPage() {
             🎧 {story?.title} - Chương {currentIndex + 1}
           </h1>
 
-          {!lockState.locked ? (
+          {/* nếu đã unlock cho truyện thì hiện audio, ngược lại show block unlock */}
+          {currentIndex === 0 || isStoryUnlocked ? (
             audioUrl ? (
               <audio controls className="w-full" autoPlay key={chapterId}>
                 <source src={audioUrl} type="audio/mpeg" />
@@ -103,11 +103,11 @@ export default function StoryAudioPage() {
           ) : (
             <div className="text-center">
               <p className="text-base font-bold mb-3">
-                MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
+                MỜI ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
                 <span className="text-orange-600">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC NGHE TOÀN BỘ TRUYỆN
               </p>
 
-              <div onClick={unlockChapter} className="cursor-pointer">
+              <div onClick={unlockStory} className="cursor-pointer">
                 <div className="bg-[#00B2FF] rounded-xl shadow-lg overflow-hidden min-h-[400px] flex items-center justify-center">
                   <div className="bg-white border-2 border-orange-400 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
                     <p className="text-lg font-semibold text-gray-700 mb-2">ẤN VÀO ĐÂY</p>
