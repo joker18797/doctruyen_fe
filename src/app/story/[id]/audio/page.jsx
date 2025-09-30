@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import API from '@/Service/API'
 import LayoutHeader from '@/components/LayoutHeader'
@@ -23,23 +23,7 @@ export default function StoryAudioPage() {
     return []
   })
   const [ads, setAds] = useState([])
-
-  const hasLockedChapters = useMemo(() => {
-    if (!story?.chapters?.length || !unlockedChapters.length) return false
-    const unlockedSet = new Set(unlockedChapters)
-    return story.chapters.some((cid) => !unlockedSet.has(cid))
-  }, [story?.chapters, unlockedChapters])
-
-  const showAdIfNeeded = (index, chapterId) => {
-    const adIndexes = [1, story?.chapters?.length - 2]
-    const adKey = `hasShownAd_audio_${id}_${chapterId}`
-
-    if (adIndexes.includes(index) && ads.length > 0 && !localStorage.getItem(adKey)) {
-      const randomAd = ads[Math.floor(Math.random() * ads.length)]
-      window.open(randomAd.url, '_blank')
-      localStorage.setItem(adKey, 'true')
-    }
-  }
+  const [lockState, setLockState] = useState({ locked: false })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,12 +43,11 @@ export default function StoryAudioPage() {
           const activeAds = adRes.data?.filter((a) => a.active) || []
           setAds(activeAds)
 
-          showAdIfNeeded(index, chapterId)
-
+          // kiểm tra khóa
           if (!unlockedChapters.includes(chapterId)) {
-            const updated = [...unlockedChapters, chapterId]
-            setUnlockedChapters(updated)
-            localStorage.setItem('unlockedChapters', JSON.stringify(updated))
+            setLockState({ locked: true })
+          } else {
+            setLockState({ locked: false })
           }
         }
       } catch (err) {
@@ -75,21 +58,27 @@ export default function StoryAudioPage() {
     if (id && chapterId) fetchData()
   }, [id, chapterId])
 
+  const unlockChapter = () => {
+    if (ads.length > 0) {
+      const randomAd = ads[Math.floor(Math.random() * ads.length)]
+      window.open(randomAd.url, '_blank')
+    }
+
+    if (!unlockedChapters.includes(chapterId)) {
+      const updated = [...unlockedChapters, chapterId]
+      setUnlockedChapters(updated)
+      localStorage.setItem('unlockedChapters', JSON.stringify(updated))
+    }
+    setLockState({ locked: false })
+  }
+
   const handleChangeChapter = (offset) => {
     if (!story) return
     const nextIndex = currentIndex + offset
     if (nextIndex < 0 || nextIndex >= story.chapters.length) return
 
     const nextId = story.chapters[nextIndex]
-    const isUnlocked = unlockedChapters.includes(nextId)
-
-    if (!isUnlocked) {
-      showAdIfNeeded(nextIndex, nextId)
-      const updated = [...unlockedChapters, nextId]
-      setUnlockedChapters(updated)
-      localStorage.setItem('unlockedChapters', JSON.stringify(updated))
-    }
-
+    setLockState({ locked: !unlockedChapters.includes(nextId) })
     router.push(`/story/${id}/audio?chapter=${nextId}`)
   }
 
@@ -102,13 +91,39 @@ export default function StoryAudioPage() {
             🎧 {story?.title} - Chương {currentIndex + 1}
           </h1>
 
-          {audioUrl ? (
-            <audio controls className="w-full" autoPlay key={chapterId}>
-              <source src={audioUrl} type="audio/mpeg" />
-              Trình duyệt không hỗ trợ audio.
-            </audio>
+          {!lockState.locked ? (
+            audioUrl ? (
+              <audio controls className="w-full" autoPlay key={chapterId}>
+                <source src={audioUrl} type="audio/mpeg" />
+                Trình duyệt không hỗ trợ audio.
+              </audio>
+            ) : (
+              <div className="text-gray-500">Đang tải audio...</div>
+            )
           ) : (
-            <div className="text-gray-500">Đang tải audio...</div>
+            <div className="text-center">
+              <p className="text-base font-bold mb-3">
+                MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
+                <span className="text-orange-600">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC NGHE TOÀN BỘ TRUYỆN
+              </p>
+
+              <div onClick={unlockChapter} className="cursor-pointer">
+                <div className="bg-[#00B2FF] rounded-xl shadow-lg overflow-hidden min-h-[400px] flex items-center justify-center">
+                  <div className="bg-white border-2 border-orange-400 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
+                    <p className="text-lg font-semibold text-gray-700 mb-2">ẤN VÀO ĐÂY</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-3">
+                      ĐỂ NGHE TOÀN BỘ AUDIO
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      HÀNH ĐỘNG NÀY CHỈ THỰC HIỆN MỘT LẦN. <br /> MONG CÁC CẬU ỦNG HỘ CHÚNG MÌNH NHA.
+                    </p>
+                    <div className="absolute bottom-3 right-3">
+                      <span className="text-4xl">👉</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           <div className="flex justify-between">
@@ -119,20 +134,9 @@ export default function StoryAudioPage() {
               disabled={currentIndex >= story?.chapters.length - 1}
               onClick={() => handleChangeChapter(1)}
             >
-              {hasLockedChapters ? '👉 Click để hiển thị' : 'Chương sau ▶'}
+              Chương sau ▶
             </Button>
           </div>
-
-          {hasLockedChapters && (
-            <div className="mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">
-              <p className="text-base text-gray-700">
-                Mời đọc giả click vào nút <strong>"👉 Click để hiển thị"</strong> để mở khóa chương tiếp theo và tiếp tục nghe.
-              </p>
-              <p className="text-sm mt-2 text-gray-500 italic">
-                (*) Bạn có thể được yêu cầu xem quảng cáo để mở khóa.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
