@@ -18,10 +18,39 @@ export default function StoryInfoPage({ story }) {
     const [selectedChapterId, setSelectedChapterId] = useState(story?.chapters?.[0] || null)
     const [commentInput, setCommentInput] = useState('')
     const [comments, setComments] = useState([])
+    const [lockState, setLockState] = useState({ locked: false })
+    const [ads, setAds] = useState([])
+    const fetchData = async () => {
+        try {
+            const res = await API.AdminAds.list();
+            if (res?.status === 200) {
+                const activeAds = (res?.data || [])?.filter((ad) => ad.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
+                setAds(activeAds)
+            }
+        } catch (error) {
 
+        }
+    }
+    useEffect(() => {
+        fetchData()
+    }, [])
+    const unlockStory = () => {
+        if (ads.length > 0) {
+            const randomAd = ads[Math.floor(Math.random() * ads.length)]
+            window.open(randomAd.url, "_blank")
+        }
+        localStorage.setItem(`unlockedYTStory_${story?._id}`, "true")
+        setLockState({ locked: false })
+    }
     // ✅ Chỉ fetch comments trên client
     useEffect(() => {
-        if (story?._id) fetchComments(story._id)
+        if (story?._id) {
+            fetchComments(story._id)
+            const unlocked = localStorage.getItem(`unlockedYTStory_${story?._id}`)
+            if (!unlocked) {
+                setLockState({ locked: true })
+            }
+        }
     }, [story?._id])
 
     const fetchComments = async (id) => {
@@ -143,7 +172,7 @@ export default function StoryInfoPage({ story }) {
                                 {story.hasAudio && (
                                     <Button type="default" onClick={handleAudio}>🎧 Nghe audio</Button>
                                 )}
-                                {story?.youtubeLink && (
+                                {story?.youtubeLink && !lockState.locked && (
                                     <Button
                                         type="dashed"
                                         style={{ borderColor: "#FF0000", color: "#FF0000" }}
@@ -155,7 +184,33 @@ export default function StoryInfoPage({ story }) {
                             </div>
                         </div>
                     </div>
+                    {lockState.locked && story?.youtubeLink &&
+                        (
+                            <div className='text-center mt-8'>
+                                <p className="text-base font-bold mb-3">
+                                    MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
+                                    <span className="text-orange-600">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC NGHE TOÀN BỘ TRUYỆN
+                                </p>
 
+                                <div onClick={unlockStory} className="cursor-pointer">
+                                    <div className="bg-[#00B2FF] rounded-xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
+                                        <div className="bg-white border-2 border-orange-400 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
+                                            <p className="text-lg font-semibold text-gray-700 mb-2">ẤN VÀO ĐÂY</p>
+                                            <p className="text-2xl font-bold text-gray-900 mb-3">
+                                                ĐỂ NGHE TOÀN BỘ CHƯƠNG TRUYỆN
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                                HÀNH ĐỘNG NÀY CHỈ THỰC HIỆN MỘT LẦN. <br /> MONG CÁC CẬU ỦNG HỘ CHÚNG MÌNH NHA.
+                                            </p>
+                                            <div className="absolute bottom-3 right-3">
+                                                <span className="text-4xl">👉</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
                     {user && (
                         <div className="mt-10">
                             <h2 className="text-xl font-semibold text-gray-700 mb-4">💬 Bình luận</h2>
