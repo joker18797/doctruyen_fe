@@ -35,7 +35,6 @@ export default function StoryReadPage() {
     }
     return []
   })
-
   const [lockState, setLockState] = useState({ locked: false })
 
   // Load story + ads song song
