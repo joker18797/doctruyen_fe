@@ -32,7 +32,7 @@ function RandomBanner() {
   if (!banners.length) return null;
 
   return (
-    <>
+    <div className="min-[701px]:flex min-[701px]:items-center">
       {banners.map((banner, index) => (
         <>
           <div className="mb-6">
@@ -50,7 +50,7 @@ function RandomBanner() {
           </div>
         </>
       ))}
-    </>
+    </div>
   )
 }
 
