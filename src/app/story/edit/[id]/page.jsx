@@ -54,6 +54,7 @@ export default function EditStoryPage() {
           status: data.status,
           coverImage: data.coverImage,
           isCompleted: !!data.isCompleted,
+          youtubeLink: data?.youtubeLink ?? '',
           pin: !!data.pin,
           genres: data.genres || [],
         }))
@@ -79,6 +80,7 @@ export default function EditStoryPage() {
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
     formData.append('pin', form.pin ? 'true' : 'false')
     formData.append('authorName', form?.authorName ?? '')
+    formData.append('youtubeLink', form?.youtubeLink ?? '')
     if (form.coverFile) {
       formData.append('coverImage', form.coverFile)
     }
@@ -130,6 +132,10 @@ export default function EditStoryPage() {
               <div>
                 <label className="block mb-1 font-medium">Tác giả</label>
                 <Input name="authorName" value={form.authorName} onChange={handleChange} placeholder="Nhập tên tác giả" />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Youtube Link</label>
+                <Input name="youtubeLink" value={form.youtubeLink} onChange={handleChange} placeholder="Nhập Youtube link" />
               </div>
               <div>
                 <label className="block mb-1 font-medium">Trạng thái</label>

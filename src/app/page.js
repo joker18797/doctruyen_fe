@@ -15,38 +15,43 @@ import RankingSidebar from "@/components/RankingSidebar"
 import Image from "next/image"
 
 function RandomBanner() {
-  const [banner, setBanner] = useState(null)
+  const [banners, setBanners] = useState([]);
 
   useEffect(() => {
-    const fetchBanner = async () => {
+    const fetchBanners = async () => {
       try {
-        const res = await API.AdminBanner.list()
-        const banners = res.data || []
-        const random = banners[Math.floor(Math.random() * banners.length)]
-        setBanner(random)
+        const res = await API.AdminBanner.list();
+        setBanners(res.data || []);
       } catch (err) {
-        console.error("Không thể lấy banner:", err)
+        console.error("Không thể lấy banner:", err);
       }
-    }
-    fetchBanner()
-  }, [])
+    };
+    fetchBanners();
+  }, []);
 
-  if (!banner) return null
+  if (!banners.length) return null;
 
   return (
-    <div className="mb-6">
-      <a href={banner.url} target="_blank" rel="noopener noreferrer">
-        <img
-          src={banner.image}
-          alt="banner quảng cáo"
-          width={1200}
-          height={200}
-          className="w-full max-h-60 object-cover rounded-lg shadow"
-          priority={false}
-          loading="lazy"
-        />
-      </a>
-    </div>
+    <>
+      {banners.map((banner, index) => (
+        <>
+          <div className="mb-6">
+            <a key={index} href={banner.url} target="_blank" rel="noopener noreferrer">
+              <img
+                src={banner.image}
+                alt={`banner-${index}`}
+                width={1200}
+                height={200}
+                className="w-full max-h-60 object-cover rounded-lg shadow"
+                priority={false}
+                loading="lazy"
+              />
+            </a>
+          </div>
+        </>
+      ))}
+    </>
+
   )
 }
 

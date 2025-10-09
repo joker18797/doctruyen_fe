@@ -120,10 +120,10 @@ export default function StoryInfoPage({ story }) {
                             <p className="text-gray-600 mb-4">
                                 Lượt xem: {Number(story.totalRead).toLocaleString("en-US")}
                             </p>
-                            {story?.authorName && story?.authorName  !== 'undefined' &&
-                             <p className="text-gray-600 mb-4">
-                                Tác giả: {story?.authorName ?? ''}
-                            </p>}
+                            {story?.authorName && story?.authorName !== 'undefined' &&
+                                <p className="text-gray-600 mb-4">
+                                    Tác giả: {story?.authorName ?? ''}
+                                </p>}
                             <Select
                                 showSearch
                                 placeholder="Chọn chương để đọc"
@@ -142,6 +142,15 @@ export default function StoryInfoPage({ story }) {
                                 <Button type="primary" onClick={handleRead}>📖 Đọc truyện</Button>
                                 {story.hasAudio && (
                                     <Button type="default" onClick={handleAudio}>🎧 Nghe audio</Button>
+                                )}
+                                {story?.youtubeLink && (
+                                    <Button
+                                        type="dashed"
+                                        style={{ borderColor: "#FF0000", color: "#FF0000" }}
+                                        onClick={() => window.open(story.youtubeLink, "_blank", "noopener,noreferrer")}
+                                    >
+                                        ▶️ Xem trên YouTube
+                                    </Button>
                                 )}
                             </div>
                         </div>

@@ -51,7 +51,8 @@ export default function NewStoryPage() {
     formData.append('authorName', form?.authorName ?? '')
     formData.append('genres', form.genres)
     formData.append('isCompleted', form.isCompleted ? 'true' : 'false')
-
+    formData.append('youtubeLink', form?.youtubeLink ?? '')
+    
     try {
       const res = await API.Story.create(formData)
       if (res?.status === 201) {
@@ -101,6 +102,10 @@ export default function NewStoryPage() {
               <div>
                 <label className="block mb-1 font-medium">Tác giả</label>
                 <Input name="authorName" value={form.authorName} onChange={handleChange} placeholder="Nhập tên tác giả" />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Youtube Link</label>
+                <Input name="youtubeLink" value={form.youtubeLink} onChange={handleChange} placeholder="Nhập Youtube link" />
               </div>
               <div>
                 <label className="block mb-1 font-medium">Trạng thái</label>
