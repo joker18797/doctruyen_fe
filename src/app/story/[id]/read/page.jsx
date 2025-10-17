@@ -26,6 +26,7 @@ export default function StoryReadPage() {
   const [isAtBottom, setIsAtBottom] = useState(false)
   const [isPrefetching, setIsPrefetching] = useState(false)
   const [ads, setAds] = useState([])
+  const [adsOther, setAdsOther] = useState([])
   const [lockedChapterId, setLockedChapterId] = useState(null)
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
@@ -53,7 +54,9 @@ export default function StoryReadPage() {
         }
 
         const activeAds = (adsRes?.data || []).filter((ad) => ad.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
+        const activeAdsOther = (adsRes?.data || []).filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
         setAds(activeAds)
+        setAdsOther(activeAdsOther)
       } catch (err) {
         console.error('Fetch data error:', err)
       }
@@ -154,6 +157,13 @@ export default function StoryReadPage() {
       window.scrollTo({ top: 0, behavior: "smooth" })
       return
     }
+
+    const isLastChapter = story?.chapters?.[story.chapters.length - 1] === chapterId
+    if (isLastChapter && adsOther.length > 0) {
+      const randomAd = adsOther[Math.floor(Math.random() * adsOther.length)]
+      window.open(randomAd.url, "_blank")
+    }
+
     // Load chương
     setLockState({ locked: false })
     setChapterContent("") // TODO: fetch content API
