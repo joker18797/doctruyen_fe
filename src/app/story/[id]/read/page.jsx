@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Button, Select, Skeleton } from 'antd'
-import { DownOutlined, UpOutlined } from '@ant-design/icons'
+import { Button, Select, Skeleton, Switch } from 'antd'
+import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
@@ -37,6 +37,23 @@ export default function StoryReadPage() {
     return []
   })
   const [lockState, setLockState] = useState({ locked: false })
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode')
+      return saved === 'true'
+    }
+    return false
+  })
+
+  // Áp dụng dark mode class vào document
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('darkMode', isDarkMode.toString())
+  }, [isDarkMode])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -211,16 +228,16 @@ export default function StoryReadPage() {
 
     return (
       <div
-        className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
+        className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 dark:bg-gray-800 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
         ${position === 'bottom' ? 'mt-8' : 'mb-4'}
-        ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t shadow-md' : ''}`}
+        ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t dark:border-gray-700 shadow-md' : ''}`}
       >
         <div className="flex-1 flex justify-start">
           {renderButton(<>◀ <span className="hidden sm:inline ml-1">Chương trước</span></>, -1)}
         </div>
 
         <div className="flex items-center gap-2 justify-center">
-          <span className="hidden sm:inline">Chuyển tới chương:</span>
+          <span className="hidden sm:inline text-gray-800 dark:text-gray-200">Chuyển tới chương:</span>
           <Select
             value={selectedChapterId}
             onChange={handleChangeChapter}
@@ -246,7 +263,7 @@ export default function StoryReadPage() {
 
   if (!story || !selectedChapterId) {
     return (
-      <div className="pb-[90px]">
+      <div className="pb-[90px] dark:bg-gray-900 min-h-screen">
         <LayoutHeader />
         <div className="max-w-3xl mx-auto mt-10 p-4">
           <Skeleton active paragraph={{ rows: 8 }} />
@@ -258,10 +275,22 @@ export default function StoryReadPage() {
   const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
 
   return (
-    <div className="pb-[90px]">
+    <div className="pb-[90px] dark:bg-gray-900">
       <LayoutHeader />
-      <div className="min-h-screen bg-gray-50 py-6 px-4">
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg relative">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
+          {/* Dark mode toggle */}
+          <div className="fixed top-20 right-6 z-40 flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-md border dark:border-gray-700">
+            <SunOutlined className={isDarkMode ? 'text-gray-400' : 'text-yellow-500'} />
+            <Switch
+              checked={isDarkMode}
+              onChange={setIsDarkMode}
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<SunOutlined />}
+            />
+            <MoonOutlined className={isDarkMode ? 'text-blue-400' : 'text-gray-400'} />
+          </div>
+
           {/* Scroll lên/xuống */}
           <div className="fixed bottom-20 right-6 z-40">
             <Button
@@ -281,7 +310,7 @@ export default function StoryReadPage() {
 
           {/* Tiêu đề */}
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">{story.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{story.title}</h1>
           </div>
 
           {/* Audio */}
@@ -305,33 +334,33 @@ export default function StoryReadPage() {
           {/* Nội dung */}
           <div className="max-w-4xl mx-auto mt-6">
             {!lockState.locked ? (
-              <div className="mt-6 border-t pt-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              <div className="mt-6 border-t dark:border-gray-700 pt-6">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                   {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
                 </h2>
                 {chapterContent ? (
-                  <div className="text-gray-800 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
+                  <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
                     {chapterContent}
                   </div>
                 ) : (
-                  <p className="text-gray-500">Đang tải nội dung...</p>
+                  <p className="text-gray-500 dark:text-gray-400">Đang tải nội dung...</p>
                 )}
               </div>
             ) : (
               <div className='text-center'>
-                <p className="text-base font-bold mb-3">
+                <p className="text-base font-bold mb-3 text-gray-800 dark:text-gray-200">
                   MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
-                  <span className="text-orange-600">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC ĐỌC TOÀN BỘ TRUYỆN
+                  <span className="text-orange-600 dark:text-orange-400">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC ĐỌC TOÀN BỘ TRUYỆN
                 </p>
 
                 <div onClick={unlockStory} className="cursor-pointer">
-                  <div className="bg-[#00B2FF] rounded-xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
-                    <div className="bg-white border-2 border-orange-400 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
-                      <p className="text-lg font-semibold text-gray-700 mb-2">ẤN VÀO ĐÂY</p>
-                      <p className="text-2xl font-bold text-gray-900 mb-3">
+                  <div className="bg-[#00B2FF] dark:bg-[#0088cc] rounded-xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
+                    <div className="bg-white dark:bg-gray-700 border-2 border-orange-400 dark:border-orange-500 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
+                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">ẤN VÀO ĐÂY</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                         ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         HÀNH ĐỘNG NÀY CHỈ THỰC HIỆN MỘT LẦN. <br /> MONG CÁC CẬU ỦNG HỘ CHÚNG MÌNH NHA.
                       </p>
                       <div className="absolute bottom-3 right-3">
