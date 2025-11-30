@@ -12,4 +12,7 @@ export default class User {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
     }
+    changePassword(data) {
+        return axiosPOST('api_gw', '/api/users/change-password', data)
+    }
 }
