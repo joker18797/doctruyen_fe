@@ -82,7 +82,7 @@ export default function NotificationDropdown() {
             handleMarkAsRead(notification._id, { stopPropagation: () => {} })
         }
         if (notification.storyId) {
-            router.push(`/story/${notification.storyId}`)
+            router.push(`/story/${notification?.storyId?._id}`)
             setOpen(false)
         }
     }
