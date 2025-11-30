@@ -6,6 +6,7 @@ import AdminUser from './API/AdminUser';
 import AdminBanner from './API/AdminBanner';
 import AdminAds from './API/AdminAds';
 import Comment from './API/Comment';
+import Notification from './API/Notification';
 const API = {
     Auth: new Auth(),
     User: new User(),
@@ -15,5 +16,6 @@ const API = {
     AdminBanner: new AdminBanner(),
     AdminAds: new AdminAds(),
     Comment: new Comment(),
+    Notification: new Notification(),
 }
 export default API;

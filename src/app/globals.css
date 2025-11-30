@@ -21,3 +21,45 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Custom Pagination Styles */
+.custom-pagination .ant-pagination-item {
+  border-radius: 8px;
+  border-color: #e5e7eb;
+  transition: all 0.3s;
+}
+
+.custom-pagination .ant-pagination-item:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.custom-pagination .ant-pagination-item-active {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-color: transparent;
+}
+
+.custom-pagination .ant-pagination-item-active a {
+  color: white;
+}
+
+.custom-pagination .ant-pagination-prev,
+.custom-pagination .ant-pagination-next {
+  border-radius: 8px;
+  border-color: #e5e7eb;
+  transition: all 0.3s;
+}
+
+.custom-pagination .ant-pagination-prev:hover,
+.custom-pagination .ant-pagination-next:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

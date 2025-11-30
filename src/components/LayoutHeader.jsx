@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { debounce } from 'lodash'
 import GenreDropdown from './GenreDropdown'
+import NotificationDropdown from './NotificationDropdown'
 const allGenres = [
     'Bách Hợp', 'BE', 'Bình Luận Cốt Truyện', 'Chữa Lành', 'Cổ Đại', 'Cung Đấu', 'Cưới Trước Yêu Sau',
     'Cường Thủ Hào Đoạt', 'Dị Năng', 'Dưỡng Thê', 'Đam Mỹ', 'Điền Văn', 'Đô Thị', 'Đoản Văn', 'Đọc Tâm',
@@ -170,12 +171,15 @@ export default function LayoutHeader() {
                 {/* Avatar hoặc login/register */}
                 <div className="flex items-center gap-2">
                     {user ? (
-                        <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
-                            <div className="cursor-pointer flex items-center gap-2">
-                                <Avatar src={user.avatar} icon={!user.avatar && <UserOutlined />} />
-                                <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
-                            </div>
-                        </Dropdown>
+                        <>
+                            <NotificationDropdown />
+                            <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
+                                <div className="cursor-pointer flex items-center gap-2">
+                                    <Avatar src={user.avatar} icon={!user.avatar && <UserOutlined />} />
+                                    <span className="hidden sm:inline text-sm text-gray-700">{user.name}</span>
+                                </div>
+                            </Dropdown>
+                        </>
                     ) : (
                         <>
                             <Link href="/login">

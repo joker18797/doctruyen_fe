@@ -24,5 +24,11 @@ export default class Story {
     createAudio(data) {
         return axiosPOST("api_gw", '/api/tts/speak', data);
     }
+    follow(data) {
+        return axiosPOST("api_gw", '/api/story/follow', data);
+    }
+    unfollow(data) {
+        return axiosPOST("api_gw", '/api/story/unfollow', data);
+    }
 
 }
