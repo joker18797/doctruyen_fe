@@ -30,5 +30,9 @@ export default class Story {
     unfollow(data) {
         return axiosPOST("api_gw", '/api/story/unfollow', data);
     }
+    myRanking(data) {
+        const stringUrl = urlParseParams(data);
+        return axiosGET("api_gw", `/api/story/my/ranking?${stringUrl}`);
+    }
 
 }

@@ -2,7 +2,7 @@
 
 import { useSelector, useDispatch } from 'react-redux'
 import { Input, Button, Dropdown, Avatar, AutoComplete, Drawer, Select } from 'antd'
-import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined, MenuOutlined } from '@ant-design/icons'
+import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined, MenuOutlined, TrophyOutlined } from '@ant-design/icons'
 import Link from 'next/link'
 import { logout, login } from '@/redux/userSlice'
 import API from '@/Service/API'
@@ -93,6 +93,10 @@ export default function LayoutHeader() {
             {
                 key: 'my-stories',
                 label: <Link href="/my-stories"><BookOutlined className="mr-2" />Truyện của tôi</Link>,
+            },
+            {
+                key: 'ranking',
+                label: <Link href="/ranking"><TrophyOutlined className="mr-2" />Bảng xếp hạng</Link>,
             },
             {
                 key: 'create-story',

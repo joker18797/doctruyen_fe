@@ -7,4 +7,10 @@ export default class Auth {
     register(data) {
         return axiosPOST("api_gw", '/api/auth/register' ,data);
     }
+    forgotPassword(data) {
+        return axiosPOST("api_gw", '/api/auth/forgot-password', data);
+    }
+    resetPassword(token, data) {
+        return axiosPOST("api_gw", `/api/auth/reset-password/${token}`, data);
+    }
 }

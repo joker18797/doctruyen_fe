@@ -69,6 +69,11 @@ export default function Login() {
                 Đăng nhập
               </Button>
             </div>
+            <div className="text-center mt-4">
+              <a href="/forgot-password" className="text-blue-600 hover:text-blue-800 text-sm">
+                Quên mật khẩu?
+              </a>
+            </div>
           </form>
         </div>
       </div>
