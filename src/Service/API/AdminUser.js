@@ -16,4 +16,8 @@ export default class AdminUser {
     block(id) {
         return axiosPATCH('api_gw', `/admin/users/${id}/block`);
     }
+
+    activate(id) {
+        return axiosPATCH('api_gw', `/admin/users/${id}/activate`);
+    }
 }

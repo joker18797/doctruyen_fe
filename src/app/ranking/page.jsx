@@ -124,15 +124,15 @@ export default function RankingPage() {
             
             {/* Header Section */}
             <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-lg">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex items-center gap-4">
-                        <div className="text-5xl">🏆</div>
-                        <div>
-                            <h1 className="text-3xl sm:text-4xl font-bold mb-2 flex items-center gap-3">
-                                <TrophyOutlined className="text-4xl" />
-                                <span>Bảng xếp hạng truyện</span>
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="text-3xl sm:text-5xl hidden sm:block">🏆</div>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+                                <TrophyOutlined className="text-2xl sm:text-4xl" />
+                                <span className="truncate">Bảng xếp hạng truyện</span>
                             </h1>
-                            <p className="text-yellow-100 text-sm sm:text-base">
+                            <p className="text-yellow-100 text-xs sm:text-sm lg:text-base">
                                 Xem thứ hạng truyện của bạn theo {periodLabel.toLowerCase()}
                             </p>
                         </div>
@@ -141,9 +141,26 @@ export default function RankingPage() {
             </div>
 
             {/* Content Section */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
                 <Card className="shadow-lg">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    {/* Mobile: Select riêng */}
+                    <div className="flex items-center justify-between mb-4 sm:hidden">
+                        <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+                        <Select
+                            value={limit}
+                            onChange={setLimit}
+                            style={{ width: 100 }}
+                            size="small"
+                            options={[
+                                { value: 15, label: '15 truyện' },
+                                { value: 20, label: '20 truyện' },
+                                { value: 30, label: '30 truyện' }
+                            ]}
+                        />
+                    </div>
+                    
+                    {/* Desktop: Tabs và Select cùng dòng */}
+                    <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                         <Tabs
                             activeKey={activeTab}
                             onChange={setActiveTab}
@@ -165,6 +182,16 @@ export default function RankingPage() {
                             />
                         </div>
                     </div>
+                    
+                    {/* Mobile: Tabs riêng */}
+                    <div className="sm:hidden mb-4">
+                        <Tabs
+                            activeKey={activeTab}
+                            onChange={setActiveTab}
+                            items={tabItems}
+                            size="large"
+                        />
+                    </div>
 
                     {loading ? (
                         <div className="flex justify-center items-center py-20">
@@ -177,7 +204,7 @@ export default function RankingPage() {
                             className="py-20"
                         />
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {stories.map((story, index) => (
                                 <Link
                                     key={story._id}
@@ -185,13 +212,62 @@ export default function RankingPage() {
                                     className="block"
                                 >
                                     <div
-                                        className={`p-4 rounded-xl border-2 transition-all hover:shadow-lg ${
+                                        className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all hover:shadow-lg ${
                                             index < 3
                                                 ? `${getRankBadgeColor(story.rank)} text-white border-transparent`
                                                 : 'bg-white border-gray-200 hover:border-blue-300'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-4">
+                                        {/* Mobile Layout */}
+                                        <div className="flex sm:hidden items-start gap-3">
+                                            {/* Rank */}
+                                            <div className="flex-shrink-0 w-10 text-center">
+                                                {getRankIcon(story.rank)}
+                                            </div>
+                                            
+                                            {/* Cover Image */}
+                                            {story.coverImage && (
+                                                <img
+                                                    src={story.coverImage}
+                                                    alt={story.title}
+                                                    className="w-14 h-20 object-cover rounded-lg shadow-md flex-shrink-0"
+                                                />
+                                            )}
+
+                                            {/* Story Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className={`font-bold text-sm mb-1 line-clamp-2 ${
+                                                    index < 3 ? 'text-white' : 'text-gray-800'
+                                                }`}>
+                                                    {story.title}
+                                                </h3>
+                                                <div className="space-y-1 text-xs">
+                                                    <div className={`flex items-center gap-1 ${
+                                                        index < 3 ? 'text-yellow-100' : 'text-gray-600'
+                                                    }`}>
+                                                        <FireOutlined className="text-xs" />
+                                                        <span className="font-semibold">{story.readCount.toLocaleString()}</span>
+                                                        <span className="hidden xs:inline">lượt đọc {periodLabel.toLowerCase()}</span>
+                                                    </div>
+                                                    <div className={`flex items-center gap-1 ${
+                                                        index < 3 ? 'text-yellow-100' : 'text-gray-600'
+                                                    }`}>
+                                                        <TrophyOutlined className="text-xs" />
+                                                        <span className="font-semibold">{story.totalRead.toLocaleString()}</span>
+                                                        <span className="hidden xs:inline">tổng lượt đọc</span>
+                                                    </div>
+                                                    <Badge
+                                                        status={story.status === 'published' ? 'success' : 'default'}
+                                                        text={story.status === 'published' ? 'Đã xuất bản' : 'Nháp'}
+                                                        className={index < 3 ? 'text-white' : ''}
+                                                        size="small"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Desktop Layout */}
+                                        <div className="hidden sm:flex items-center gap-4">
                                             {/* Rank */}
                                             <div className="flex-shrink-0 w-16 text-center">
                                                 {getRankIcon(story.rank)}
@@ -208,12 +284,12 @@ export default function RankingPage() {
 
                                             {/* Story Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className={`font-bold text-lg mb-1 ${
+                                                <h3 className={`font-bold text-base sm:text-lg mb-1 ${
                                                     index < 3 ? 'text-white' : 'text-gray-800'
                                                 }`}>
                                                     {story.title}
                                                 </h3>
-                                                <div className="flex flex-wrap items-center gap-4 text-sm">
+                                                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                                                     <div className={`flex items-center gap-1 ${
                                                         index < 3 ? 'text-yellow-100' : 'text-gray-600'
                                                     }`}>
@@ -237,18 +313,20 @@ export default function RankingPage() {
                                             </div>
 
                                             {/* Read Count Badge */}
-                                            <div className={`flex-shrink-0 text-center px-4 py-2 rounded-lg ${
+                                            <div className={`hidden md:flex flex-shrink-0 text-center px-3 sm:px-4 py-2 rounded-lg ${
                                                 index < 3 ? 'bg-white/20' : 'bg-blue-100'
                                             }`}>
-                                                <div className={`text-2xl font-bold ${
-                                                    index < 3 ? 'text-white' : 'text-blue-600'
-                                                }`}>
-                                                    {story.readCount.toLocaleString()}
-                                                </div>
-                                                <div className={`text-xs ${
-                                                    index < 3 ? 'text-yellow-100' : 'text-gray-600'
-                                                }`}>
-                                                    lượt đọc
+                                                <div>
+                                                    <div className={`text-xl sm:text-2xl font-bold ${
+                                                        index < 3 ? 'text-white' : 'text-blue-600'
+                                                    }`}>
+                                                        {story.readCount.toLocaleString()}
+                                                    </div>
+                                                    <div className={`text-xs ${
+                                                        index < 3 ? 'text-yellow-100' : 'text-gray-600'
+                                                    }`}>
+                                                        lượt đọc
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

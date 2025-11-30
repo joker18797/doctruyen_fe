@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Table, Button, message, Popconfirm, Tag, Modal, Input, Form, Space } from 'antd'
-import { LockOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { LockOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
@@ -49,6 +49,16 @@ export default function AdminUserPage() {
     }
   }
 
+  const handleActivate = async (id) => {
+    try {
+      await API.AdminUser.activate(id)
+      toast.success('Đã kích hoạt tài khoản thành công')
+      fetchUsers()
+    } catch (err) {
+      toast.error('Lỗi khi kích hoạt tài khoản')
+    }
+  }
+
   const handleEdit = (record) => {
     setEditingUser(record)
     setIsModalOpen(true)
@@ -84,6 +94,13 @@ export default function AdminUserPage() {
         role === 'admin' ? <Tag color="volcano">Quản trị</Tag> : <Tag color="blue">Người dùng</Tag>,
     },
     {
+      title: 'Xác minh',
+      dataIndex: 'isVerified',
+      key: 'isVerified',
+      render: (isVerified) =>
+        isVerified ? <Tag color="green">Đã xác minh</Tag> : <Tag color="orange">Chưa xác minh</Tag>,
+    },
+    {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
@@ -99,6 +116,16 @@ export default function AdminUserPage() {
             <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>
               Sửa
             </Button>
+            {!record.isVerified && (
+              <Button 
+                type="primary" 
+                icon={<CheckCircleOutlined />} 
+                size="small" 
+                onClick={() => handleActivate(record._id)}
+              >
+                Kích hoạt
+              </Button>
+            )}
             <Button icon={<LockOutlined />} size="small" onClick={() => toggleLock(record._id)}>
               {record.status === 'inactive' ? 'Mở khóa' : 'Khóa'}
             </Button>
