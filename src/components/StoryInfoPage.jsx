@@ -153,7 +153,7 @@ export default function StoryInfoPage({ story }) {
                                 <p className="text-gray-600 mb-4">
                                     Tác giả: {story?.authorName ?? ''}
                                 </p>}
-                            <Select
+                            {/* <Select
                                 showSearch
                                 placeholder="Chọn chương để đọc"
                                 value={selectedChapterId}
@@ -165,7 +165,7 @@ export default function StoryInfoPage({ story }) {
                                         Chương {index + 1}
                                     </Option>
                                 ))}
-                            </Select>
+                            </Select> */}
 
                             <div className="flex items-center gap-3">
                                 <Button type="primary" onClick={handleRead}>📖 Đọc truyện</Button>
