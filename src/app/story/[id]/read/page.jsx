@@ -11,6 +11,30 @@ import { sanitizeText } from '@/Helper/helpFunction'
 const { Option } = Select
 const chapterCache = new Map()
 
+// Helper function để mở link an toàn trong Facebook/Zalo in-app browser
+const openLinkSafely = (url) => {
+  if (typeof window === 'undefined') return
+  
+  // Phát hiện in-app browser (Facebook, Zalo, Instagram, etc.)
+  const userAgent = window.navigator.userAgent.toLowerCase()
+  const isInAppBrowser = 
+    userAgent.includes('fban') || 
+    userAgent.includes('fbav') || 
+    userAgent.includes('fbsn') ||
+    userAgent.includes('zalo') ||
+    userAgent.includes('instagram') ||
+    userAgent.includes('line') ||
+    (window.navigator.standalone !== undefined) // iOS standalone mode
+  
+  if (isInAppBrowser) {
+    // Trong in-app browser, mở link trong cùng tab
+    window.location.href = url
+  } else {
+    // Trong trình duyệt thông thường, mở tab mới
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
 export default function StoryReadPage() {
   const contentRef = useRef(null)
   const fakeBottomRef = useRef(null)
@@ -178,7 +202,7 @@ export default function StoryReadPage() {
     const isLastChapter = story?.chapters?.[story.chapters.length - 1] === chapterId
     if (isLastChapter && adsOther.length > 0) {
       const randomAd = adsOther[Math.floor(Math.random() * adsOther.length)]
-      window.open(randomAd.url, "_blank")
+      openLinkSafely(randomAd.url)
     }
 
     // Load chương
@@ -195,7 +219,7 @@ export default function StoryReadPage() {
   const unlockStory = () => {
     if (ads.length > 0) {
       const randomAd = ads[Math.floor(Math.random() * ads.length)]
-      window.open(randomAd.url, "_blank")
+      openLinkSafely(randomAd.url)
     }
 
     // Lưu trạng thái unlock theo storyId
@@ -321,7 +345,7 @@ export default function StoryReadPage() {
                 onClick={() => {
                   if (ads.length > 0) {
                     const randomAd = ads[Math.floor(Math.random() * ads.length)]
-                    window.open(randomAd.url, '_blank')
+                    openLinkSafely(randomAd.url)
                   }
                   router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
                 }}
