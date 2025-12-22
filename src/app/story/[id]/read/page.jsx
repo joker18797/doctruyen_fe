@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button, Select, Skeleton, Switch } from 'antd'
-import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
+import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined, CloseOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
@@ -11,13 +11,12 @@ import { sanitizeText } from '@/Helper/helpFunction'
 const { Option } = Select
 const chapterCache = new Map()
 
-// Helper function để mở link an toàn trong Facebook/Zalo in-app browser
-const openLinkSafely = (url) => {
-  if (typeof window === 'undefined') return
+// Helper function để phát hiện in-app browser
+const isInAppBrowser = () => {
+  if (typeof window === 'undefined') return false
   
-  // Phát hiện in-app browser (Facebook, Zalo, Instagram, etc.)
   const userAgent = window.navigator.userAgent.toLowerCase()
-  const isInAppBrowser = 
+  return (
     userAgent.includes('fban') || 
     userAgent.includes('fbav') || 
     userAgent.includes('fbsn') ||
@@ -25,14 +24,7 @@ const openLinkSafely = (url) => {
     userAgent.includes('instagram') ||
     userAgent.includes('line') ||
     (window.navigator.standalone !== undefined) // iOS standalone mode
-  
-  if (isInAppBrowser) {
-    // Trong in-app browser, mở link trong cùng tab
-    window.location.href = url
-  } else {
-    // Trong trình duyệt thông thường, mở tab mới
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
+  )
 }
 
 export default function StoryReadPage() {
@@ -68,6 +60,7 @@ export default function StoryReadPage() {
     }
     return false
   })
+  const [adIframeUrl, setAdIframeUrl] = useState(null) // URL quảng cáo để hiển thị trong iframe
 
   // Áp dụng dark mode class vào document
   useEffect(() => {
@@ -191,6 +184,43 @@ export default function StoryReadPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Helper function để mở link an toàn
+  const openLinkSafely = (url) => {
+    if (isInAppBrowser()) {
+      // Trong Facebook/Zalo, mở trong iframe
+      setAdIframeUrl(url)
+    } else {
+      // Trong trình duyệt thông thường, mở tab mới
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  // Đóng iframe quảng cáo
+  const closeAdIframe = () => {
+    setAdIframeUrl(null)
+  }
+
+  // Ngăn scroll body khi modal mở và hỗ trợ phím ESC
+  useEffect(() => {
+    if (adIframeUrl) {
+      // Ngăn scroll body
+      document.body.style.overflow = 'hidden'
+      
+      // Hỗ trợ phím ESC để đóng
+      const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+          closeAdIframe()
+        }
+      }
+      window.addEventListener('keydown', handleEsc)
+      
+      return () => {
+        document.body.style.overflow = 'unset'
+        window.removeEventListener('keydown', handleEsc)
+      }
+    }
+  }, [adIframeUrl])
+
   const handleChangeChapter = (chapterId) => {
     const unlocked = localStorage.getItem(`unlockedStory_${id}`)
     if (!unlocked) {
@@ -301,6 +331,37 @@ export default function StoryReadPage() {
   return (
     <div className="pb-[90px] dark:bg-gray-900">
       <LayoutHeader />
+      
+      {/* Modal iframe quảng cáo cho Facebook/Zalo */}
+      {adIframeUrl && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+          onClick={closeAdIframe}
+        >
+          <div 
+            className="relative w-full h-full max-w-6xl max-h-[90vh] m-4 bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Nút đóng */}
+            <button
+              onClick={closeAdIframe}
+              className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
+              aria-label="Đóng"
+            >
+              <CloseOutlined className="text-xl" />
+            </button>
+            
+            {/* Iframe */}
+            <iframe
+              src={adIframeUrl}
+              className="w-full h-full border-0"
+              title="Quảng cáo"
+              allow="fullscreen"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
+            />
+          </div>
+        </div>
+      )}
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
           {/* Dark mode toggle */}
