@@ -53,6 +53,11 @@ export default function StoryInfoPage({ story }) {
         }
     }, [story?._id])
 
+    useEffect(() => {
+        const keysToRemove = Object.keys(localStorage).filter((key) => key.startsWith('unlockedStory_'));
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+    }, []);
+
     const fetchComments = async (id) => {
         try {
             const res = await API.Comment.list(id)
