@@ -1,4 +1,4 @@
-import { axiosGET, axiosPOST, axiosPUT, axiosDELETE } from "@/Helper/TypeAxios";
+import { axiosGET, axiosPOST, axiosPUT, axiosDELETE, axiosPATCH } from "@/Helper/TypeAxios";
 
 export default class AdminAds {
     list() {
@@ -15,5 +15,14 @@ export default class AdminAds {
 
     delete(id: string) {
         return axiosDELETE('api_gw', `/admin/ads/${id}`);
+    }
+
+    trackClick(id: string) {
+        return axiosPOST('api_gw', `/admin/ads/${id}/track-click`, {});
+    }
+
+    getClickHistory(id: string, limit?: number) {
+        const params = limit ? `?limit=${limit}` : '';
+        return axiosGET('api_gw', `/admin/ads/${id}/click-history${params}`);
     }
 }

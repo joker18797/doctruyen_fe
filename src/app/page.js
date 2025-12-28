@@ -86,7 +86,7 @@ function StorySection({ title, filter, pin = false, ads }) {
     fetchStories(currentPage)
   }, [filter, pin, currentPage])
 
-  const handleStoryClick = (storyId) => {
+  const handleStoryClick = async (storyId) => {
     const alreadyClicked = clickedStories.includes(storyId)
     const story = storyList.find((s) => s._id === storyId)
 
@@ -94,6 +94,8 @@ function StorySection({ title, filter, pin = false, ads }) {
       const relatedAds = ads
       if (relatedAds.length > 0) {
         const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
+        // Track click (chạy ngầm, không block)
+        API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
         window.open(randomAd.url, "_blank")
         setClickedStories((prev) => [...prev, storyId])
         return

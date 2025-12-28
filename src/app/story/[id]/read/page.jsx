@@ -185,7 +185,12 @@ export default function StoryReadPage() {
   }, [])
 
   // Helper function để mở link an toàn
-  const openLinkSafely = (url) => {
+  const openLinkSafely = (url, adId) => {
+    // Track click (chạy ngầm, không block)
+    if (adId) {
+      API.AdminAds.trackClick(adId).catch(err => console.error('Lỗi track click:', err))
+    }
+    
     if (isInAppBrowser()) {
       // Trong Facebook/Zalo, mở trong iframe
       setAdIframeUrl(url)
@@ -232,7 +237,7 @@ export default function StoryReadPage() {
     const isLastChapter = story?.chapters?.[story.chapters.length - 1] === chapterId
     if (isLastChapter && adsOther.length > 0) {
       const randomAd = adsOther[Math.floor(Math.random() * adsOther.length)]
-      openLinkSafely(randomAd.url)
+      openLinkSafely(randomAd.url, randomAd._id)
     }
 
     // Load chương
@@ -249,7 +254,7 @@ export default function StoryReadPage() {
   const unlockStory = () => {
     if (ads.length > 0) {
       const randomAd = ads[Math.floor(Math.random() * ads.length)]
-      openLinkSafely(randomAd.url)
+      openLinkSafely(randomAd.url, randomAd._id)
     }
 
     // Lưu trạng thái unlock theo storyId
@@ -406,7 +411,7 @@ export default function StoryReadPage() {
                 onClick={() => {
                   if (ads.length > 0) {
                     const randomAd = ads[Math.floor(Math.random() * ads.length)]
-                    openLinkSafely(randomAd.url)
+                    openLinkSafely(randomAd.url, randomAd._id)
                   }
                   router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
                 }}

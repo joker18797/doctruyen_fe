@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space } from 'antd'
-import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined } from '@ant-design/icons'
+import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Table as AntTable, Spin } from 'antd'
+import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined, EyeOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
@@ -11,6 +11,10 @@ export default function AdminAdsPage() {
     const [ads, setAds] = useState([])
     const [editingAd, setEditingAd] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [clickHistoryModal, setClickHistoryModal] = useState(false)
+    const [clickHistory, setClickHistory] = useState([])
+    const [loadingHistory, setLoadingHistory] = useState(false)
+    const [selectedAd, setSelectedAd] = useState(null)
     const [form] = Form.useForm()
 
     useEffect(() => {
@@ -70,6 +74,24 @@ export default function AdminAdsPage() {
         }
     }
 
+    const handleViewClickHistory = async (record) => {
+        try {
+            setSelectedAd(record)
+            setLoadingHistory(true)
+            setClickHistoryModal(true)
+            const res = await API.AdminAds.getClickHistory(record._id, 30)
+            if (res?.status === 200) {
+                setClickHistory(res.data.data || [])
+            } else {
+                toast.error('Không thể tải lịch sử click')
+            }
+        } catch (err) {
+            toast.error('Lỗi khi tải lịch sử click')
+        } finally {
+            setLoadingHistory(false)
+        }
+    }
+
     const adColumns = [
         {
             title: 'Tiêu đề',
@@ -93,6 +115,9 @@ export default function AdminAdsPage() {
             key: 'actions',
             render: (_, record) => (
                 <Space>
+                    <Button size="small" icon={<EyeOutlined />} onClick={() => handleViewClickHistory(record)}>
+                        Xem click
+                    </Button>
                     <Button size="small" icon={<EditOutlined />} onClick={() => handleAdEdit(record)}>Sửa</Button>
                     <Popconfirm
                         title="Xác nhận xóa quảng cáo?"
@@ -151,6 +176,76 @@ export default function AdminAdsPage() {
                                 </Button>
                             </Form.Item>
                         </Form>
+                    </Modal>
+
+                    <Modal
+                        title={
+                            <div className="flex items-center gap-2">
+                                <EyeOutlined />
+                                <span>Lịch sử click - {selectedAd?.title}</span>
+                            </div>
+                        }
+                        open={clickHistoryModal}
+                        onCancel={() => {
+                            setClickHistoryModal(false)
+                            setSelectedAd(null)
+                            setClickHistory([])
+                        }}
+                        footer={null}
+                        width={700}
+                    >
+                        {loadingHistory ? (
+                            <div className="flex justify-center items-center py-10">
+                                <Spin />
+                            </div>
+                        ) : clickHistory.length === 0 ? (
+                            <div className="text-center py-10 text-gray-500">
+                                Chưa có dữ liệu click
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                                    <p className="text-sm text-gray-600">
+                                        <span className="font-semibold">Tổng click:</span>{' '}
+                                        {clickHistory.reduce((sum, item) => sum + item.clickCount, 0).toLocaleString()}
+                                    </p>
+                                </div>
+                                <AntTable
+                                    dataSource={clickHistory}
+                                    rowKey="date"
+                                    pagination={{ pageSize: 10 }}
+                                    columns={[
+                                        {
+                                            title: 'Ngày',
+                                            dataIndex: 'date',
+                                            key: 'date',
+                                            render: (date) => {
+                                                const d = new Date(date + 'T00:00:00')
+                                                return d.toLocaleDateString('vi-VN', {
+                                                    weekday: 'long',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })
+                                            },
+                                            sorter: (a, b) => a.date.localeCompare(b.date),
+                                            defaultSortOrder: 'descend'
+                                        },
+                                        {
+                                            title: 'Số lượt click',
+                                            dataIndex: 'clickCount',
+                                            key: 'clickCount',
+                                            render: (count) => (
+                                                <span className="font-semibold text-blue-600">
+                                                    {count.toLocaleString()}
+                                                </span>
+                                            ),
+                                            sorter: (a, b) => a.clickCount - b.clickCount,
+                                        }
+                                    ]}
+                                />
+                            </div>
+                        )}
                     </Modal>
                 </div>
             </div>
