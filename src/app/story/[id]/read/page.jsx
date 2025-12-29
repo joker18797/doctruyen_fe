@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button, Select, Skeleton, Switch } from 'antd'
-import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined, CloseOutlined } from '@ant-design/icons'
+import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
@@ -60,7 +60,6 @@ export default function StoryReadPage() {
     }
     return false
   })
-  const [adIframeUrl, setAdIframeUrl] = useState(null) // URL quảng cáo để hiển thị trong iframe
 
   // Áp dụng dark mode class vào document
   useEffect(() => {
@@ -97,6 +96,53 @@ export default function StoryReadPage() {
     }
     if (id) fetchData()
   }, [id])
+
+  // Kiểm tra unlock khi quay lại từ link (cho Facebook in-app browser)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !id || !story) return
+
+    // Tìm unlock key trong sessionStorage
+    const keys = Object.keys(sessionStorage)
+    const unlockKey = keys.find(key => key.startsWith('unlock_') && key.includes(`_${id}_`))
+    
+    if (unlockKey) {
+      try {
+        const unlockData = JSON.parse(sessionStorage.getItem(unlockKey))
+        if (unlockData && unlockData.storyId === id) {
+          // Unlock truyện khi quay lại
+          localStorage.setItem(`unlockedStory_${id}`, "true")
+          setLockState({ locked: false })
+          
+          // Xóa unlock key
+          sessionStorage.removeItem(unlockKey)
+          
+          // Tự động chuyển sang chương tiếp theo nếu đang ở chương đầu
+          if (story?.chapters?.length > 1) {
+            const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
+            if (currentIdx === 0) {
+              const nextChapterId = story.chapters[1]
+              if (nextChapterId) {
+                setTimeout(() => {
+                  const unlocked = localStorage.getItem(`unlockedStory_${id}`)
+                  if (unlocked) {
+                    setLockState({ locked: false })
+                    setChapterContent("")
+                    setChapterTitle("")
+                    setChapterAudio("")
+                    setSelectedChapterId(nextChapterId)
+                    router.replace(`/story/${id}/read?chapter=${nextChapterId}`)
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                }, 500)
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi xử lý unlock:', err)
+      }
+    }
+  }, [id, story, selectedChapterId, router])
 
   // Load chapter nhanh với cache
   useEffect(() => {
@@ -185,46 +231,35 @@ export default function StoryReadPage() {
   }, [])
 
   // Helper function để mở link an toàn
-  const openLinkSafely = (url, adId) => {
+  const openLinkSafely = (url, adId, onSuccess) => {
     // Track click (chạy ngầm, không block)
     if (adId) {
       API.AdminAds.trackClick(adId).catch(err => console.error('Lỗi track click:', err))
     }
     
     if (isInAppBrowser()) {
-      // Trong Facebook/Zalo, mở trong iframe
-      setAdIframeUrl(url)
+      // Trong Facebook/Zalo, redirect trực tiếp để bắt buộc người dùng vào link
+      // Lưu thông tin để unlock khi quay lại
+      const returnUrl = window.location.href
+      const unlockKey = `unlock_${id}_${Date.now()}`
+      sessionStorage.setItem(unlockKey, JSON.stringify({ storyId: id, returnUrl }))
+      
+      // Redirect trực tiếp (sẽ rời khỏi Facebook, đó là điều mong muốn)
+      window.location.href = url
     } else {
       // Trong trình duyệt thông thường, mở tab mới
-      window.open(url, '_blank', 'noopener,noreferrer')
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+      
+      // Nếu mở thành công và có callback, đợi một chút rồi gọi callback
+      if (newWindow && onSuccess) {
+        // Đợi 2 giây để đảm bảo tab đã mở
+        setTimeout(() => {
+          onSuccess()
+        }, 2000)
+      }
     }
   }
 
-  // Đóng iframe quảng cáo
-  const closeAdIframe = () => {
-    setAdIframeUrl(null)
-  }
-
-  // Ngăn scroll body khi modal mở và hỗ trợ phím ESC
-  useEffect(() => {
-    if (adIframeUrl) {
-      // Ngăn scroll body
-      document.body.style.overflow = 'hidden'
-      
-      // Hỗ trợ phím ESC để đóng
-      const handleEsc = (e) => {
-        if (e.key === 'Escape') {
-          closeAdIframe()
-        }
-      }
-      window.addEventListener('keydown', handleEsc)
-      
-      return () => {
-        document.body.style.overflow = 'unset'
-        window.removeEventListener('keydown', handleEsc)
-      }
-    }
-  }, [adIframeUrl])
 
   const handleChangeChapter = (chapterId) => {
     const unlocked = localStorage.getItem(`unlockedStory_${id}`)
@@ -252,23 +287,31 @@ export default function StoryReadPage() {
 
   // Hàm unlock truyện
   const unlockStory = () => {
-    if (ads.length > 0) {
-      const randomAd = ads[Math.floor(Math.random() * ads.length)]
+    if (ads.length === 0) return
+
+    const randomAd = ads[Math.floor(Math.random() * ads.length)]
+    
+    if (isInAppBrowser()) {
+      // Trong Facebook/Zalo: redirect trực tiếp, unlock sẽ được xử lý khi quay lại
       openLinkSafely(randomAd.url, randomAd._id)
-    }
+    } else {
+      // Trong trình duyệt thông thường: mở tab mới và unlock sau khi mở thành công
+      openLinkSafely(randomAd.url, randomAd._id, () => {
+        // Chỉ unlock khi tab đã mở thành công
+        localStorage.setItem(`unlockedStory_${id}`, "true")
+        setLockState({ locked: false })
+        
+        if (story?.chapters?.length > 1) {
+          const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
+          const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
 
-    // Lưu trạng thái unlock theo storyId
-    localStorage.setItem(`unlockedStory_${id}`, "true")
-    setLockState({ locked: false })
-    if (story?.chapters?.length > 1) {
-      const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
-      const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
-
-      if (nextChapterId) {
-        setTimeout(() => {
-          handleChangeChapter(nextChapterId)
-        }, 300)
-      }
+          if (nextChapterId) {
+            setTimeout(() => {
+              handleChangeChapter(nextChapterId)
+            }, 300)
+          }
+        }
+      })
     }
   }
 
@@ -337,36 +380,6 @@ export default function StoryReadPage() {
     <div className="pb-[90px] dark:bg-gray-900">
       <LayoutHeader />
       
-      {/* Modal iframe quảng cáo cho Facebook/Zalo */}
-      {adIframeUrl && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
-          onClick={closeAdIframe}
-        >
-          <div 
-            className="relative w-full h-full max-w-6xl max-h-[90vh] m-4 bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Nút đóng */}
-            <button
-              onClick={closeAdIframe}
-              className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
-              aria-label="Đóng"
-            >
-              <CloseOutlined className="text-xl" />
-            </button>
-            
-            {/* Iframe */}
-            <iframe
-              src={adIframeUrl}
-              className="w-full h-full border-0"
-              title="Quảng cáo"
-              allow="fullscreen"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
-            />
-          </div>
-        </div>
-      )}
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
           {/* Dark mode toggle */}
