@@ -56,12 +56,16 @@ export default function StoryReadPage() {
   }, [isDarkMode])
 
   useEffect(() => {
+    let isMounted = true
+    
     const fetchData = async () => {
       try {
         const [storyRes, adsRes] = await Promise.all([
           API.Story.detail(id),
           API.AdminAds.list()
         ])
+
+        if (!isMounted) return
 
         if (storyRes?.status === 200) {
           const s = storyRes.data
@@ -76,28 +80,43 @@ export default function StoryReadPage() {
         setAdsOther(activeAdsOther)
       } catch (err) {
         console.error('Fetch data error:', err)
+        // Đảm bảo không để màn hình trắng khi có lỗi
+        if (isMounted && !story) {
+          setStory({ chapters: [] })
+        }
       }
     }
     if (id) fetchData()
-  }, [id])
+    
+    return () => {
+      isMounted = false
+    }
+  }, [id, searchParams])
 
 
   // Load chapter nhanh với cache
   useEffect(() => {
     if (!selectedChapterId) return
 
+    let isMounted = true
+
     const loadChapter = async () => {
       if (chapterCache.has(selectedChapterId)) {
         const cached = chapterCache.get(selectedChapterId)
-        setChapterContent(cached.content)
-        setChapterTitle(cached.title)
-        setChapterAudio(cached.audio)
+        if (isMounted) {
+          setChapterContent(cached.content)
+          setChapterTitle(cached.title)
+          setChapterAudio(cached.audio)
+        }
         return
       }
 
       try {
-        setIsPrefetching(true)
+        if (isMounted) setIsPrefetching(true)
         const res = await API.Chapter.detail(selectedChapterId)
+        
+        if (!isMounted) return
+        
         if (res?.status === 200) {
           const content = sanitizeText(res.data?.content || '')
           const title = res?.data?.title || ''
@@ -118,12 +137,18 @@ export default function StoryReadPage() {
           })
         }
       } catch (err) {
-        setIsPrefetching(false)
-        console.error('Lỗi tải chương:', err)
+        if (isMounted) {
+          setIsPrefetching(false)
+          console.error('Lỗi tải chương:', err)
+        }
       }
     }
 
     loadChapter()
+    
+    return () => {
+      isMounted = false
+    }
   }, [selectedChapterId])
 
   // Prefetch chương tiếp theo
@@ -163,10 +188,91 @@ export default function StoryReadPage() {
       const documentHeight = document.documentElement.scrollHeight
       setIsAtBottom(scrollY + windowHeight >= documentHeight - 100)
     }
-    window.addEventListener('scroll', handleScroll)
+    
+    // Throttle scroll event để tối ưu performance
+    let ticking = false
+    const throttledScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+    
+    window.addEventListener('scroll', throttledScroll, { passive: true })
     handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
+    
+    return () => {
+      window.removeEventListener('scroll', throttledScroll)
+    }
   }, [])
+
+  // Xử lý khi tab được focus lại (quan trọng cho Facebook app)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Khi tab được focus lại, đảm bảo state được cập nhật
+        if (story && selectedChapterId && !chapterContent) {
+          // Reload chapter nếu content bị mất
+          const cached = chapterCache.get(selectedChapterId)
+          if (cached) {
+            setChapterContent(cached.content)
+            setChapterTitle(cached.title)
+            setChapterAudio(cached.audio)
+          }
+        }
+        // Force re-render để đảm bảo UI được cập nhật
+        window.dispatchEvent(new Event('resize'))
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Xử lý khi window được focus lại
+    const handleFocus = () => {
+      if (story && selectedChapterId && !chapterContent) {
+        const cached = chapterCache.get(selectedChapterId)
+        if (cached) {
+          setChapterContent(cached.content)
+          setChapterTitle(cached.title)
+          setChapterAudio(cached.audio)
+        }
+      }
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [story, selectedChapterId, chapterContent])
+
+  // Xử lý khi tab được focus lại (quan trọng cho Facebook app)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Khi tab được focus lại, đảm bảo state được cập nhật
+        if (story && selectedChapterId && !chapterContent) {
+          // Reload chapter nếu content bị mất
+          const cached = chapterCache.get(selectedChapterId)
+          if (cached) {
+            setChapterContent(cached.content)
+            setChapterTitle(cached.title)
+            setChapterAudio(cached.audio)
+          }
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [story, selectedChapterId, chapterContent])
 
   // Helper function để mở link an toàn
   const openLinkSafely = (url, adId) => {
