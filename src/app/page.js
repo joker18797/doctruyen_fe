@@ -94,9 +94,23 @@ function StorySection({ title, filter, pin = false, ads }) {
       const relatedAds = ads
       if (relatedAds.length > 0) {
         const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
+        
+        // Mở ads ngay lập tức (phải gọi trực tiếp từ user action)
+        if (randomAd.url) {
+          try {
+            const newWindow = window.open(randomAd.url, "_blank", "noopener,noreferrer")
+            // Nếu window bị chặn, trình duyệt trả về null
+            if (!newWindow) {
+              console.warn("Popup bị chặn bởi trình duyệt")
+              // Fallback: vẫn cho phép vào story
+            }
+          } catch (err) {
+            console.error("Lỗi khi mở ads:", err)
+          }
+        }
+        
         // Track click (chạy ngầm, không block)
         API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
-        window.open(randomAd.url, "_blank")
         setClickedStories((prev) => [...prev, storyId])
         return
       }
