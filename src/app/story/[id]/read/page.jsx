@@ -11,6 +11,17 @@ import { sanitizeText } from '@/Helper/helpFunction'
 const { Option } = Select
 const chapterCache = new Map()
 
+// Helper function để phát hiện Facebook in-app browser
+const isFacebookApp = () => {
+  if (typeof window === 'undefined') return false
+  const userAgent = window.navigator.userAgent.toLowerCase()
+  return (
+    userAgent.includes('fban') || 
+    userAgent.includes('fbav') || 
+    userAgent.includes('fbsn')
+  )
+}
+
 export default function StoryReadPage() {
   const contentRef = useRef(null)
   const fakeBottomRef = useRef(null)
@@ -211,68 +222,122 @@ export default function StoryReadPage() {
 
   // Xử lý khi tab được focus lại (quan trọng cho Facebook app)
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Khi tab được focus lại, đảm bảo state được cập nhật
-        if (story && selectedChapterId && !chapterContent) {
-          // Reload chapter nếu content bị mất
+    const restoreContent = () => {
+      // Khi tab được focus lại, đảm bảo state được cập nhật
+      if (story && selectedChapterId) {
+        // Trong Facebook app, restore từ sessionStorage nếu có
+        if (isFacebookApp()) {
+          const savedState = sessionStorage.getItem(`fb_state_${id}`)
+          if (savedState) {
+            try {
+              const state = JSON.parse(savedState)
+              // Chỉ restore nếu state còn hợp lệ (không quá 5 phút)
+              if (state.storyId === id && Date.now() - state.timestamp < 300000) {
+                if (!chapterContent && state.chapterContent) {
+                  setChapterContent(state.chapterContent)
+                  setChapterTitle(state.chapterTitle)
+                  setChapterAudio(state.chapterAudio)
+                }
+                // Xóa saved state sau khi restore
+                sessionStorage.removeItem(`fb_state_${id}`)
+              }
+            } catch (e) {
+              console.error('Lỗi restore state:', e)
+            }
+          }
+        }
+        
+        // Nếu content bị mất, restore từ cache
+        if (!chapterContent) {
           const cached = chapterCache.get(selectedChapterId)
           if (cached) {
             setChapterContent(cached.content)
             setChapterTitle(cached.title)
             setChapterAudio(cached.audio)
+          } else {
+            // Nếu không có cache, reload chapter
+            const loadChapter = async () => {
+              try {
+                const res = await API.Chapter.detail(selectedChapterId)
+                if (res?.status === 200) {
+                  const content = sanitizeText(res.data?.content || '')
+                  const title = res?.data?.title || ''
+                  const audio = res?.data?.audio ?? ''
+                  setChapterContent(content)
+                  setChapterTitle(title)
+                  setChapterAudio(audio)
+                  chapterCache.set(selectedChapterId, { content, title, audio })
+                }
+              } catch (err) {
+                console.error('Lỗi reload chapter:', err)
+              }
+            }
+            loadChapter()
           }
         }
-        // Force re-render để đảm bảo UI được cập nhật
-        window.dispatchEvent(new Event('resize'))
+        
+        // Đảm bảo lockState đúng
+        const unlocked = localStorage.getItem(`unlockedStory_${id}`)
+        if (unlocked && lockState.locked) {
+          setLockState({ locked: false })
+        }
+        
+        // Đảm bảo story không bị null
+        if (!story) {
+          const loadStory = async () => {
+            try {
+              const res = await API.Story.detail(id)
+              if (res?.status === 200) {
+                setStory(res.data)
+              }
+            } catch (err) {
+              console.error('Lỗi reload story:', err)
+            }
+          }
+          loadStory()
+        }
       }
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    
-    // Xử lý khi window được focus lại
-    const handleFocus = () => {
-      if (story && selectedChapterId && !chapterContent) {
-        const cached = chapterCache.get(selectedChapterId)
-        if (cached) {
-          setChapterContent(cached.content)
-          setChapterTitle(cached.title)
-          setChapterAudio(cached.audio)
-        }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Delay một chút để đảm bảo Facebook app đã hoàn tất việc restore
+        setTimeout(() => {
+          restoreContent()
+        }, 200)
       }
     }
-    
+
+    const handleFocus = () => {
+      setTimeout(() => {
+        restoreContent()
+      }, 200)
+    }
+
+    const handlePageshow = (e) => {
+      // Xử lý khi trang được restore từ back/forward cache
+      if (e.persisted) {
+        restoreContent()
+      }
+    }
+
+    // Restore ngay khi component mount (quan trọng cho Facebook app)
+    if (isFacebookApp()) {
+      setTimeout(() => {
+        restoreContent()
+      }, 100)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handleFocus)
+    window.addEventListener('pageshow', handlePageshow)
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('pageshow', handlePageshow)
     }
-  }, [story, selectedChapterId, chapterContent])
-
-  // Xử lý khi tab được focus lại (quan trọng cho Facebook app)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Khi tab được focus lại, đảm bảo state được cập nhật
-        if (story && selectedChapterId && !chapterContent) {
-          // Reload chapter nếu content bị mất
-          const cached = chapterCache.get(selectedChapterId)
-          if (cached) {
-            setChapterContent(cached.content)
-            setChapterTitle(cached.title)
-            setChapterAudio(cached.audio)
-          }
-        }
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [story, selectedChapterId, chapterContent])
+  }, [story, selectedChapterId, chapterContent, id, lockState])
 
   // Helper function để mở link an toàn
   const openLinkSafely = (url, adId) => {
@@ -281,8 +346,34 @@ export default function StoryReadPage() {
       API.AdminAds.trackClick(adId).catch(err => console.error('Lỗi track click:', err))
     }
     
-    // Mở tab mới
-    window.open(url, '_blank', 'noopener,noreferrer')
+    // Trong Facebook app, lưu state trước khi mở link để tránh mất dữ liệu
+    if (isFacebookApp()) {
+      // Lưu state hiện tại vào sessionStorage để restore sau
+      const stateToSave = {
+        storyId: id,
+        chapterId: selectedChapterId,
+        chapterContent,
+        chapterTitle,
+        chapterAudio,
+        timestamp: Date.now()
+      }
+      sessionStorage.setItem(`fb_state_${id}`, JSON.stringify(stateToSave))
+      
+      // Trong Facebook app, dùng location.href để mở trong cùng tab
+      // hoặc window.open nhưng với fallback
+      try {
+        const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+        // Nếu popup bị chặn, fallback sang location.href
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          window.location.href = url
+        }
+      } catch (e) {
+        window.location.href = url
+      }
+    } else {
+      // Trong trình duyệt thông thường, mở tab mới
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
   }
 
 
@@ -503,3 +594,5 @@ export default function StoryReadPage() {
     </div>
   )
 }
+
+
