@@ -295,23 +295,29 @@ export default function StoryReadPage() {
       // Trong Facebook/Zalo: redirect trực tiếp, unlock sẽ được xử lý khi quay lại
       openLinkSafely(randomAd.url, randomAd._id)
     } else {
-      // Trong trình duyệt thông thường: mở tab mới và unlock sau khi mở thành công
-      openLinkSafely(randomAd.url, randomAd._id, () => {
-        // Chỉ unlock khi tab đã mở thành công
-        localStorage.setItem(`unlockedStory_${id}`, "true")
-        setLockState({ locked: false })
-        
-        if (story?.chapters?.length > 1) {
-          const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
-          const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
+      // Trong trình duyệt thông thường: mở tab mới và unlock ngay
+      // Track click
+      if (randomAd._id) {
+        API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
+      }
+      
+      // Mở tab mới
+      window.open(randomAd.url, '_blank', 'noopener,noreferrer')
+      
+      // Unlock ngay (không phụ thuộc vào việc tab có mở được hay không)
+      localStorage.setItem(`unlockedStory_${id}`, "true")
+      setLockState({ locked: false })
+      
+      if (story?.chapters?.length > 1) {
+        const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
+        const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
 
-          if (nextChapterId) {
-            setTimeout(() => {
-              handleChangeChapter(nextChapterId)
-            }, 300)
-          }
+        if (nextChapterId) {
+          setTimeout(() => {
+            handleChangeChapter(nextChapterId)
+          }, 300)
         }
-      })
+      }
     }
   }
 
