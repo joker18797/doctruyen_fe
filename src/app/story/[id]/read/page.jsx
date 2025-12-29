@@ -11,22 +11,6 @@ import { sanitizeText } from '@/Helper/helpFunction'
 const { Option } = Select
 const chapterCache = new Map()
 
-// Helper function để phát hiện in-app browser
-const isInAppBrowser = () => {
-  if (typeof window === 'undefined') return false
-  
-  const userAgent = window.navigator.userAgent.toLowerCase()
-  return (
-    userAgent.includes('fban') || 
-    userAgent.includes('fbav') || 
-    userAgent.includes('fbsn') ||
-    userAgent.includes('zalo') ||
-    userAgent.includes('instagram') ||
-    userAgent.includes('line') ||
-    (window.navigator.standalone !== undefined) // iOS standalone mode
-  )
-}
-
 export default function StoryReadPage() {
   const contentRef = useRef(null)
   const fakeBottomRef = useRef(null)
@@ -97,52 +81,6 @@ export default function StoryReadPage() {
     if (id) fetchData()
   }, [id])
 
-  // Kiểm tra unlock khi quay lại từ link (cho Facebook in-app browser)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !id || !story) return
-
-    // Tìm unlock key trong sessionStorage
-    const keys = Object.keys(sessionStorage)
-    const unlockKey = keys.find(key => key.startsWith('unlock_') && key.includes(`_${id}_`))
-    
-    if (unlockKey) {
-      try {
-        const unlockData = JSON.parse(sessionStorage.getItem(unlockKey))
-        if (unlockData && unlockData.storyId === id) {
-          // Unlock truyện khi quay lại
-          localStorage.setItem(`unlockedStory_${id}`, "true")
-          setLockState({ locked: false })
-          
-          // Xóa unlock key
-          sessionStorage.removeItem(unlockKey)
-          
-          // Tự động chuyển sang chương tiếp theo nếu đang ở chương đầu
-          if (story?.chapters?.length > 1) {
-            const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
-            if (currentIdx === 0) {
-              const nextChapterId = story.chapters[1]
-              if (nextChapterId) {
-                setTimeout(() => {
-                  const unlocked = localStorage.getItem(`unlockedStory_${id}`)
-                  if (unlocked) {
-                    setLockState({ locked: false })
-                    setChapterContent("")
-                    setChapterTitle("")
-                    setChapterAudio("")
-                    setSelectedChapterId(nextChapterId)
-                    router.replace(`/story/${id}/read?chapter=${nextChapterId}`)
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                }, 500)
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Lỗi xử lý unlock:', err)
-      }
-    }
-  }, [id, story, selectedChapterId, router])
 
   // Load chapter nhanh với cache
   useEffect(() => {
@@ -231,33 +169,14 @@ export default function StoryReadPage() {
   }, [])
 
   // Helper function để mở link an toàn
-  const openLinkSafely = (url, adId, onSuccess) => {
+  const openLinkSafely = (url, adId) => {
     // Track click (chạy ngầm, không block)
     if (adId) {
       API.AdminAds.trackClick(adId).catch(err => console.error('Lỗi track click:', err))
     }
     
-    if (isInAppBrowser()) {
-      // Trong Facebook/Zalo, redirect trực tiếp để bắt buộc người dùng vào link
-      // Lưu thông tin để unlock khi quay lại
-      const returnUrl = window.location.href
-      const unlockKey = `unlock_${id}_${Date.now()}`
-      sessionStorage.setItem(unlockKey, JSON.stringify({ storyId: id, returnUrl }))
-      
-      // Redirect trực tiếp (sẽ rời khỏi Facebook, đó là điều mong muốn)
-      window.location.href = url
-    } else {
-      // Trong trình duyệt thông thường, mở tab mới
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-      
-      // Nếu mở thành công và có callback, đợi một chút rồi gọi callback
-      if (newWindow && onSuccess) {
-        // Đợi 2 giây để đảm bảo tab đã mở
-        setTimeout(() => {
-          onSuccess()
-        }, 2000)
-      }
-    }
+    // Mở tab mới
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
 
@@ -291,32 +210,21 @@ export default function StoryReadPage() {
 
     const randomAd = ads[Math.floor(Math.random() * ads.length)]
     
-    if (isInAppBrowser()) {
-      // Trong Facebook/Zalo: redirect trực tiếp, unlock sẽ được xử lý khi quay lại
-      openLinkSafely(randomAd.url, randomAd._id)
-    } else {
-      // Trong trình duyệt thông thường: mở tab mới và unlock ngay
-      // Track click
-      if (randomAd._id) {
-        API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
-      }
-      
-      // Mở tab mới
-      window.open(randomAd.url, '_blank', 'noopener,noreferrer')
-      
-      // Unlock ngay (không phụ thuộc vào việc tab có mở được hay không)
-      localStorage.setItem(`unlockedStory_${id}`, "true")
-      setLockState({ locked: false })
-      
-      if (story?.chapters?.length > 1) {
-        const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
-        const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
+    // Mở tab mới với link quảng cáo
+    openLinkSafely(randomAd.url, randomAd._id)
+    
+    // Unlock ngay
+    localStorage.setItem(`unlockedStory_${id}`, "true")
+    setLockState({ locked: false })
+    
+    if (story?.chapters?.length > 1) {
+      const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
+      const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
 
-        if (nextChapterId) {
-          setTimeout(() => {
-            handleChangeChapter(nextChapterId)
-          }, 300)
-        }
+      if (nextChapterId) {
+        setTimeout(() => {
+          handleChangeChapter(nextChapterId)
+        }, 300)
       }
     }
   }
