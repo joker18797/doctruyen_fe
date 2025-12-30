@@ -242,101 +242,136 @@ export default function StoryReadPage() {
     }
   }, [])
 
-  // Xử lý khi quay lại từ Shopee - tự động back thêm nếu cần
+  // Xử lý khi quay lại từ Shopee - tự động back thêm nếu đang ở Shopee URL
   useEffect(() => {
     if (!isFacebookApp() || !story || !selectedChapterId) return
 
-    let hasProcessed = false
+    let backAttempts = 0
+    const maxBackAttempts = 3 // Giới hạn số lần back để tránh loop vô hạn
 
-    const processReturnFromAd = () => {
-      if (hasProcessed) return
-      
+    const checkAndBackFromShopee = () => {
       const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
-      const backCount = parseInt(sessionStorage.getItem(`fb_back_count_${id}`) || '0', 10)
       const savedState = sessionStorage.getItem(`fb_state_${id}`)
       
-      // Nếu đang quay lại từ ad
-      if (goingToAd === 'true' && savedState && backCount > 0) {
-        try {
-          const state = JSON.parse(savedState)
-          
-          // Nếu state còn hợp lệ và đang ở đúng story
-          if (state.storyId === id && Date.now() - state.timestamp < 120000) {
-            hasProcessed = true
-            
-            // Kiểm tra xem có phải đang ở trang Shopee hoặc intermediate page không
-            const currentUrl = window.location.href
-            const isShopeeUrl = currentUrl.includes('shopee') || currentUrl.includes('shp.ee')
-            const isReturnUrl = state.returnUrl && currentUrl === state.returnUrl
-            
-            // Nếu đang ở Shopee URL hoặc không phải return URL, tự động back
-            if (isShopeeUrl || (!isReturnUrl && backCount > 0)) {
-              // Giảm số lần back còn lại
-              const remainingBacks = backCount - 1
-              sessionStorage.setItem(`fb_back_count_${id}`, remainingBacks.toString())
-              
-              // Tự động back
-              setTimeout(() => {
-                window.history.back()
-              }, 100)
-              
-              return // Chờ lần back tiếp theo
-            }
-            
-            // Đã về đúng trang truyện, xóa các flag
-            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
-            sessionStorage.removeItem(`fb_back_count_${id}`)
-            sessionStorage.removeItem(`fb_ad_url_${id}`)
-            
-            // Tự động chuyển chapter tiếp theo nếu có
-            const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
-            const nextIndex = currentIndex + 1
-            
-            if (nextIndex < story.chapters.length && checkUnlocked(id)) {
-              const nextChapterId = story.chapters[nextIndex]
-              if (nextChapterId) {
-                setTimeout(() => {
-                  handleChangeChapter(nextChapterId)
-                }, 500)
-              }
-            }
-          }
-        } catch (e) {
-          console.error('Lỗi xử lý return from ad:', e)
-          // Xóa các flag nếu có lỗi
+      if (!goingToAd || !savedState) return
+      
+      try {
+        const state = JSON.parse(savedState)
+        
+        // Kiểm tra state còn hợp lệ
+        if (state.storyId !== id || Date.now() - state.timestamp >= 120000) {
+          // State hết hạn, xóa flags
           sessionStorage.removeItem(`fb_going_to_ad_${id}`)
           sessionStorage.removeItem(`fb_back_count_${id}`)
           sessionStorage.removeItem(`fb_ad_url_${id}`)
+          sessionStorage.removeItem(`fb_state_${id}`)
+          return
         }
+        
+        const currentUrl = window.location.href.toLowerCase()
+        const returnUrl = state.returnUrl?.toLowerCase() || ''
+        
+        // Detect Shopee URLs (bao gồm các biến thể)
+        const isShopeeUrl = 
+          currentUrl.includes('shopee') || 
+          currentUrl.includes('shp.ee') ||
+          currentUrl.includes('s.shopee') ||
+          currentUrl.includes('shopeemobile') ||
+          currentUrl.includes('shopee.vn') ||
+          currentUrl.includes('shopee.com')
+        
+        // Kiểm tra xem đã về đúng trang truyện chưa
+        const isOnStoryPage = currentUrl.includes(`/story/${id}/read`) || 
+                              currentUrl.includes(`/story/${id}`) ||
+                              currentUrl === returnUrl
+        
+        // Nếu đang ở Shopee URL và chưa về trang truyện, tự động back
+        if (isShopeeUrl && !isOnStoryPage && backAttempts < maxBackAttempts) {
+          backAttempts++
+          console.log(`Auto back attempt ${backAttempts} from Shopee URL`)
+          
+          // Tự động back ngay lập tức
+          setTimeout(() => {
+            window.history.back()
+          }, 100)
+          
+          // Kiểm tra lại sau 500ms
+          setTimeout(() => {
+            checkAndBackFromShopee()
+          }, 500)
+          
+          return
+        }
+        
+        // Đã về đúng trang truyện
+        if (isOnStoryPage) {
+          // Xóa các flag
+          sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+          sessionStorage.removeItem(`fb_back_count_${id}`)
+          sessionStorage.removeItem(`fb_ad_url_${id}`)
+          
+          // Tự động chuyển chapter tiếp theo nếu có
+          const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+          const nextIndex = currentIndex + 1
+          
+          if (nextIndex < story.chapters.length && checkUnlocked(id)) {
+            const nextChapterId = story.chapters[nextIndex]
+            if (nextChapterId) {
+              setTimeout(() => {
+                handleChangeChapter(nextChapterId)
+              }, 500)
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi xử lý return from ad:', e)
+        // Xóa các flag nếu có lỗi
+        sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+        sessionStorage.removeItem(`fb_back_count_${id}`)
+        sessionStorage.removeItem(`fb_ad_url_${id}`)
+        sessionStorage.removeItem(`fb_state_${id}`)
       }
     }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        backAttempts = 0 // Reset counter
         setTimeout(() => {
-          processReturnFromAd()
-        }, 200)
+          checkAndBackFromShopee()
+        }, 300)
       }
     }
 
     const handleFocus = () => {
+      backAttempts = 0 // Reset counter
       setTimeout(() => {
-        processReturnFromAd()
-      }, 200)
+        checkAndBackFromShopee()
+      }, 300)
     }
 
     const handlePageshow = (e) => {
       if (e.persisted) {
+        backAttempts = 0 // Reset counter
         setTimeout(() => {
-          processReturnFromAd()
-        }, 200)
+          checkAndBackFromShopee()
+        }, 300)
       }
     }
 
     // Kiểm tra ngay khi component mount
     const timer = setTimeout(() => {
-      processReturnFromAd()
-    }, 300)
+      checkAndBackFromShopee()
+    }, 500)
+
+    // Kiểm tra định kỳ khi đang ở Shopee URL
+    const intervalId = setInterval(() => {
+      const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
+      if (goingToAd === 'true' && backAttempts < maxBackAttempts) {
+        checkAndBackFromShopee()
+      } else {
+        clearInterval(intervalId)
+      }
+    }, 1000)
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handleFocus)
@@ -344,6 +379,7 @@ export default function StoryReadPage() {
 
     return () => {
       clearTimeout(timer)
+      clearInterval(intervalId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('pageshow', handlePageshow)
