@@ -242,55 +242,111 @@ export default function StoryReadPage() {
     }
   }, [])
 
-  // Xử lý popstate để tự động quay lại khi back từ Shopee (chỉ cần back 1 lần)
+  // Xử lý khi quay lại từ Shopee - tự động back thêm nếu cần
   useEffect(() => {
-    if (!isFacebookApp()) return
+    if (!isFacebookApp() || !story || !selectedChapterId) return
 
-    const handlePopState = (e) => {
+    let hasProcessed = false
+
+    const processReturnFromAd = () => {
+      if (hasProcessed) return
+      
       const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
+      const backCount = parseInt(sessionStorage.getItem(`fb_back_count_${id}`) || '0', 10)
       const savedState = sessionStorage.getItem(`fb_state_${id}`)
       
       // Nếu đang quay lại từ ad
-      if (goingToAd === 'true' && savedState) {
+      if (goingToAd === 'true' && savedState && backCount > 0) {
         try {
           const state = JSON.parse(savedState)
           
           // Nếu state còn hợp lệ và đang ở đúng story
           if (state.storyId === id && Date.now() - state.timestamp < 120000) {
-            // Xóa flag
-            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
-            sessionStorage.removeItem(`fb_ad_url_${id}`)
+            hasProcessed = true
             
-            // Nếu URL hiện tại không phải return URL, replace về return URL
-            if (state.returnUrl && window.location.href !== state.returnUrl) {
-              window.history.replaceState(null, '', state.returnUrl)
+            // Kiểm tra xem có phải đang ở trang Shopee hoặc intermediate page không
+            const currentUrl = window.location.href
+            const isShopeeUrl = currentUrl.includes('shopee') || currentUrl.includes('shp.ee')
+            const isReturnUrl = state.returnUrl && currentUrl === state.returnUrl
+            
+            // Nếu đang ở Shopee URL hoặc không phải return URL, tự động back
+            if (isShopeeUrl || (!isReturnUrl && backCount > 0)) {
+              // Giảm số lần back còn lại
+              const remainingBacks = backCount - 1
+              sessionStorage.setItem(`fb_back_count_${id}`, remainingBacks.toString())
+              
+              // Tự động back
+              setTimeout(() => {
+                window.history.back()
+              }, 100)
+              
+              return // Chờ lần back tiếp theo
             }
             
+            // Đã về đúng trang truyện, xóa các flag
+            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+            sessionStorage.removeItem(`fb_back_count_${id}`)
+            sessionStorage.removeItem(`fb_ad_url_${id}`)
+            
             // Tự động chuyển chapter tiếp theo nếu có
-            if (story && selectedChapterId) {
-              const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
-              const nextIndex = currentIndex + 1
-              
-              if (nextIndex < story.chapters.length && checkUnlocked(id)) {
-                const nextChapterId = story.chapters[nextIndex]
-                if (nextChapterId) {
-                  setTimeout(() => {
-                    handleChangeChapter(nextChapterId)
-                  }, 300)
-                }
+            const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+            const nextIndex = currentIndex + 1
+            
+            if (nextIndex < story.chapters.length && checkUnlocked(id)) {
+              const nextChapterId = story.chapters[nextIndex]
+              if (nextChapterId) {
+                setTimeout(() => {
+                  handleChangeChapter(nextChapterId)
+                }, 500)
               }
             }
           }
         } catch (e) {
-          console.error('Lỗi xử lý popstate:', e)
+          console.error('Lỗi xử lý return from ad:', e)
+          // Xóa các flag nếu có lỗi
+          sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+          sessionStorage.removeItem(`fb_back_count_${id}`)
+          sessionStorage.removeItem(`fb_ad_url_${id}`)
         }
       }
     }
 
-    window.addEventListener('popstate', handlePopState)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setTimeout(() => {
+          processReturnFromAd()
+        }, 200)
+      }
+    }
+
+    const handleFocus = () => {
+      setTimeout(() => {
+        processReturnFromAd()
+      }, 200)
+    }
+
+    const handlePageshow = (e) => {
+      if (e.persisted) {
+        setTimeout(() => {
+          processReturnFromAd()
+        }, 200)
+      }
+    }
+
+    // Kiểm tra ngay khi component mount
+    const timer = setTimeout(() => {
+      processReturnFromAd()
+    }, 300)
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('pageshow', handlePageshow)
 
     return () => {
-      window.removeEventListener('popstate', handlePopState)
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('pageshow', handlePageshow)
     }
   }, [story, selectedChapterId, id])
 
@@ -409,31 +465,15 @@ export default function StoryReadPage() {
       // Lưu flag để biết đang đi đến ad
       sessionStorage.setItem(`fb_going_to_ad_${id}`, 'true')
       
-      // Trong Facebook app, tạo intermediate redirect để quản lý history tốt hơn
-      try {
-        // Lưu Shopee URL vào sessionStorage
-        sessionStorage.setItem(`fb_ad_url_${id}`, url)
-        
-        // Tạo một intermediate page trong history để khi back sẽ về đúng trang truyện
-        // Push state với return URL
-        const returnUrl = window.location.href
-        window.history.pushState(
-          { 
-            fromStory: true, 
-            returnUrl: returnUrl,
-            adUrl: url 
-          }, 
-          '', 
-          returnUrl
-        )
-        
-        // Sau đó redirect đến Shopee
-        // Khi back từ Shopee, sẽ về trang truyện (chỉ cần back 1 lần)
-        window.location.href = url
-      } catch (e) {
-        // Fallback: dùng replace
-        window.location.replace(url)
-      }
+      // Trong Facebook app, dùng cách đơn giản hơn để tránh tạo nhiều history entries
+      // Lưu số lần back cần thiết (thường là 1, nhưng Shopee có thể tạo thêm 1 entry)
+      sessionStorage.setItem(`fb_back_count_${id}`, '2') // Shopee thường tạo 2 entries
+      
+      // Lưu Shopee URL vào sessionStorage
+      sessionStorage.setItem(`fb_ad_url_${id}`, url)
+      
+      // Redirect đến Shopee - khi back sẽ tự động xử lý
+      window.location.href = url
     } else {
       // Trong trình duyệt thông thường, mở tab mới
       window.open(url, '_blank', 'noopener,noreferrer')
