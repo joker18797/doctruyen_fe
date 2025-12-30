@@ -19,6 +19,28 @@ export default function StoryAudioPage() {
   // thay đổi: chỉ cần 1 flag unlock cho toàn bộ truyện
   const [isStoryUnlocked, setIsStoryUnlocked] = useState(false)
 
+  // Helper function để check unlock status với expiry
+  const checkUnlocked = (storyId) => {
+    const unlockedData = localStorage.getItem(`unlockedStory_${storyId}`)
+    if (!unlockedData) return false
+    
+    try {
+      const parsed = JSON.parse(unlockedData)
+      // Chỉ chấp nhận nếu có expiry và còn trong thời gian hiệu lực
+      if (parsed.unlocked && parsed.expiry && Date.now() < parsed.expiry) {
+        return true
+      } else {
+        // Không có expiry hoặc đã hết hạn, xóa key
+        localStorage.removeItem(`unlockedStory_${storyId}`)
+        return false
+      }
+    } catch {
+      // Format cũ không có expiry, xóa và coi là hết hạn
+      localStorage.removeItem(`unlockedStory_${storyId}`)
+      return false
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,11 +65,10 @@ export default function StoryAudioPage() {
     }
 
     if (id && chapterId) {
-      // kiểm tra key unlock cho toàn truyện (một lần)
+      // kiểm tra key unlock cho toàn truyện (một lần) với expiry
       try {
-        const unlockedKey = `unlockedStory_${id}`
-        const unlocked = typeof window !== 'undefined' && localStorage.getItem(unlockedKey) === 'true'
-        setIsStoryUnlocked(Boolean(unlocked))
+        const unlocked = checkUnlocked(id)
+        setIsStoryUnlocked(unlocked)
       } catch (e) {
         setIsStoryUnlocked(false)
       }
@@ -57,18 +78,25 @@ export default function StoryAudioPage() {
   }, [id, chapterId])
 
   const unlockStory = () => {
-    // mở ad (nếu có) rồi đánh dấu unlock cho toàn truyện
+    // mở ad (nếu có) rồi đánh dấu unlock cho toàn truyện với expiry 1 giờ
     if (ads.length > 0) {
       const randomAd = ads[Math.floor(Math.random() * ads.length)]
       try {
         window.open(randomAd.url, '_blank')
+        // Track click (chạy ngầm)
+        API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
       } catch (e) {
         console.warn('Không thể mở ad:', e)
       }
     }
 
+    // Unlock với thời gian hết hạn 1 giờ
+    const expiryTime = Date.now() + (60 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
     const unlockedKey = `unlockedStory_${id}`
-    localStorage.setItem(unlockedKey, 'true')
+    localStorage.setItem(unlockedKey, JSON.stringify({
+      unlocked: true,
+      expiry: expiryTime
+    }))
     setIsStoryUnlocked(true)
   }
 

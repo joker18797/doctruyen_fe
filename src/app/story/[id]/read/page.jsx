@@ -9,9 +9,31 @@ import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
 
 const { Option } = Select
-const chapterCache = new Map()
-
-// Helper function để phát hiện Facebook in-app browser
+  const chapterCache = new Map()
+  
+  // Helper function để check unlock status với expiry
+  const checkUnlocked = (storyId) => {
+    const unlockedData = localStorage.getItem(`unlockedStory_${storyId}`)
+    if (!unlockedData) return false
+    
+    try {
+      const parsed = JSON.parse(unlockedData)
+      // Chỉ chấp nhận nếu có expiry và còn trong thời gian hiệu lực
+      if (parsed.unlocked && parsed.expiry && Date.now() < parsed.expiry) {
+        return true
+      } else {
+        // Không có expiry hoặc đã hết hạn, xóa key
+        localStorage.removeItem(`unlockedStory_${storyId}`)
+        return false
+      }
+    } catch {
+      // Format cũ không có expiry, xóa và coi là hết hạn
+      localStorage.removeItem(`unlockedStory_${storyId}`)
+      return false
+    }
+  }
+  
+  // Helper function để phát hiện Facebook in-app browser
 const isFacebookApp = () => {
   if (typeof window === 'undefined') return false
   const userAgent = window.navigator.userAgent.toLowerCase()
@@ -277,7 +299,7 @@ export default function StoryReadPage() {
         }
         
         // Đảm bảo lockState đúng
-        const unlocked = localStorage.getItem(`unlockedStory_${id}`)
+        const unlocked = checkUnlocked(id)
         if (unlocked && lockState.locked) {
           setLockState({ locked: false })
         }
@@ -378,7 +400,7 @@ export default function StoryReadPage() {
 
 
   const handleChangeChapter = (chapterId) => {
-    const unlocked = localStorage.getItem(`unlockedStory_${id}`)
+    const unlocked = checkUnlocked(id)
     if (!unlocked) {
       setLockState({ locked: true })
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -410,8 +432,12 @@ export default function StoryReadPage() {
     // Mở tab mới với link quảng cáo
     openLinkSafely(randomAd.url, randomAd._id)
     
-    // Unlock ngay
-    localStorage.setItem(`unlockedStory_${id}`, "true")
+    // Unlock với thời gian hết hạn 1 giờ
+    const expiryTime = Date.now() + (60 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
+    localStorage.setItem(`unlockedStory_${id}`, JSON.stringify({
+      unlocked: true,
+      expiry: expiryTime
+    }))
     setLockState({ locked: false })
     
     if (story?.chapters?.length > 1) {

@@ -54,8 +54,26 @@ export default function StoryInfoPage({ story }) {
     }, [story?._id])
 
     useEffect(() => {
-        const keysToRemove = Object.keys(localStorage).filter((key) => key.startsWith('unlockedStory_'));
-        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        // Xóa các key đã hết hạn hoặc không có expiry
+        const keysToCheck = Object.keys(localStorage).filter((key) => key.startsWith('unlockedStory_'));
+        keysToCheck.forEach((key) => {
+            try {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    const parsed = JSON.parse(value);
+                    // Nếu không có expiry hoặc đã hết hạn, xóa key
+                    if (!parsed.expiry || Date.now() >= parsed.expiry) {
+                        localStorage.removeItem(key);
+                    }
+                } else {
+                    // Nếu value là null hoặc rỗng, xóa luôn
+                    localStorage.removeItem(key);
+                }
+            } catch (e) {
+                // Nếu không parse được (format cũ không có expiry), xóa luôn
+                localStorage.removeItem(key);
+            }
+        });
     }, []);
 
     const fetchComments = async (id) => {
