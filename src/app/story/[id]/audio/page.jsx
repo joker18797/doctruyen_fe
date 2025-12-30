@@ -91,7 +91,7 @@ export default function StoryAudioPage() {
     }
 
     // Unlock với thời gian hết hạn 1 giờ
-    const expiryTime = Date.now() + (60 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
+    const expiryTime = Date.now() + (10 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
     const unlockedKey = `unlockedStory_${id}`
     localStorage.setItem(unlockedKey, JSON.stringify({
       unlocked: true,

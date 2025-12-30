@@ -242,6 +242,58 @@ export default function StoryReadPage() {
     }
   }, [])
 
+  // Xử lý popstate để tự động quay lại khi back từ Shopee (chỉ cần back 1 lần)
+  useEffect(() => {
+    if (!isFacebookApp()) return
+
+    const handlePopState = (e) => {
+      const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
+      const savedState = sessionStorage.getItem(`fb_state_${id}`)
+      
+      // Nếu đang quay lại từ ad
+      if (goingToAd === 'true' && savedState) {
+        try {
+          const state = JSON.parse(savedState)
+          
+          // Nếu state còn hợp lệ và đang ở đúng story
+          if (state.storyId === id && Date.now() - state.timestamp < 120000) {
+            // Xóa flag
+            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+            sessionStorage.removeItem(`fb_ad_url_${id}`)
+            
+            // Nếu URL hiện tại không phải return URL, replace về return URL
+            if (state.returnUrl && window.location.href !== state.returnUrl) {
+              window.history.replaceState(null, '', state.returnUrl)
+            }
+            
+            // Tự động chuyển chapter tiếp theo nếu có
+            if (story && selectedChapterId) {
+              const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+              const nextIndex = currentIndex + 1
+              
+              if (nextIndex < story.chapters.length && checkUnlocked(id)) {
+                const nextChapterId = story.chapters[nextIndex]
+                if (nextChapterId) {
+                  setTimeout(() => {
+                    handleChangeChapter(nextChapterId)
+                  }, 300)
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Lỗi xử lý popstate:', e)
+        }
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [story, selectedChapterId, id])
+
   // Tự động chuyển chapter tiếp theo khi quay lại từ Facebook app
   useEffect(() => {
     if (!story || !selectedChapterId || !isFacebookApp()) return
@@ -287,21 +339,30 @@ export default function StoryReadPage() {
 
     // Kiểm tra ngay khi component mount (nếu đang trong Facebook app và vừa quay lại)
     const checkReturnFromAd = () => {
-      // Kiểm tra xem có state được lưu trong sessionStorage không (dấu hiệu vừa quay lại từ ad)
+      // Kiểm tra flag xem có phải vừa quay lại từ ad không
+      const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
       const savedState = sessionStorage.getItem(`fb_state_${id}`)
-      if (savedState) {
+      
+      if (goingToAd === 'true' && savedState) {
         try {
           const state = JSON.parse(savedState)
-          // Nếu state còn hợp lệ (không quá 2 phút) và đang ở đúng chapter đã lưu
-          if (state.storyId === id && 
-              state.chapterId === selectedChapterId && 
-              Date.now() - state.timestamp < 120000) {
+          // Nếu state còn hợp lệ (không quá 2 phút)
+          if (state.storyId === id && Date.now() - state.timestamp < 120000) {
+            // Xóa flag và state
+            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+            sessionStorage.removeItem(`fb_state_${id}`)
+            
+            // Tự động chuyển chapter tiếp theo
             autoChangeToNextChapter()
-            // Xóa saved state sau khi đã xử lý
+          } else {
+            // State hết hạn, xóa luôn
+            sessionStorage.removeItem(`fb_going_to_ad_${id}`)
             sessionStorage.removeItem(`fb_state_${id}`)
           }
         } catch (e) {
           console.error('Lỗi parse saved state:', e)
+          sessionStorage.removeItem(`fb_going_to_ad_${id}`)
+          sessionStorage.removeItem(`fb_state_${id}`)
         }
       }
     }
@@ -340,20 +401,38 @@ export default function StoryReadPage() {
         chapterContent,
         chapterTitle,
         chapterAudio,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        returnUrl: window.location.href // Lưu URL hiện tại để quay lại
       }
       sessionStorage.setItem(`fb_state_${id}`, JSON.stringify(stateToSave))
       
-      // Trong Facebook app, dùng location.href để mở trong cùng tab
-      // hoặc window.open nhưng với fallback
+      // Lưu flag để biết đang đi đến ad
+      sessionStorage.setItem(`fb_going_to_ad_${id}`, 'true')
+      
+      // Trong Facebook app, tạo intermediate redirect để quản lý history tốt hơn
       try {
-        const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-        // Nếu popup bị chặn, fallback sang location.href
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          window.location.href = url
-        }
-      } catch (e) {
+        // Lưu Shopee URL vào sessionStorage
+        sessionStorage.setItem(`fb_ad_url_${id}`, url)
+        
+        // Tạo một intermediate page trong history để khi back sẽ về đúng trang truyện
+        // Push state với return URL
+        const returnUrl = window.location.href
+        window.history.pushState(
+          { 
+            fromStory: true, 
+            returnUrl: returnUrl,
+            adUrl: url 
+          }, 
+          '', 
+          returnUrl
+        )
+        
+        // Sau đó redirect đến Shopee
+        // Khi back từ Shopee, sẽ về trang truyện (chỉ cần back 1 lần)
         window.location.href = url
+      } catch (e) {
+        // Fallback: dùng replace
+        window.location.replace(url)
       }
     } else {
       // Trong trình duyệt thông thường, mở tab mới
@@ -396,7 +475,7 @@ export default function StoryReadPage() {
     openLinkSafely(randomAd.url, randomAd._id)
     
     // Unlock với thời gian hết hạn 1 giờ
-    const expiryTime = Date.now() + (60 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
+    const expiryTime = Date.now() + (10 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
     localStorage.setItem(`unlockedStory_${id}`, JSON.stringify({
       unlocked: true,
       expiry: expiryTime
