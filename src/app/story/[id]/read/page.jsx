@@ -242,124 +242,87 @@ export default function StoryReadPage() {
     }
   }, [])
 
-  // Xử lý khi tab được focus lại (quan trọng cho Facebook app)
+  // Tự động chuyển chapter tiếp theo khi quay lại từ Facebook app
   useEffect(() => {
-    const restoreContent = () => {
-      // Khi tab được focus lại, đảm bảo state được cập nhật
-      if (story && selectedChapterId) {
-        // Trong Facebook app, restore từ sessionStorage nếu có
-        if (isFacebookApp()) {
-          const savedState = sessionStorage.getItem(`fb_state_${id}`)
-          if (savedState) {
-            try {
-              const state = JSON.parse(savedState)
-              // Chỉ restore nếu state còn hợp lệ (không quá 5 phút)
-              if (state.storyId === id && Date.now() - state.timestamp < 300000) {
-                if (!chapterContent && state.chapterContent) {
-                  setChapterContent(state.chapterContent)
-                  setChapterTitle(state.chapterTitle)
-                  setChapterAudio(state.chapterAudio)
-                }
-                // Xóa saved state sau khi restore
-                sessionStorage.removeItem(`fb_state_${id}`)
-              }
-            } catch (e) {
-              console.error('Lỗi restore state:', e)
-            }
-          }
-        }
-        
-        // Nếu content bị mất, restore từ cache
-        if (!chapterContent) {
-          const cached = chapterCache.get(selectedChapterId)
-          if (cached) {
-            setChapterContent(cached.content)
-            setChapterTitle(cached.title)
-            setChapterAudio(cached.audio)
-          } else {
-            // Nếu không có cache, reload chapter
-            const loadChapter = async () => {
-              try {
-                const res = await API.Chapter.detail(selectedChapterId)
-                if (res?.status === 200) {
-                  const content = sanitizeText(res.data?.content || '')
-                  const title = res?.data?.title || ''
-                  const audio = res?.data?.audio ?? ''
-                  setChapterContent(content)
-                  setChapterTitle(title)
-                  setChapterAudio(audio)
-                  chapterCache.set(selectedChapterId, { content, title, audio })
-                }
-              } catch (err) {
-                console.error('Lỗi reload chapter:', err)
-              }
-            }
-            loadChapter()
-          }
-        }
-        
-        // Đảm bảo lockState đúng
-        const unlocked = checkUnlocked(id)
-        if (unlocked && lockState.locked) {
-          setLockState({ locked: false })
-        }
-        
-        // Đảm bảo story không bị null
-        if (!story) {
-          const loadStory = async () => {
-            try {
-              const res = await API.Story.detail(id)
-              if (res?.status === 200) {
-                setStory(res.data)
-              }
-            } catch (err) {
-              console.error('Lỗi reload story:', err)
-            }
-          }
-          loadStory()
+    if (!story || !selectedChapterId || !isFacebookApp()) return
+
+    let hasAutoChanged = false // Flag để tránh chuyển nhiều lần
+
+    const autoChangeToNextChapter = () => {
+      // Chỉ chuyển 1 lần
+      if (hasAutoChanged) return
+      
+      const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+      const nextIndex = currentIndex + 1
+      
+      // Kiểm tra điều kiện: có chapter tiếp theo, đã unlock, và chưa phải chapter cuối
+      if (nextIndex < story.chapters.length && checkUnlocked(id)) {
+        const nextChapterId = story.chapters[nextIndex]
+        if (nextChapterId && nextChapterId !== selectedChapterId) {
+          hasAutoChanged = true
+          // Delay một chút để đảm bảo page đã load xong
+          setTimeout(() => {
+            handleChangeChapter(nextChapterId)
+          }, 800)
         }
       }
     }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Delay một chút để đảm bảo Facebook app đã hoàn tất việc restore
-        setTimeout(() => {
-          restoreContent()
-        }, 200)
+        autoChangeToNextChapter()
       }
     }
 
     const handleFocus = () => {
-      setTimeout(() => {
-        restoreContent()
-      }, 200)
+      autoChangeToNextChapter()
     }
 
     const handlePageshow = (e) => {
       // Xử lý khi trang được restore từ back/forward cache
       if (e.persisted) {
-        restoreContent()
+        autoChangeToNextChapter()
       }
     }
 
-    // Restore ngay khi component mount (quan trọng cho Facebook app)
-    if (isFacebookApp()) {
-      setTimeout(() => {
-        restoreContent()
-      }, 100)
+    // Kiểm tra ngay khi component mount (nếu đang trong Facebook app và vừa quay lại)
+    const checkReturnFromAd = () => {
+      // Kiểm tra xem có state được lưu trong sessionStorage không (dấu hiệu vừa quay lại từ ad)
+      const savedState = sessionStorage.getItem(`fb_state_${id}`)
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState)
+          // Nếu state còn hợp lệ (không quá 2 phút) và đang ở đúng chapter đã lưu
+          if (state.storyId === id && 
+              state.chapterId === selectedChapterId && 
+              Date.now() - state.timestamp < 120000) {
+            autoChangeToNextChapter()
+            // Xóa saved state sau khi đã xử lý
+            sessionStorage.removeItem(`fb_state_${id}`)
+          }
+        } catch (e) {
+          console.error('Lỗi parse saved state:', e)
+        }
+      }
     }
+
+    // Delay một chút để đảm bảo mọi thứ đã sẵn sàng
+    const timer = setTimeout(() => {
+      checkReturnFromAd()
+    }, 300)
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('focus', handleFocus)
     window.addEventListener('pageshow', handlePageshow)
-    
+
     return () => {
+      clearTimeout(timer)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('pageshow', handlePageshow)
     }
-  }, [story, selectedChapterId, chapterContent, id, lockState])
+  }, [story, selectedChapterId, id])
+
 
   // Helper function để mở link an toàn
   const openLinkSafely = (url, adId) => {
