@@ -129,8 +129,9 @@ export default function StoryReadPage() {
           setAds(unlockAds)
           
           // Ads khác (có thể là Shopee)
-          const otherAds = allAds.filter(ad => ad.active && ad.url?.toLowerCase().includes("shopee"))
-          setAdsOther(otherAds)
+          // const otherAds = allAds.filter(ad => ad.active && ad.url?.toLowerCase().includes("shopee"))
+          const activeAdsOther = allAds.filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
+          setAdsOther(activeAdsOther)
         }
 
         // Logic đã được xử lý ở trên
