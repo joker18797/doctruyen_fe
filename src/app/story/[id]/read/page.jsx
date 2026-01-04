@@ -776,16 +776,6 @@ export default function StoryReadPage() {
             </div>
           )}
 
-          {/* Quảng cáo ở đầu chương */}
-          {!lockState.locked && chapterAd && (
-            <div className="mb-6">
-              <AdDisplay 
-                ad={chapterAd} 
-                onClick={() => openLinkSafely(chapterAd.url, chapterAd._id)}
-                showFullInfo={true}
-              />
-            </div>
-          )}
 
           {/* Nội dung */}
           <div className="max-w-4xl mx-auto mt-6">
