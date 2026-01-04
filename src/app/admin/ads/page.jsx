@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Table as AntTable, Spin } from 'antd'
-import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined, EyeOutlined } from '@ant-design/icons'
+import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Table as AntTable, Spin, Upload } from 'antd'
+import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
 
 export default function AdminAdsPage() {
     const [ads, setAds] = useState([])
@@ -16,6 +17,8 @@ export default function AdminAdsPage() {
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [selectedAd, setSelectedAd] = useState(null)
     const [form] = Form.useForm()
+    const [imageFile, setImageFile] = useState(null)
+    const [previewImage, setPreviewImage] = useState(null)
 
     useEffect(() => {
         fetchAds()
@@ -33,6 +36,8 @@ export default function AdminAdsPage() {
     const handleAdEdit = (record) => {
         setEditingAd(record)
         form.setFieldsValue(record)
+        setPreviewImage(record.image || null)
+        setImageFile(null)
         setIsModalOpen(true)
     }
 
@@ -48,19 +53,42 @@ export default function AdminAdsPage() {
 
     const handleAdUpdate = async (values) => {
         try {
+            const formData = new FormData()
+            formData.append('title', values.title)
+            formData.append('url', values.url)
+            
+            // Nếu có file ảnh mới, thêm vào FormData
+            if (imageFile) {
+                formData.append('image', imageFile)
+            }
+            
             if (editingAd) {
-                await API.AdminAds.update(editingAd._id, values)
+                await API.AdminAds.update(editingAd._id, formData)
                 toast.success('Cập nhật quảng cáo thành công')
             } else {
-                await API.AdminAds.create(values)
+                await API.AdminAds.create(formData)
                 toast.success('Thêm quảng cáo thành công')
             }
             setIsModalOpen(false)
             form.resetFields()
             setEditingAd(null)
+            setImageFile(null)
+            setPreviewImage(null)
             fetchAds()
         } catch (err) {
             toast.error('Lỗi khi gửi dữ liệu')
+        }
+    }
+    
+    const handleImageChange = (e) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setImageFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setPreviewImage(reader.result)
+            }
+            reader.readAsDataURL(file)
         }
     }
 
@@ -97,6 +125,16 @@ export default function AdminAdsPage() {
             title: 'Tiêu đề',
             dataIndex: 'title',
             key: 'title',
+        },
+        {
+            title: 'Ảnh',
+            dataIndex: 'image',
+            key: 'image',
+            render: (image) => image ? (
+                <Image src={image} alt="Ad" width={80} height={60} className="object-cover rounded" />
+            ) : (
+                <span className="text-gray-400">Chưa có ảnh</span>
+            ),
         },
         {
             title: 'Liên kết',
@@ -150,6 +188,8 @@ export default function AdminAdsPage() {
                         <Button icon={<LinkOutlined />} onClick={() => {
                             setEditingAd(null)
                             form.resetFields()
+                            setImageFile(null)
+                            setPreviewImage(null)
                             setIsModalOpen(true)
                         }}>Thêm liên kết</Button>
                     </div>
@@ -159,7 +199,11 @@ export default function AdminAdsPage() {
                     <Modal
                         title={editingAd ? 'Cập nhật liên kết quảng cáo' : 'Thêm liên kết quảng cáo'}
                         open={isModalOpen}
-                        onCancel={() => setIsModalOpen(false)}
+                        onCancel={() => {
+                            setIsModalOpen(false)
+                            setImageFile(null)
+                            setPreviewImage(null)
+                        }}
                         footer={null}
                         width={500}
                     >
@@ -169,6 +213,39 @@ export default function AdminAdsPage() {
                             </Form.Item>
                             <Form.Item name="url" label="Liên kết" rules={[{ required: true, message: 'Nhập URL' }]}> 
                                 <Input />
+                            </Form.Item>
+                            <Form.Item label="Ảnh quảng cáo">
+                                <div className="space-y-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    {previewImage && (
+                                        <div className="mt-2">
+                                            <Image 
+                                                src={previewImage} 
+                                                alt="Preview" 
+                                                width={200} 
+                                                height={150} 
+                                                className="object-cover rounded border"
+                                            />
+                                        </div>
+                                    )}
+                                    {!previewImage && editingAd?.image && (
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500 mb-1">Ảnh hiện tại:</p>
+                                            <Image 
+                                                src={editingAd.image} 
+                                                alt="Current" 
+                                                width={200} 
+                                                height={150} 
+                                                className="object-cover rounded border"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </Form.Item>
                             <Form.Item>
                                 <Button type="primary" htmlType="submit" block>

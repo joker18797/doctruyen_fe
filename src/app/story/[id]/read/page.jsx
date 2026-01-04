@@ -60,6 +60,8 @@ export default function StoryReadPage() {
   const [isPrefetching, setIsPrefetching] = useState(false)
   const [ads, setAds] = useState([])
   const [adsOther, setAdsOther] = useState([])
+  const [chapterAd, setChapterAd] = useState(null) // Quảng cáo hiển thị ở đầu chương
+  const [unlockAd, setUnlockAd] = useState(null) // Quảng cáo hiển thị khi unlock
   const [lockedChapterId, setLockedChapterId] = useState(null)
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
@@ -106,11 +108,32 @@ export default function StoryReadPage() {
           const chapterParam = searchParams.get('chapter')
           setSelectedChapterId(chapterParam || s.chapters?.[0])
         }
+        
+        // Lấy quảng cáo có ảnh và active để hiển thị
+        if (adsRes?.status === 200) {
+          const allAds = adsRes.data || []
+          const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image)
+          
+          if (activeAdsWithImage.length > 0) {
+            // Chọn ngẫu nhiên một quảng cáo có ảnh cho đầu chương
+            const randomChapterAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
+            setChapterAd(randomChapterAd)
+            
+            // Chọn ngẫu nhiên một quảng cáo có ảnh cho unlock (có thể khác với chapterAd)
+            const randomUnlockAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
+            setUnlockAd(randomUnlockAd)
+          }
+          
+          // Lọc ads cho unlock (không có ảnh hoặc không phải Shopee)
+          const unlockAds = allAds.filter(ad => ad.active && !ad.url?.toLowerCase().includes("shopee"))
+          setAds(unlockAds)
+          
+          // Ads khác (có thể là Shopee)
+          const otherAds = allAds.filter(ad => ad.active && ad.url?.toLowerCase().includes("shopee"))
+          setAdsOther(otherAds)
+        }
 
-        const activeAds = (adsRes?.data || []).filter((ad) => ad.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
-        const activeAdsOther = (adsRes?.data || []).filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
-        setAds(activeAds)
-        setAdsOther(activeAdsOther)
+        // Logic đã được xử lý ở trên
       } catch (err) {
         console.error('Fetch data error:', err)
         // Đảm bảo không để màn hình trắng khi có lỗi
@@ -543,12 +566,13 @@ export default function StoryReadPage() {
 
   // Hàm unlock truyện
   const unlockStory = () => {
-    if (ads.length === 0) return
-
-    const randomAd = ads[Math.floor(Math.random() * ads.length)]
+    // Ưu tiên dùng unlockAd (có ảnh), nếu không có thì dùng ads thông thường
+    const adToUse = unlockAd || (ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null)
+    
+    if (!adToUse) return
     
     // Mở tab mới với link quảng cáo
-    openLinkSafely(randomAd.url, randomAd._id)
+    openLinkSafely(adToUse.url, adToUse._id)
     
     // Unlock với thời gian hết hạn 1 giờ
     const expiryTime = Date.now() + (10 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
@@ -568,6 +592,68 @@ export default function StoryReadPage() {
         }, 300)
       }
     }
+  }
+  
+  // Component hiển thị quảng cáo (dùng chung cho đầu chương và unlock)
+  const AdDisplay = ({ ad, onClick, showFullInfo = true }) => {
+    if (!ad) return null
+    
+    return (
+      <div 
+        className="cursor-pointer hover:opacity-90 transition-all duration-300 transform hover:scale-[1.02]"
+        onClick={onClick}
+      >
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-800 shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-orange-500 dark:bg-orange-600 px-4 py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-bold text-sm">SHOPEE</span>
+              <span className="text-white text-xs">🔗 Link tiếp thị</span>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="p-4">
+            {showFullInfo && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  <strong className="text-orange-600 dark:text-orange-400">Website có sử dụng link tiếp thị liên kết SHOPEE.</strong>
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  Website có thể nhận hoa hồng khi bạn mua hàng qua link, nhưng giá sản phẩm không thay đổi.
+                </p>
+              </div>
+            )}
+            
+            {/* Title */}
+            <div className="mb-3">
+              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                {ad.title}
+              </h3>
+            </div>
+            
+            {/* Image */}
+            {ad.image && (
+              <div className="w-full mb-3 rounded-lg overflow-hidden border-2 border-orange-200 dark:border-orange-700">
+                <img 
+                  src={ad.image} 
+                  alt={ad.title}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+            
+            {/* Link */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                Xem sản phẩm trên <strong>SHOPEE</strong>
+              </span>
+              <span className="text-gray-400">→</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // 👉 ChapterNavigator giữ nguyên
@@ -689,6 +775,17 @@ export default function StoryReadPage() {
             </div>
           )}
 
+          {/* Quảng cáo ở đầu chương */}
+          {!lockState.locked && chapterAd && (
+            <div className="mb-6">
+              <AdDisplay 
+                ad={chapterAd} 
+                onClick={() => openLinkSafely(chapterAd.url, chapterAd._id)}
+                showFullInfo={true}
+              />
+            </div>
+          )}
+
           {/* Nội dung */}
           <div className="max-w-4xl mx-auto mt-6">
             {!lockState.locked ? (
@@ -705,28 +802,49 @@ export default function StoryReadPage() {
                 )}
               </div>
             ) : (
-              <div className='text-center'>
-                <p className="text-base font-bold mb-3 text-gray-800 dark:text-gray-200">
-                  MỜI CÁC CẬU ẤN VÀO LINK HOẶC ẢNH BÊN DƯỚI <br />
-                  <span className="text-orange-600 dark:text-orange-400">MỞ ỨNG DỤNG SHOPEE</span> ĐỂ TIẾP TỤC ĐỌC TOÀN BỘ TRUYỆN
-                </p>
-
-                <div onClick={unlockStory} className="cursor-pointer">
-                  <div className="bg-[#00B2FF] dark:bg-[#0088cc] rounded-xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
-                    <div className="bg-white dark:bg-gray-700 border-2 border-orange-400 dark:border-orange-500 rounded-xl mx-4 my-4 p-10 text-center relative w-full">
-                      <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">ẤN VÀO ĐÂY</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-                        ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        HÀNH ĐỘNG NÀY CHỈ THỰC HIỆN MỘT LẦN. <br /> MONG CÁC CẬU ỦNG HỘ CHÚNG MÌNH NHA.
-                      </p>
-                      <div className="absolute bottom-3 right-3">
-                        <span className="text-4xl">👉</span>
-                      </div>
-                    </div>
-                  </div>
+              <div className='text-center max-w-2xl mx-auto'>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    🔒 Chương đã bị khóa
+                  </h2>
+                  <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                    Mời bạn ủng hộ chúng mình bằng cách click vào quảng cáo bên dưới để tiếp tục đọc truyện
+                  </p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
+                    Hành động này chỉ thực hiện một lần. Mong các bạn ủng hộ! 💖
+                  </p>
                 </div>
+
+                {/* Hiển thị quảng cáo unlock */}
+                {unlockAd ? (
+                  <div className="mb-6">
+                    <AdDisplay 
+                      ad={unlockAd} 
+                      onClick={unlockStory}
+                      showFullInfo={true}
+                    />
+                  </div>
+                ) : ads.length > 0 ? (
+                  <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                    <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
+                      ẤN VÀO ĐÂY ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
+                    </p>
+                    <Button 
+                      type="primary" 
+                      size="large"
+                      onClick={unlockStory}
+                      className="bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
+                    >
+                      🔓 Mở khóa chương
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mb-6 p-6 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Không có quảng cáo để hiển thị
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

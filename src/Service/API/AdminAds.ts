@@ -6,11 +6,19 @@ export default class AdminAds {
     }
 
     create(data: any) {
-        return axiosPOST('api_gw', '/admin/ads', data);
+        // Nếu data là FormData, cần set headers
+        const config = data instanceof FormData 
+            ? { headers: { 'Content-Type': 'multipart/form-data' } }
+            : {};
+        return axiosPOST('api_gw', '/admin/ads', data, config);
     }
 
     update(id: string, data: any) {
-        return axiosPUT('api_gw', `/admin/ads/${id}`, data);
+        // Nếu data là FormData, cần set headers
+        const config = data instanceof FormData 
+            ? { headers: { 'Content-Type': 'multipart/form-data' } }
+            : {};
+        return axiosPUT('api_gw', `/admin/ads/${id}`, data, config);
     }
 
     delete(id: string) {
