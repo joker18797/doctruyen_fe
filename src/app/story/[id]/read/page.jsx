@@ -799,7 +799,9 @@ export default function StoryReadPage() {
                     🔒 Chương đã bị khóa
                   </h2>
                   <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
-                    Mời bạn ủng hộ chúng mình bằng cách click vào quảng cáo bên dưới để tiếp tục đọc truyện
+                    mời các cậu click vào link bên dưới để{' '}
+                    <span className="text-orange-600 dark:text-orange-400 font-bold">MỞ ỨNG DỤNG SHOPEE</span>
+                    {' '}để tiếp tục đọc truyện
                   </p>
                   <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
                     Hành động này chỉ thực hiện một lần. Mong các bạn ủng hộ! 💖
