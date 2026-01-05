@@ -620,9 +620,6 @@ export default function StoryReadPage() {
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                   <strong className="text-orange-600 dark:text-orange-400">Website có sử dụng link tiếp thị liên kết SHOPEE.</strong>
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">
-                  Website có thể nhận hoa hồng khi bạn mua hàng qua link, nhưng giá sản phẩm không thay đổi.
-                </p>
               </div>
             )}
             
@@ -795,9 +792,6 @@ export default function StoryReadPage() {
             ) : (
               <div className='text-center max-w-2xl mx-auto'>
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-                    🔒 Chương đã bị khóa
-                  </h2>
                   <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
                     Mời các cậu click vào link bên dưới để{' '}
                     <span className="text-orange-600 dark:text-orange-400 font-bold cursor-pointer" onClick={unlockStory}>MỞ ỨNG DỤNG SHOPEE</span>
