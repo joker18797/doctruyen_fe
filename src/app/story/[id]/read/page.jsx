@@ -800,7 +800,7 @@ export default function StoryReadPage() {
                   </h2>
                   <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
                     Mời các cậu click vào link bên dưới để{' '}
-                    <span className="text-orange-600 dark:text-orange-400 font-bold">MỞ ỨNG DỤNG SHOPEE</span>
+                    <span className="text-orange-600 dark:text-orange-400 font-bold cursor-pointer" onClick={unlockStory}>MỞ ỨNG DỤNG SHOPEE</span>
                     {' '}để tiếp tục đọc truyện
                   </p>
                   <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
