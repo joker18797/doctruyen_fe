@@ -31,6 +31,11 @@ export default function Footer() {
                 Điều khoản
               </a>
             </li>
+            <li>
+              <a href="/privacy" className="hover:text-pink-600 transition-colors duration-200">
+                Chính sách quyền riêng tư
+              </a>
+            </li>
           </ul>
         </div>
 
