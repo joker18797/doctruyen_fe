@@ -57,7 +57,7 @@ export default function RootLayout({ children }) {
       <body>
         <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4321788066240073"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2034081855060411"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
