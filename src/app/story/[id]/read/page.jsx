@@ -3,43 +3,43 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button, Select, Skeleton, Switch } from 'antd'
-import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
+import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined, LeftOutlined, RightOutlined, MenuOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
 
 const { Option } = Select
-  const chapterCache = new Map()
-  
-  // Helper function để check unlock status với expiry
-  const checkUnlocked = (storyId) => {
-    const unlockedData = localStorage.getItem(`unlockedStory_${storyId}`)
-    if (!unlockedData) return false
-    
-    try {
-      const parsed = JSON.parse(unlockedData)
-      // Chỉ chấp nhận nếu có expiry và còn trong thời gian hiệu lực
-      if (parsed.unlocked && parsed.expiry && Date.now() < parsed.expiry) {
-        return true
-      } else {
-        // Không có expiry hoặc đã hết hạn, xóa key
-        localStorage.removeItem(`unlockedStory_${storyId}`)
-        return false
-      }
-    } catch {
-      // Format cũ không có expiry, xóa và coi là hết hạn
+const chapterCache = new Map()
+
+// Helper function để check unlock status với expiry
+const checkUnlocked = (storyId) => {
+  const unlockedData = localStorage.getItem(`unlockedStory_${storyId}`)
+  if (!unlockedData) return false
+
+  try {
+    const parsed = JSON.parse(unlockedData)
+    // Chỉ chấp nhận nếu có expiry và còn trong thời gian hiệu lực
+    if (parsed.unlocked && parsed.expiry && Date.now() < parsed.expiry) {
+      return true
+    } else {
+      // Không có expiry hoặc đã hết hạn, xóa key
       localStorage.removeItem(`unlockedStory_${storyId}`)
       return false
     }
+  } catch {
+    // Format cũ không có expiry, xóa và coi là hết hạn
+    localStorage.removeItem(`unlockedStory_${storyId}`)
+    return false
   }
-  
-  // Helper function để phát hiện Facebook in-app browser
+}
+
+// Helper function để phát hiện Facebook in-app browser
 const isFacebookApp = () => {
   if (typeof window === 'undefined') return false
   const userAgent = window.navigator.userAgent.toLowerCase()
   return (
-    userAgent.includes('fban') || 
-    userAgent.includes('fbav') || 
+    userAgent.includes('fban') ||
+    userAgent.includes('fbav') ||
     userAgent.includes('fbsn')
   )
 }
@@ -92,7 +92,7 @@ export default function StoryReadPage() {
 
   useEffect(() => {
     let isMounted = true
-    
+
     const fetchData = async () => {
       try {
         const [storyRes, adsRes] = await Promise.all([
@@ -108,26 +108,26 @@ export default function StoryReadPage() {
           const chapterParam = searchParams.get('chapter')
           setSelectedChapterId(chapterParam || s.chapters?.[0])
         }
-        
+
         // Lấy quảng cáo có ảnh và active để hiển thị
         if (adsRes?.status === 200) {
           const allAds = adsRes.data || []
           const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image)
-          
+
           if (activeAdsWithImage.length > 0) {
             // Chọn ngẫu nhiên một quảng cáo có ảnh cho đầu chương
             const randomChapterAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
             setChapterAd(randomChapterAd)
-            
+
             // Chọn ngẫu nhiên một quảng cáo có ảnh cho unlock (có thể khác với chapterAd)
             const randomUnlockAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
             setUnlockAd(randomUnlockAd)
           }
-          
+
           // Lọc ads cho unlock (không có ảnh hoặc không phải Shopee)
           const unlockAds = allAds.filter(ad => ad.active && !ad.url?.toLowerCase().includes("shopee"))
           setAds(unlockAds)
-          
+
           // Ads khác (có thể là Shopee)
           // const otherAds = allAds.filter(ad => ad.active && ad.url?.toLowerCase().includes("shopee"))
           const activeAdsOther = allAds.filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
@@ -144,7 +144,7 @@ export default function StoryReadPage() {
       }
     }
     if (id) fetchData()
-    
+
     return () => {
       isMounted = false
     }
@@ -171,9 +171,9 @@ export default function StoryReadPage() {
       try {
         if (isMounted) setIsPrefetching(true)
         const res = await API.Chapter.detail(selectedChapterId)
-        
+
         if (!isMounted) return
-        
+
         if (res?.status === 200) {
           const content = sanitizeText(res.data?.content || '')
           const title = res?.data?.title || ''
@@ -202,7 +202,7 @@ export default function StoryReadPage() {
     }
 
     loadChapter()
-    
+
     return () => {
       isMounted = false
     }
@@ -245,7 +245,7 @@ export default function StoryReadPage() {
       const documentHeight = document.documentElement.scrollHeight
       setIsAtBottom(scrollY + windowHeight >= documentHeight - 100)
     }
-    
+
     // Throttle scroll event để tối ưu performance
     let ticking = false
     const throttledScroll = () => {
@@ -257,10 +257,10 @@ export default function StoryReadPage() {
         ticking = true
       }
     }
-    
+
     window.addEventListener('scroll', throttledScroll, { passive: true })
     handleScroll()
-    
+
     return () => {
       window.removeEventListener('scroll', throttledScroll)
     }
@@ -276,12 +276,12 @@ export default function StoryReadPage() {
     const checkAndBackFromShopee = () => {
       const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
       const savedState = sessionStorage.getItem(`fb_state_${id}`)
-      
+
       if (!goingToAd || !savedState) return
-      
+
       try {
         const state = JSON.parse(savedState)
-        
+
         // Kiểm tra state còn hợp lệ
         if (state.storyId !== id || Date.now() - state.timestamp >= 120000) {
           // State hết hạn, xóa flags
@@ -291,53 +291,53 @@ export default function StoryReadPage() {
           sessionStorage.removeItem(`fb_state_${id}`)
           return
         }
-        
+
         const currentUrl = window.location.href.toLowerCase()
         const returnUrl = state.returnUrl?.toLowerCase() || ''
-        
+
         // Detect Shopee URLs (bao gồm các biến thể)
-        const isShopeeUrl = 
-          currentUrl.includes('shopee') || 
+        const isShopeeUrl =
+          currentUrl.includes('shopee') ||
           currentUrl.includes('shp.ee') ||
           currentUrl.includes('s.shopee') ||
           currentUrl.includes('shopeemobile') ||
           currentUrl.includes('shopee.vn') ||
           currentUrl.includes('shopee.com')
-        
+
         // Kiểm tra xem đã về đúng trang truyện chưa
-        const isOnStoryPage = currentUrl.includes(`/story/${id}/read`) || 
-                              currentUrl.includes(`/story/${id}`) ||
-                              currentUrl === returnUrl
-        
+        const isOnStoryPage = currentUrl.includes(`/story/${id}/read`) ||
+          currentUrl.includes(`/story/${id}`) ||
+          currentUrl === returnUrl
+
         // Nếu đang ở Shopee URL và chưa về trang truyện, tự động back
         if (isShopeeUrl && !isOnStoryPage && backAttempts < maxBackAttempts) {
           backAttempts++
           console.log(`Auto back attempt ${backAttempts} from Shopee URL`)
-          
+
           // Tự động back ngay lập tức
           setTimeout(() => {
             window.history.back()
           }, 100)
-          
+
           // Kiểm tra lại sau 500ms
           setTimeout(() => {
             checkAndBackFromShopee()
           }, 500)
-          
+
           return
         }
-        
+
         // Đã về đúng trang truyện
         if (isOnStoryPage) {
           // Xóa các flag
           sessionStorage.removeItem(`fb_going_to_ad_${id}`)
           sessionStorage.removeItem(`fb_back_count_${id}`)
           sessionStorage.removeItem(`fb_ad_url_${id}`)
-          
+
           // Tự động chuyển chapter tiếp theo nếu có
           const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
           const nextIndex = currentIndex + 1
-          
+
           if (nextIndex < story.chapters.length && checkUnlocked(id)) {
             const nextChapterId = story.chapters[nextIndex]
             if (nextChapterId) {
@@ -419,10 +419,10 @@ export default function StoryReadPage() {
     const autoChangeToNextChapter = () => {
       // Chỉ chuyển 1 lần
       if (hasAutoChanged) return
-      
+
       const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
       const nextIndex = currentIndex + 1
-      
+
       // Kiểm tra điều kiện: có chapter tiếp theo, đã unlock, và chưa phải chapter cuối
       if (nextIndex < story.chapters.length && checkUnlocked(id)) {
         const nextChapterId = story.chapters[nextIndex]
@@ -458,7 +458,7 @@ export default function StoryReadPage() {
       // Kiểm tra flag xem có phải vừa quay lại từ ad không
       const goingToAd = sessionStorage.getItem(`fb_going_to_ad_${id}`)
       const savedState = sessionStorage.getItem(`fb_state_${id}`)
-      
+
       if (goingToAd === 'true' && savedState) {
         try {
           const state = JSON.parse(savedState)
@@ -467,7 +467,7 @@ export default function StoryReadPage() {
             // Xóa flag và state
             sessionStorage.removeItem(`fb_going_to_ad_${id}`)
             sessionStorage.removeItem(`fb_state_${id}`)
-            
+
             // Tự động chuyển chapter tiếp theo
             autoChangeToNextChapter()
           } else {
@@ -507,7 +507,7 @@ export default function StoryReadPage() {
     if (adId) {
       API.AdminAds.trackClick(adId).catch(err => console.error('Lỗi track click:', err))
     }
-    
+
     // Trong Facebook app, lưu state trước khi mở link để tránh mất dữ liệu
     if (isFacebookApp()) {
       // Lưu state hiện tại vào sessionStorage để restore sau
@@ -521,17 +521,17 @@ export default function StoryReadPage() {
         returnUrl: window.location.href // Lưu URL hiện tại để quay lại
       }
       sessionStorage.setItem(`fb_state_${id}`, JSON.stringify(stateToSave))
-      
+
       // Lưu flag để biết đang đi đến ad
       sessionStorage.setItem(`fb_going_to_ad_${id}`, 'true')
-      
+
       // Trong Facebook app, dùng cách đơn giản hơn để tránh tạo nhiều history entries
       // Lưu số lần back cần thiết (thường là 1, nhưng Shopee có thể tạo thêm 1 entry)
       sessionStorage.setItem(`fb_back_count_${id}`, '2') // Shopee thường tạo 2 entries
-      
+
       // Lưu Shopee URL vào sessionStorage
       sessionStorage.setItem(`fb_ad_url_${id}`, url)
-      
+
       // Redirect đến Shopee - khi back sẽ tự động xử lý
       window.location.href = url
     } else {
@@ -569,12 +569,12 @@ export default function StoryReadPage() {
   const unlockStory = () => {
     // Ưu tiên dùng unlockAd (có ảnh), nếu không có thì dùng ads thông thường
     const adToUse = unlockAd || (ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null)
-    
+
     if (!adToUse) return
-    
+
     // Mở tab mới với link quảng cáo
     openLinkSafely(adToUse.url, adToUse._id)
-    
+
     // Unlock với thời gian hết hạn 1 giờ
     const expiryTime = Date.now() + (10 * 60 * 1000) // 1 giờ = 60 phút * 60 giây * 1000ms
     localStorage.setItem(`unlockedStory_${id}`, JSON.stringify({
@@ -582,7 +582,7 @@ export default function StoryReadPage() {
       expiry: expiryTime
     }))
     setLockState({ locked: false })
-    
+
     if (story?.chapters?.length > 1) {
       const currentIdx = story.chapters.findIndex((cid) => cid === selectedChapterId)
       const nextChapterId = story.chapters[currentIdx + 1] || story.chapters[1]
@@ -594,13 +594,13 @@ export default function StoryReadPage() {
       }
     }
   }
-  
+
   // Component hiển thị quảng cáo (dùng chung cho đầu chương và unlock)
   const AdDisplay = ({ ad, onClick, showFullInfo = true }) => {
     if (!ad) return null
-    
+
     return (
-      <div 
+      <div
         className="cursor-pointer hover:opacity-90 transition-all duration-300 transform hover:scale-[1.02]"
         onClick={onClick}
       >
@@ -612,7 +612,7 @@ export default function StoryReadPage() {
               <span className="text-white text-xs">🔗 Link tiếp thị</span>
             </div>
           </div>
-          
+
           {/* Content */}
           <div className="p-4">
             {showFullInfo && (
@@ -622,25 +622,25 @@ export default function StoryReadPage() {
                 </p>
               </div>
             )}
-            
+
             {/* Title */}
             <div className="mb-3">
               <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">
                 {ad.title}
               </h3>
             </div>
-            
+
             {/* Image */}
             {ad.image && (
               <div className="w-full mb-3 rounded-lg overflow-hidden border-2 border-orange-200 dark:border-orange-700">
-                <img 
-                  src={ad.image} 
+                <img
+                  src={ad.image}
                   alt={ad.title}
                   className="w-full h-auto object-cover"
                 />
               </div>
             )}
-            
+
             {/* Link */}
             <div className="flex items-center gap-2 text-xs">
               <span className="text-blue-600 dark:text-blue-400 font-medium">
@@ -657,32 +657,83 @@ export default function StoryReadPage() {
   // 👉 ChapterNavigator giữ nguyên
   const ChapterNavigator = ({ position = 'top', floating = false }) => {
     const index = story?.chapters?.findIndex((cid) => cid === selectedChapterId)
+    const hasPrev = index > 0
+    const hasNext = index < (story?.chapters?.length || 0) - 1
 
-    const renderButton = (label, offset) => {
+    const handleNavigate = (offset) => {
       const targetIndex = index + offset
-      if (targetIndex < 0 || targetIndex >= story.chapters.length) return null
-      const targetId = story.chapters[targetIndex]
+      if (targetIndex >= 0 && targetIndex < story.chapters.length) {
+        handleChangeChapter(story.chapters[targetIndex])
+      }
+    }
+
+    // --- MOBILE FLOATING BAR (ISLAND STYLE) ---
+    if (floating) {
       return (
-        <Button onClick={() => handleChangeChapter(targetId)}>{label}</Button>
+        <div className="fixed bottom-6 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[400px] z-[100] flex items-center justify-between bg-white dark:bg-gray-800 shadow-2xl rounded-full p-2 border border-gray-100 dark:border-gray-700 animate-fade-in-up pb-[env(safe-area-inset-bottom)]">
+          <Button
+            type="text"
+            shape="circle"
+            size="large"
+            icon={<LeftOutlined />}
+            disabled={!hasPrev}
+            onClick={() => handleNavigate(-1)}
+            className="flex-shrink-0 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-none shadow-none hover:bg-gray-200 dark:hover:bg-gray-600 w-10 h-10 flex items-center justify-center"
+          />
+
+          <div className="flex-1 min-w-0 mx-3 flex justify-center">
+            <Select
+              value={selectedChapterId}
+              onChange={handleChangeChapter}
+              className="w-full text-center"
+              bordered={false}
+              popupMatchSelectWidth={false}
+              showSearch={false}
+              suffixIcon={<MenuOutlined className="text-gray-400" />}
+              dropdownStyle={{ maxWidth: '85vw', minWidth: '200px', maxHeight: '50vh' }}
+              size="large"
+            >
+              {story.chapters.map((chapterId, idx) => (
+                <Option key={chapterId} value={chapterId}>
+                  Chương {idx + 1}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          <Button
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<RightOutlined />}
+            disabled={!hasNext}
+            onClick={() => handleNavigate(1)}
+            className="flex-shrink-0 bg-orange-500 text-white border-none shadow-md hover:bg-orange-600 w-10 h-10 flex items-center justify-center"
+          />
+        </div>
       )
     }
 
+    // --- STATIC DESKTOP/IN-PAGE NAVIGATOR ---
     return (
       <div
-        className={`flex flex-wrap items-center justify-between gap-3 bg-gray-100 dark:bg-gray-800 px-3 py-2 sm:px-4 sm:py-4 rounded text-xl
-        ${position === 'bottom' ? 'mt-8' : 'mb-4'}
-        ${floating ? 'fixed bottom-0 left-0 right-0 z-30 border-t dark:border-gray-700 shadow-md' : ''}`}
+        className={`bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 ${position === 'bottom' ? 'mt-8' : 'mb-8'}`}
       >
-        <div className="flex-1 flex justify-start">
-          {renderButton(<>◀ <span className="hidden sm:inline ml-1">Chương trước</span></>, -1)}
-        </div>
+        <Button
+          onClick={() => hasPrev && handleNavigate(-1)}
+          disabled={!hasPrev}
+          size="large"
+          className="flex items-center"
+        >
+          <LeftOutlined /> <span className="hidden sm:inline">Chương trước</span>
+        </Button>
 
-        <div className="flex items-center gap-2 justify-center">
-          <span className="hidden sm:inline text-gray-800 dark:text-gray-200">Chuyển tới chương:</span>
+        <div className="flex-1 flex justify-center items-center gap-3">
+          <span className="hidden sm:inline text-gray-500 dark:text-gray-400 font-medium">Đang đọc:</span>
           <Select
             value={selectedChapterId}
             onChange={handleChangeChapter}
-            className="min-w-[150px]"
+            className="w-full sm:w-auto min-w-[140px] sm:min-w-[220px]"
             size="large"
             showSearch
             optionLabelProp="label"
@@ -695,9 +746,14 @@ export default function StoryReadPage() {
           </Select>
         </div>
 
-        <div className="flex-1 flex justify-end">
-          {renderButton(<><span className="hidden sm:inline mr-1">Chương sau</span> ▶</>, 1)}
-        </div>
+        <Button
+          onClick={() => hasNext && handleNavigate(1)}
+          disabled={!hasNext}
+          size="large"
+          className="flex items-center"
+        >
+          <span className="hidden sm:inline">Chương sau</span> <RightOutlined />
+        </Button>
       </div>
     )
   }
@@ -718,7 +774,7 @@ export default function StoryReadPage() {
   return (
     <div className="pb-[90px] dark:bg-gray-900">
       <LayoutHeader />
-      
+
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
           {/* Dark mode toggle */}
@@ -805,8 +861,8 @@ export default function StoryReadPage() {
                 {/* Hiển thị quảng cáo unlock */}
                 {unlockAd ? (
                   <div className="mb-6">
-                    <AdDisplay 
-                      ad={unlockAd} 
+                    <AdDisplay
+                      ad={unlockAd}
                       onClick={unlockStory}
                       showFullInfo={true}
                     />
@@ -816,8 +872,8 @@ export default function StoryReadPage() {
                     <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
                       ẤN VÀO ĐÂY ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
                     </p>
-                    <Button 
-                      type="primary" 
+                    <Button
+                      type="primary"
                       size="large"
                       onClick={unlockStory}
                       className="bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
