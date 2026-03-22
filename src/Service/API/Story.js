@@ -1,5 +1,5 @@
 import { axiosDELETE, axiosGET, axiosPOST } from "../../Helper/TypeAxios";
-import { urlParseParams } from "@/Helper/helpFunction";
+import { urlParseParams, urlParseParamsIgnoreZero } from '@/Helper/helpFunction'
 export default class Story {
     create(data) {
         return axiosPOST("api_gw", '/api/story/create', data);
@@ -18,7 +18,7 @@ export default class Story {
         return axiosDELETE('api_gw', `/api/story/${id}`);
     }
     list(data) {
-        const stringUrl = urlParseParams(data);
+        const stringUrl = urlParseParamsIgnoreZero(data);
         return axiosGET("api_gw", `/api/story?${stringUrl}`);
     }
     createAudio(data) {
