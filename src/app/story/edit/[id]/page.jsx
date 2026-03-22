@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Input, Button, Select } from 'antd'
+import { Input, Button, Select, Switch } from 'antd'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
@@ -162,6 +162,21 @@ export default function EditStoryPage() {
                   Đã hoàn thành
                 </label>
               </div>
+
+              {user?.role === 'admin' && (
+                <div>
+                  <label className="block mb-1 font-medium">Ghim nổi bật</label>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={form.pin}
+                      onChange={(checked) => setForm((prev) => ({ ...prev, pin: checked }))}
+                    />
+                    <span className="text-sm text-gray-600">
+                      Hiển thị truyện này trên slider trang chủ
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block mb-1 font-medium">Ảnh bìa</label>

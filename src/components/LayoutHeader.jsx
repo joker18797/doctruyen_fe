@@ -2,7 +2,7 @@
 
 import { useSelector, useDispatch } from 'react-redux'
 import { Input, Button, Dropdown, Avatar, AutoComplete, Drawer, Select } from 'antd'
-import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined, MenuOutlined, TrophyOutlined } from '@ant-design/icons'
+import { UserOutlined, LogoutOutlined, BookOutlined, LinkOutlined, PictureOutlined, MenuOutlined, TrophyOutlined, PushpinOutlined } from '@ant-design/icons'
 import Link from 'next/link'
 import { logout, login } from '@/redux/userSlice'
 import API from '@/Service/API'
@@ -168,6 +168,11 @@ export default function LayoutHeader() {
                                     QL Banner
                                 </Button>
                             </Link>
+                            <Link href="/admin/stories">
+                                <Button type="dashed" icon={<PushpinOutlined />}>
+                                    Truyện ghim
+                                </Button>
+                            </Link>
                         </>
                     )}
                 </div>
@@ -247,6 +252,11 @@ export default function LayoutHeader() {
                         <Link href="/admin/banners">
                             <Button block icon={<PictureOutlined />}>
                                 QL Banner
+                            </Button>
+                        </Link>
+                        <Link href="/admin/stories">
+                            <Button block icon={<PushpinOutlined />}>
+                                Truyện ghim
                             </Button>
                         </Link>
                     </div>
