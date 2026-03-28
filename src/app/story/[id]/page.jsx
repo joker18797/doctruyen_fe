@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
     description: s.description?.slice(0, 150),
     openGraph: {
       type: 'article',
-      url: `https://ocuadua.com/story/${id}`,
+      url: `https://ocuadua.com/story/${s.slug || id}`,
       title: s.title,
       description: s.description?.slice(0, 150),
       siteName: 'ocuadua.com',

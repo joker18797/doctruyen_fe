@@ -117,7 +117,7 @@ export default function NotificationsPage() {
             handleMarkAsRead(notification._id)
         }
         if (notification.storyId) {
-            router.push(`/story/${notification.storyId._id || notification.storyId}`)
+            router.push(`/story/${notification.storyId.slug || notification.storyId._id || notification.storyId}`)
         }
     }
 

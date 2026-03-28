@@ -76,6 +76,7 @@ export default function LayoutHeader() {
                         </div>
                     ),
                     storyId: story._id,
+                    storySlug: story.slug,
                 }))
                 setSuggestions(formatted)
             }
@@ -135,7 +136,7 @@ export default function LayoutHeader() {
                             fetchSuggestions(value)
                         }}
                         onSelect={(value, option) => {
-                            if (option?.storyId) router.push(`/story/${option.storyId}`)
+                            if (option?.storySlug || option?.storyId) router.push(`/story/${option.storySlug || option.storyId}`)
                         }}
                     >
                         <Input.Search
@@ -213,7 +214,7 @@ export default function LayoutHeader() {
                             fetchSuggestions(value)
                         }}
                         onSelect={(value, option) => {
-                            if (option?.storyId) router.push(`/story/${option.storyId}`)
+                            if (option?.storySlug || option?.storyId) router.push(`/story/${option.storySlug || option.storyId}`)
                         }}
                     >
                         <Input.Search

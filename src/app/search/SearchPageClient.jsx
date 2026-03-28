@@ -55,7 +55,7 @@ export default function SearchPageClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
             {stories.map((story) => (
               <Link
-                href={`/story/${story._id}`}
+                href={`/story/${story.slug || story._id}`}
                 key={story._id}
                 className="bg-white p-4 rounded shadow hover:shadow-lg transition block"
               >

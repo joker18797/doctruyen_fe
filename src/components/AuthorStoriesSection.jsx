@@ -33,8 +33,8 @@ export const AuthorStoriesSection = ({ authorId }) => {
     if (authorId) fetchStories()
   }, [authorId])
 
-  const handleClickStory = (storyId) => {
-    router.push(`/story/${storyId}`)
+  const handleClickStory = (story) => {
+    router.push(`/story/${story.slug || story._id}`)
   }
 
   const handleDeleteStory = async (id) => {
@@ -62,7 +62,7 @@ export const AuthorStoriesSection = ({ authorId }) => {
           <div
             key={story._id}
             className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
-            onClick={() => handleClickStory(story._id)}
+            onClick={() => handleClickStory(story)}
           >
             <div className="relative">
               <img

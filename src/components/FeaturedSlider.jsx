@@ -89,7 +89,7 @@ export default function FeaturedSlider() {
         {/* Cột trái: Ảnh chính */}
         <div
           className="relative w-full lg:w-1/2 h-[300px] md:h-[350px] rounded-xl overflow-hidden shadow-lg border border-white/20 cursor-pointer"
-          onClick={() => router.push(`/story/${currentStory._id}`)}
+          onClick={() => router.push(`/story/${currentStory.slug || currentStory._id}`)}
         >
           <img
             src={currentStory.coverImage}

@@ -84,7 +84,7 @@ export default function RankingSidebar() {
             <div
               key={story._id}
               className="flex items-start gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
-              onClick={() => router.push(`/story/${story._id}`)}
+              onClick={() => router.push(`/story/${story.slug || story._id}`)}
             >
               <div className="text-xl font-bold  w-5">{index + 1}</div>
               <img

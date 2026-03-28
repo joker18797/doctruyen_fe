@@ -86,9 +86,9 @@ function StorySection({ title, filter, pin = false, ads }) {
     fetchStories(currentPage)
   }, [filter, pin, currentPage])
 
-  const handleStoryClick = async (storyId) => {
+  const handleStoryClick = async (story) => {
+    const storyId = story._id
     const alreadyClicked = clickedStories.includes(storyId)
-    const story = storyList.find((s) => s._id === storyId)
 
     if (!alreadyClicked && story) {
       const relatedAds = ads
@@ -115,7 +115,7 @@ function StorySection({ title, filter, pin = false, ads }) {
         return
       }
     }
-    router.push(`/story/${storyId}`)
+    router.push(`/story/${story.slug || storyId}`)
   }
 
   const handleDeleteStory = async (id) => {
@@ -143,7 +143,7 @@ function StorySection({ title, filter, pin = false, ads }) {
               <div
                 key={story._id}
                 className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer relative"
-                onClick={() => handleStoryClick(story._id)}
+                onClick={() => handleStoryClick(story)}
               >
                 <div className="relative">
                   <img

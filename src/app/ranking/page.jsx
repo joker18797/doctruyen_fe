@@ -208,7 +208,7 @@ export default function RankingPage() {
                             {stories.map((story, index) => (
                                 <Link
                                     key={story._id}
-                                    href={`/story/${story._id}`}
+                                    href={`/story/${story.slug || story._id}`}
                                     className="block"
                                 >
                                     <div
