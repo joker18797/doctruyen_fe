@@ -86,29 +86,31 @@ function StorySection({ title, filter, pin = false, ads }) {
     fetchStories(currentPage)
   }, [filter, pin, currentPage])
 
-  const handleStoryClick = async (story) => {
+  const handleStoryClick = (story) => {
     const storyId = story._id
     const alreadyClicked = clickedStories.includes(storyId)
 
     if (!alreadyClicked && story) {
-      const relatedAds = ads
-      if (relatedAds.length > 0) {
-        const randomAd = relatedAds[Math.floor(Math.random() * relatedAds.length)]
-        
-        // Mở ads ngay lập tức (phải gọi trực tiếp từ user action)
+      // Lọc ads theo tác giả của truyện được click
+      const authorId = (story.author?._id || story.author)?.toString()
+      const authorAds = (ads || []).filter(
+        (ad) => ad.created_by?.toString() === authorId
+      )
+
+      if (authorAds.length > 0) {
+        const randomAd = authorAds[Math.floor(Math.random() * authorAds.length)]
+
         if (randomAd.url) {
           try {
             const newWindow = window.open(randomAd.url, "_blank", "noopener,noreferrer")
-            // Nếu window bị chặn, trình duyệt trả về null
             if (!newWindow) {
               console.warn("Popup bị chặn bởi trình duyệt")
-              // Fallback: vẫn cho phép vào story
             }
           } catch (err) {
             console.error("Lỗi khi mở ads:", err)
           }
         }
-        
+
         // Track click (chạy ngầm, không block)
         API.AdminAds.trackClick(randomAd._id).catch(err => console.error('Lỗi track click:', err))
         setClickedStories((prev) => [...prev, storyId])
@@ -211,7 +213,7 @@ export default function Home() {
   useEffect(() => {
     const fetchAds = async () => {
       try {
-        const res = await API.AdminAds.list()
+        const res = await API.AdminAds.listPublic()
         const activeAds = (res.data || [])?.filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
         setAds(activeAds)
       } catch (err) {

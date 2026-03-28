@@ -150,30 +150,35 @@ export default function LayoutHeader() {
                     </AutoComplete>
                 </div>
 
-                {/* Các button quản trị viên */}
                 <div className="hidden max-[700px]:hidden md:flex gap-2">
-                    {user?.role === 'admin' && (
+                    {(user?.role === 'admin' || user?.role === 'super_admin') && (
                         <>
-                            <Link href="/admin/users">
-                                <Button type="dashed" icon={<UserOutlined />}>
-                                    QL Người dùng
-                                </Button>
-                            </Link>
+                            {user?.role === 'super_admin' && (
+                                <Link href="/admin/users">
+                                    <Button type="dashed" icon={<UserOutlined />}>
+                                        QL Người dùng
+                                    </Button>
+                                </Link>
+                            )}
                             <Link href="/admin/ads">
                                 <Button type="dashed" icon={<LinkOutlined />}>
                                     QL Quảng cáo
                                 </Button>
                             </Link>
-                            <Link href="/admin/banners">
-                                <Button type="dashed" icon={<PictureOutlined />}>
-                                    QL Banner
-                                </Button>
-                            </Link>
-                            <Link href="/admin/stories">
-                                <Button type="dashed" icon={<PushpinOutlined />}>
-                                    Truyện ghim
-                                </Button>
-                            </Link>
+                            {user?.role === 'super_admin' && (
+                                <>
+                                    <Link href="/admin/banners">
+                                        <Button type="dashed" icon={<PictureOutlined />}>
+                                            QL Banner
+                                        </Button>
+                                    </Link>
+                                    <Link href="/admin/stories">
+                                        <Button type="dashed" icon={<PushpinOutlined />}>
+                                            Truyện ghim
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </>
                     )}
                 </div>
@@ -238,28 +243,34 @@ export default function LayoutHeader() {
                         router.push(`/search?genre=${encodeURIComponent(value)}`)
                     }}
                 />
-                {user?.role === 'admin' && (
+                {(user?.role === 'admin' || user?.role === 'super_admin') && (
                     <div className="mt-6 flex flex-col space-y-3">
-                        <Link href="/admin/users">
-                            <Button block icon={<UserOutlined />}>
-                                QL Người dùng
-                            </Button>
-                        </Link>
+                        {user?.role === 'super_admin' && (
+                            <Link href="/admin/users">
+                                <Button block icon={<UserOutlined />}>
+                                    QL Người dùng
+                                </Button>
+                            </Link>
+                        )}
                         <Link href="/admin/ads">
                             <Button block icon={<LinkOutlined />}>
                                 QL Quảng cáo
                             </Button>
                         </Link>
-                        <Link href="/admin/banners">
-                            <Button block icon={<PictureOutlined />}>
-                                QL Banner
-                            </Button>
-                        </Link>
-                        <Link href="/admin/stories">
-                            <Button block icon={<PushpinOutlined />}>
-                                Truyện ghim
-                            </Button>
-                        </Link>
+                        {user?.role === 'super_admin' && (
+                            <>
+                                <Link href="/admin/banners">
+                                    <Button block icon={<PictureOutlined />}>
+                                        QL Banner
+                                    </Button>
+                                </Link>
+                                <Link href="/admin/stories">
+                                    <Button block icon={<PushpinOutlined />}>
+                                        Truyện ghim
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 )}
 

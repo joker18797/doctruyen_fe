@@ -22,7 +22,7 @@ export default function StoryInfoPage({ story }) {
     const [ads, setAds] = useState([])
     const fetchData = async () => {
         try {
-            const res = await API.AdminAds.list();
+            const res = await API.AdminAds.listPublic({ author: story.author?._id || story.author });
             if (res?.status === 200) {
                 const activeAds = (res?.data || [])?.filter((ad) => ad.active)?.filter((ad) => ad.url?.toLowerCase().includes("shopee"))
                 setAds(activeAds)

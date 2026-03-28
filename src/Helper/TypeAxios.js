@@ -41,25 +41,25 @@ export async function axiosGET(type, Url) {
   );
 }
 
-export async function axiosPUT(type = '', Url, param = {}) {
+export async function axiosPUT(type = '', Url, param = {}, config = {}) {
   let URL_BASE_ADMIN = getUrlDevLinkV3(type)
-  return myInterceptor.put(URL_BASE_ADMIN + Url, param).then(res => {
+  return myInterceptor.put(URL_BASE_ADMIN + Url, param, config).then(res => {
     return res;
   }).catch(err => {
     return Promise.reject(err?.response);
   })
 }
-export async function axiosDELETE(type = '', Url, param = {}) {
+export async function axiosDELETE(type = '', Url, param = {}, config = {}) {
   let URL_BASE_ADMIN = getUrlDevLinkV3(type)
-  return myInterceptor.delete(URL_BASE_ADMIN + Url, param).then(res => {
+  return myInterceptor.delete(URL_BASE_ADMIN + Url, { data: param, ...config }).then(res => {
     return res;
   }).catch(err => {
     return Promise.reject(err?.response);
   })
 }
-export async function axiosPATCH(type = '', Url, param = {}) {
+export async function axiosPATCH(type = '', Url, param = {}, config = {}) {
   let URL_BASE_ADMIN = getUrlDevLinkV3(type)
-  return myInterceptor.patch(URL_BASE_ADMIN + Url, param).then(res => {
+  return myInterceptor.patch(URL_BASE_ADMIN + Url, param, config).then(res => {
     return res;
   }).catch(err => {
     return Promise.reject(err?.response);

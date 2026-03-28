@@ -1,8 +1,15 @@
 import { axiosGET, axiosPOST, axiosPUT, axiosDELETE, axiosPATCH } from "@/Helper/TypeAxios";
 
 export default class AdminAds {
-    list() {
-        return axiosGET('api_gw', '/admin/ads');
+    /** Trang chủ / đọc truyện — không cần đăng nhập */
+    listPublic(params?: { author?: string }) {
+        const q = params?.author ? `?author=${encodeURIComponent(String(params.author))}` : '';
+        return axiosGET('api_gw', `/admin/ads/public${q}`);
+    }
+
+    list(params?: { author?: string }) {
+        const query = params?.author ? `?author=${params.author}` : '';
+        return axiosGET('api_gw', `/admin/ads${query}`);
     }
 
     create(data: any) {

@@ -97,7 +97,7 @@ export default function StoryReadPage() {
       try {
         const [storyRes, adsRes] = await Promise.all([
           API.Story.detail(id),
-          API.AdminAds.list()
+          API.AdminAds.listPublic()
         ])
 
         if (!isMounted) return
