@@ -1,39 +1,60 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Table, Button, message, Popconfirm, Tag, Modal, Input, Form, Space } from 'antd'
-import { LockOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Table, Button, Popconfirm, Tag, Modal, Input, Form, Space, Select } from 'antd'
+import { LockOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, SearchOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
+import { debounce } from 'lodash'
+
+const ROLE_OPTIONS = [
+  { value: 'User', label: 'Người dùng' },
+  { value: 'admin', label: 'Quản trị' },
+  { value: 'super_admin', label: 'Super admin' },
+]
 
 export default function AdminUserPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchQ, setSearchQ] = useState('')
+  const [updatingRoleId, setUpdatingRoleId] = useState(null)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (q = '') => {
     try {
       setLoading(true)
-      const res = await API.AdminUser.list() 
+      const res = await API.AdminUser.list(q ? { q } : {})
       setUsers(res.data)
     } catch (err) {
       toast.error('Lỗi khi tải danh sách người dùng')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value) => {
+        fetchUsers(value.trim())
+      }, 350),
+    [fetchUsers]
+  )
+
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
   const handleDelete = async (id) => {
     try {
       await API.AdminUser.delete(id)
       toast.success('Đã xóa người dùng')
-      fetchUsers()
+      fetchUsers(searchQ.trim())
     } catch (err) {
       toast.error('Xóa người dùng thất bại')
     }
@@ -43,7 +64,7 @@ export default function AdminUserPage() {
     try {
       await API.AdminUser.block(id)
       toast.success('Đã cập nhật trạng thái khóa')
-      fetchUsers()
+      fetchUsers(searchQ.trim())
     } catch (err) {
       toast.error('Lỗi khi cập nhật trạng thái')
     }
@@ -53,7 +74,7 @@ export default function AdminUserPage() {
     try {
       await API.AdminUser.activate(id)
       toast.success('Đã kích hoạt tài khoản thành công')
-      fetchUsers()
+      fetchUsers(searchQ.trim())
     } catch (err) {
       toast.error('Lỗi khi kích hoạt tài khoản')
     }
@@ -66,12 +87,40 @@ export default function AdminUserPage() {
 
   const handleUpdate = async (values) => {
     try {
-      await API.AdminUser.update(editingUser._id, values)
+      await API.AdminUser.update(editingUser._id, {
+        name: values.name,
+        email: values.email,
+        role: editingUser.role,
+        phone: editingUser.phone,
+        status: editingUser.status,
+      })
       toast.success('Cập nhật thông tin thành công')
       setIsModalOpen(false)
-      fetchUsers()
+      fetchUsers(searchQ.trim())
     } catch (err) {
-      toast.error('Lỗi khi cập nhật người dùng')
+      const msg = err?.data?.message || err?.response?.data?.message
+      toast.error(msg || 'Lỗi khi cập nhật người dùng')
+    }
+  }
+
+  const handleRoleChange = async (record, newRole) => {
+    if (newRole === record.role) return
+    try {
+      setUpdatingRoleId(record._id)
+      await API.AdminUser.update(record._id, {
+        name: record.name,
+        email: record.email,
+        phone: record.phone,
+        status: record.status,
+        role: newRole,
+      })
+      toast.success('Đã cập nhật vai trò')
+      fetchUsers(searchQ.trim())
+    } catch (err) {
+      const msg = err?.data?.message || err?.response?.data?.message
+      toast.error(msg || 'Không thể đổi vai trò')
+    } finally {
+      setUpdatingRoleId(null)
     }
   }
 
@@ -90,8 +139,18 @@ export default function AdminUserPage() {
       title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
-      render: (role) =>
-        role === 'admin' ? <Tag color="volcano">Quản trị</Tag> : <Tag color="blue">Người dùng</Tag>,
+      width: 200,
+      render: (role, record) => (
+        <Select
+          size="small"
+          className="min-w-[160px]"
+          value={role}
+          options={ROLE_OPTIONS}
+          loading={updatingRoleId === record._id}
+          disabled={updatingRoleId != null}
+          onChange={(v) => handleRoleChange(record, v)}
+        />
+      ),
     },
     {
       title: 'Xác minh',
@@ -110,17 +169,18 @@ export default function AdminUserPage() {
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_, record) =>
-        record.role === 'admin' ? null : (
-          <Space>
+      render: (_, record) => {
+        const isSuperAdminRow = record.role === 'super_admin'
+        return (
+          <Space wrap>
             <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>
               Sửa
             </Button>
             {!record.isVerified && (
-              <Button 
-                type="primary" 
-                icon={<CheckCircleOutlined />} 
-                size="small" 
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                size="small"
                 onClick={() => handleActivate(record._id)}
               >
                 Kích hoạt
@@ -129,18 +189,21 @@ export default function AdminUserPage() {
             <Button icon={<LockOutlined />} size="small" onClick={() => toggleLock(record._id)}>
               {record.status === 'inactive' ? 'Mở khóa' : 'Khóa'}
             </Button>
-            <Popconfirm
-              title="Xác nhận xóa người dùng?"
-              onConfirm={() => handleDelete(record._id)}
-              okText="Xóa"
-              cancelText="Hủy"
-            >
-              <Button danger icon={<DeleteOutlined />} size="small">
-                Xóa
-              </Button>
-            </Popconfirm>
+            {!isSuperAdminRow && (
+              <Popconfirm
+                title="Xác nhận xóa người dùng?"
+                onConfirm={() => handleDelete(record._id)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <Button danger icon={<DeleteOutlined />} size="small">
+                  Xóa
+                </Button>
+              </Popconfirm>
+            )}
           </Space>
-        ),
+        )
+      },
     },
   ]
 
@@ -150,6 +213,21 @@ export default function AdminUserPage() {
       <div className="min-h-screen bg-gray-50 py-10 px-6">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">👥 Quản lý người dùng</h1>
+          <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <Input
+              allowClear
+              size="large"
+              placeholder="Tìm theo tên, email hoặc số điện thoại…"
+              prefix={<SearchOutlined className="text-gray-400" />}
+              value={searchQ}
+              onChange={(e) => {
+                const v = e.target.value
+                setSearchQ(v)
+                debouncedSearch(v)
+              }}
+              className="max-w-md"
+            />
+          </div>
           <Table
             rowKey="_id"
             dataSource={users}
@@ -166,8 +244,14 @@ export default function AdminUserPage() {
           open={isModalOpen}
           onCancel={() => setIsModalOpen(false)}
           footer={null}
+          destroyOnClose
         >
-          <Form layout="vertical" onFinish={handleUpdate} initialValues={editingUser}>
+          <Form
+            key={editingUser?._id || 'new'}
+            layout="vertical"
+            onFinish={handleUpdate}
+            initialValues={editingUser || {}}
+          >
             <Form.Item name="name" label="Tên người dùng" rules={[{ required: true, message: 'Vui lòng nhập tên' }]}>
               <Input />
             </Form.Item>

@@ -1,8 +1,12 @@
 import { axiosGET, axiosPOST, axiosPUT, axiosDELETE, axiosPATCH } from "../../Helper/TypeAxios";
 
 export default class AdminUser {
-    list() {
-        return axiosGET('api_gw', '/admin/users');
+    list(params = {}) {
+        const qs = new URLSearchParams(
+            Object.entries(params).filter(([, v]) => v != null && v !== '')
+        ).toString();
+        const suffix = qs ? `?${qs}` : '';
+        return axiosGET('api_gw', `/admin/users${suffix}`);
     }
 
     delete(id) {
