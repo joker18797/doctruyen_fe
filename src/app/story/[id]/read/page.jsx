@@ -60,9 +60,7 @@ export default function StoryReadPage() {
   const [isPrefetching, setIsPrefetching] = useState(false)
   const [ads, setAds] = useState([])
   const [adsOther, setAdsOther] = useState([])
-  const [chapterAd, setChapterAd] = useState(null) // Quảng cáo hiển thị ở đầu chương
   const [unlockAd, setUnlockAd] = useState(null) // Quảng cáo hiển thị khi unlock
-  const [lockedChapterId, setLockedChapterId] = useState(null)
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -101,9 +99,9 @@ export default function StoryReadPage() {
         ])
 
         if (!isMounted) return
-
+        let s 
         if (storyRes?.status === 200) {
-          const s = storyRes.data
+          s = storyRes.data
           setStory(s)
           const chapterParam = searchParams.get('chapter')
           setSelectedChapterId(chapterParam || s.chapters?.[0])
@@ -112,13 +110,9 @@ export default function StoryReadPage() {
         // Lấy quảng cáo có ảnh và active để hiển thị
         if (adsRes?.status === 200) {
           const allAds = adsRes.data || []
-          const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image)
+          const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image && ad.created_by === s.author?._id)
 
           if (activeAdsWithImage.length > 0) {
-            // Chọn ngẫu nhiên một quảng cáo có ảnh cho đầu chương
-            const randomChapterAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
-            setChapterAd(randomChapterAd)
-
             // Chọn ngẫu nhiên một quảng cáo có ảnh cho unlock (có thể khác với chapterAd)
             const randomUnlockAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
             setUnlockAd(randomUnlockAd)
