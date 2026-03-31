@@ -89,6 +89,12 @@ export default function StoryReadPage() {
   }, [isDarkMode])
 
   useEffect(() => {
+    checkHealth()
+  }, [])
+  const checkHealth = async () => { 
+    await API.Story.checkHealth()
+  }
+  useEffect(() => {
     let isMounted = true
 
     const fetchData = async () => {

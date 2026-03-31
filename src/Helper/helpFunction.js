@@ -151,6 +151,7 @@ export function slugify(string) {
 export function getUrlDevLinkV3(type) {
   let URL_GET_FROM_ENV = "";
   if (type === "api_gw") { URL_GET_FROM_ENV = process?.env?.NEXT_PUBLIC_URL_API; }
+  if (type === "api_health") { URL_GET_FROM_ENV = "https://doctruyen-be-ojbd.onrender.com" }
   return URL_GET_FROM_ENV;
 }
 
