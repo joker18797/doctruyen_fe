@@ -14,7 +14,6 @@ export default function robots() {
         allow: "/",
       },
     ],
-    sitemap: "https://ocuadua.com/sitemap.xml",
     host: "https://ocuadua.com",
   };
 }

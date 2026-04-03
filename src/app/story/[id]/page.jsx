@@ -31,21 +31,21 @@ export async function generateMetadata({ params }) {
   }
 
   const ogImage = toAbsoluteImageUrl(s.coverImage)
+  const desc =
+    s.description?.replace(/\r\n/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150) ?? ''
 
   return {
     title: s.title,
-    description: s.description?.slice(0, 150),
+    description: desc,
     openGraph: {
       type: 'article',
       url: `${SITE_URL}/story/${s.slug || id}`,
       title: s.title,
-      description: s.description?.slice(0, 150),
+      description: desc,
       siteName: 'ocuadua.com',
       images: [
         {
           url: ogImage,
-          width: 1200,
-          height: 630,
           alt: s.title,
         },
       ],
@@ -54,9 +54,10 @@ export async function generateMetadata({ params }) {
     twitter: {
       card: 'summary_large_image',
       title: s.title,
-      description: s.description?.slice(0, 150),
+      description: desc,
       images: [ogImage],
     },
+    links: [{ rel: 'image_src', href: ogImage }],
   }
 }
 
