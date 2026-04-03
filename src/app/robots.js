@@ -1,9 +1,11 @@
 const BASE = 'https://ocuadua.com'
 
+/** Toàn site + trang truyện — preview link / SEO cần crawl được /story/... */
+const ALLOW_PUBLIC = ['/', '/story/']
+
 /**
- * facebookexternalhit / Facebot: chỉ Allow / — không Disallow (đúng hướng dẫn Facebook).
- * Các bot khác + *: vẫn disallow /admin/.
- * Lưu ý: Debugger vẫn báo câu này nếu URL trả 403 (WAF) — không phải lỗi robots.
+ * facebookexternalhit / Facebot: allow rõ / và /story/ (không Disallow).
+ * Bot khác + *: allow cùng path, chỉ chặn /admin/.
  */
 export default function robots() {
   const sharedDisallow = ['/admin/']
@@ -12,55 +14,55 @@ export default function robots() {
     rules: [
       {
         userAgent: 'facebookexternalhit',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
       },
       {
         userAgent: 'Facebot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
       },
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Googlebot-Image',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Bingbot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Applebot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'LinkedInBot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Twitterbot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Slackbot',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: 'Zalo',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
       {
         userAgent: '*',
-        allow: '/',
+        allow: ALLOW_PUBLIC,
         disallow: sharedDisallow,
       },
     ],
