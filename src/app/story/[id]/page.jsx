@@ -1,11 +1,23 @@
-// app/story/[id]/page.js
 import API from '@/Service/API'
 import StoryInfoPage from '@/components/StoryInfoPage'
 
+const API_BASE = process.env.NEXT_PUBLIC_URL_API
+
+async function fetchStoryForMeta(id) {
+  try {
+    const res = await fetch(`${API_BASE}/api/story/${id}`, {
+      next: { revalidate: 60 },
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const story = await API.Story.detail(id)
-  const s = story?.data
+  const s = await fetchStoryForMeta(id)
 
   if (!s) {
     return {
@@ -14,14 +26,16 @@ export async function generateMetadata({ params }) {
     }
   }
 
+  const desc = s.description?.slice(0, 150) || ''
+
   return {
     title: s.title,
-    description: s.description?.slice(0, 150),
+    description: desc,
     openGraph: {
       type: 'article',
       url: `https://ocuadua.com/story/${s.slug || id}`,
       title: s.title,
-      description: s.description?.slice(0, 150),
+      description: desc,
       siteName: 'ocuadua.com',
       images: [
         {
@@ -36,7 +50,7 @@ export async function generateMetadata({ params }) {
     twitter: {
       card: 'summary_large_image',
       title: s.title,
-      description: s.description?.slice(0, 150),
+      description: desc,
       images: [s.coverImage],
     },
   }
