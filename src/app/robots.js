@@ -1,72 +1,59 @@
 const BASE = 'https://ocuadua.com'
 
-/** Toàn site + trang truyện — preview link / SEO cần crawl được /story/... */
-const ALLOW_PUBLIC = ['/', '/story/']
-
 /**
- * facebookexternalhit / Facebot: allow rõ / và /story/ (không Disallow).
- * Bot khác + *: allow cùng path, chỉ chặn /admin/.
+ * Meta / Facebook crawlers — chỉ Allow: / (toàn site).
+ * Tránh nhiều dòng Allow + Host dạng URL có thể làm parser của Sharing Debugger báo lỗi.
+ * @see https://developers.facebook.com/docs/sharing/webmasters/web-crawlers
  */
+const META_AND_SOCIAL_BOTS = [
+  'facebookexternalhit',
+  'Facebot',
+  'FacebookBot',
+  'Meta-ExternalAgent',
+  'LinkedInBot',
+  'Twitterbot',
+  'Slackbot',
+]
+
 export default function robots() {
-  const sharedDisallow = ['/admin/']
+  const metaRules = META_AND_SOCIAL_BOTS.map((userAgent) => ({
+    userAgent,
+    allow: ['/'],
+  }))
 
   return {
     rules: [
-      {
-        userAgent: 'facebookexternalhit',
-        allow: ALLOW_PUBLIC,
-      },
-      {
-        userAgent: 'Facebot',
-        allow: ALLOW_PUBLIC,
-      },
+      ...metaRules,
       {
         userAgent: 'Googlebot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        allow: ['/'],
+        disallow: ['/admin/'],
       },
       {
         userAgent: 'Googlebot-Image',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        allow: ['/'],
+        disallow: ['/admin/'],
       },
       {
         userAgent: 'Bingbot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        allow: ['/'],
+        disallow: ['/admin/'],
       },
       {
         userAgent: 'Applebot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: 'LinkedInBot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: 'Twitterbot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: 'Slackbot',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        allow: ['/'],
+        disallow: ['/admin/'],
       },
       {
         userAgent: 'Zalo',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        allow: ['/'],
+        disallow: ['/admin/'],
       },
       {
         userAgent: '*',
-        allow: ALLOW_PUBLIC,
-        disallow: sharedDisallow,
+        disallow: ['/admin/'],
       },
     ],
     sitemap: `${BASE}/sitemap.xml`,
-    host: BASE,
   }
 }

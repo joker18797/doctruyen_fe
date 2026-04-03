@@ -40,12 +40,12 @@ function toAbsoluteImageUrl(imageUrl) {
   }
 }
 
-async function fetchStorySafe(id) {
+async function fetchStoryServer(id) {
+  const base = process.env.NEXT_PUBLIC_URL_API
   try {
-    const res = await API.Story.detail(id)
-    const body = res?.data
-    if (!body) return null
-    return body
+    const res = await fetch(`${base}/api/story/${id}`, { cache: 'no-store' })
+    if (!res.ok) return null
+    return await res.json()
   } catch {
     return null
   }
@@ -53,7 +53,7 @@ async function fetchStorySafe(id) {
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const s = await fetchStorySafe(id)
+  const s = await fetchStoryServer(id)
 
   if (!s) {
     return fallbackMetadata({
@@ -79,6 +79,8 @@ export async function generateMetadata({ params }) {
       images: [
         {
           url: ogImage,
+          width: 1200,
+          height: 630,
           alt: s.title,
         },
       ],
@@ -95,6 +97,11 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const { id } = await params
-  const story = await fetchStorySafe(id)
-  return <StoryInfoPage story={story} />
+  try {
+    const res = await API.Story.detail(id)
+    const story = res?.data || null
+    return <StoryInfoPage story={story} />
+  } catch {
+    return <StoryInfoPage story={null} />
+  }
 }
