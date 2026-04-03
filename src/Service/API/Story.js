@@ -34,5 +34,7 @@ export default class Story {
         const stringUrl = urlParseParams(data);
         return axiosGET("api_gw", `/api/story/my/ranking?${stringUrl}`);
     }
-
+    checkHealth() {
+        return axiosGET("api_health", '/admin/ads/public');
+    }
 }
