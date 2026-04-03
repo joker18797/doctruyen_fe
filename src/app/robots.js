@@ -1,9 +1,9 @@
 const BASE = 'https://ocuadua.com'
 
 /**
- * Robots cho crawler: Facebook / Zalo / Google cần thấy Allow rõ ràng.
- * Không chặn /story/* — preview link phụ thuộc HTML + OG.
- * Chỉ hạn /admin/ (trang quản trị không cần index).
+ * facebookexternalhit / Facebot: chỉ Allow / — không Disallow (đúng hướng dẫn Facebook).
+ * Các bot khác + *: vẫn disallow /admin/.
+ * Lưu ý: Debugger vẫn báo câu này nếu URL trả 403 (WAF) — không phải lỗi robots.
  */
 export default function robots() {
   const sharedDisallow = ['/admin/']
@@ -13,12 +13,10 @@ export default function robots() {
       {
         userAgent: 'facebookexternalhit',
         allow: '/',
-        disallow: sharedDisallow,
       },
       {
         userAgent: 'Facebot',
         allow: '/',
-        disallow: sharedDisallow,
       },
       {
         userAgent: 'Googlebot',
