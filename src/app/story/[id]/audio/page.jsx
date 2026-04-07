@@ -23,7 +23,7 @@ export default function StoryAudioPage() {
   const checkUnlocked = (storyId) => {
     const unlockedData = localStorage.getItem(`unlockedStory_${storyId}`)
     if (!unlockedData) return false
-    
+
     try {
       const parsed = JSON.parse(unlockedData)
       // Chỉ chấp nhận nếu có expiry và còn trong thời gian hiệu lực
@@ -66,12 +66,12 @@ export default function StoryAudioPage() {
 
     if (id && chapterId) {
       // kiểm tra key unlock cho toàn truyện (một lần) với expiry
-      try {
-        const unlocked = checkUnlocked(id)
-        setIsStoryUnlocked(unlocked)
-      } catch (e) {
-        setIsStoryUnlocked(false)
-      }
+      // try {
+      //   const unlocked = checkUnlocked(id)
+      //   setIsStoryUnlocked(unlocked)
+      // } catch (e) {
+      //   setIsStoryUnlocked(false)
+      // }
 
       fetchData()
     }
