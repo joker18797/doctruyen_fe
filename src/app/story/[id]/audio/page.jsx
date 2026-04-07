@@ -17,7 +17,7 @@ export default function StoryAudioPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [ads, setAds] = useState([])
   // thay đổi: chỉ cần 1 flag unlock cho toàn bộ truyện
-  const [isStoryUnlocked, setIsStoryUnlocked] = useState(false)
+  const [isStoryUnlocked, setIsStoryUnlocked] = useState(true)
 
   // Helper function để check unlock status với expiry
   const checkUnlocked = (storyId) => {
