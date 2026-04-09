@@ -46,10 +46,10 @@ export default function StoryInfoPage({ story }) {
     useEffect(() => {
         if (story?._id) {
             fetchComments(story._id)
-            const unlocked = localStorage.getItem(`unlockedYTStory_${story?._id}`)
-            if (!unlocked) {
-                setLockState({ locked: true })
-            }
+            // const unlocked = localStorage.getItem(`unlockedYTStory_${story?._id}`)
+            // if (!unlocked) {
+            //     setLockState({ locked: true })
+            // }
         }
     }, [story?._id])
 
