@@ -1,9 +1,12 @@
 import API from '@/Service/API'
 import StoryInfoPage from '@/components/StoryInfoPage'
+import {
+  DEFAULT_STATIC_BRAND_IMAGE,
+  rewriteDeepJsDelivrGithubUrls,
+} from '@/utils/normalizeGithubCdnUrl'
 
 const SITE_URL = 'https://ocuadua.com'
-const DEFAULT_OG_IMAGE =
-  'https://cdn.jsdelivr.net/gh/joker18797/doctruyen_storage@main/uploads/1756106895153-z6768944788849_7bdce7562fe6f812db182c83bdc66ee0.jpg'
+const DEFAULT_OG_IMAGE = DEFAULT_STATIC_BRAND_IMAGE
 
 /** Giống layout.js — dùng khi API lỗi để generateMetadata không throw → tránh 500 / Facebook báo HTTP lỗi */
 function fallbackMetadata({ title, description, path }) {
@@ -32,7 +35,8 @@ function toAbsoluteImageUrl(imageUrl) {
   if (!imageUrl || typeof imageUrl !== 'string') return DEFAULT_OG_IMAGE
 
   try {
-    const normalized = new URL(imageUrl, SITE_URL).toString()
+    const fixed = rewriteDeepJsDelivrGithubUrls(imageUrl)
+    const normalized = new URL(fixed, SITE_URL).toString()
     if (!normalized.startsWith('http')) return DEFAULT_OG_IMAGE
     return normalized
   } catch {
@@ -45,7 +49,8 @@ async function fetchStoryServer(id) {
   try {
     const res = await fetch(`${base}/api/story/${id}`, { cache: 'no-store' })
     if (!res.ok) return null
-    return await res.json()
+    const data = await res.json()
+    return rewriteDeepJsDelivrGithubUrls(data)
   } catch {
     return null
   }

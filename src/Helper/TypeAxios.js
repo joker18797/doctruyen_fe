@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { getUrlDevLinkV3 } from './helpFunction';
+import { rewriteDeepJsDelivrGithubUrls } from '../utils/normalizeGithubCdnUrl';
+
 let myInterceptor = axios
 myInterceptor.interceptors.request.use(function (config) {
   if (typeof window !== 'undefined' && typeof localStorage !== 'undefined' && localStorage) {
@@ -13,8 +15,20 @@ myInterceptor.interceptors.request.use(function (config) {
 });
 
 myInterceptor.interceptors.response.use(
-
   function (response) {
+    if (response?.data != null) {
+      try {
+        const probe =
+          typeof response.data === 'object'
+            ? JSON.stringify(response.data)
+            : String(response.data);
+        if (probe.includes('cdn.jsdelivr.net/gh')) {
+          response.data = rewriteDeepJsDelivrGithubUrls(response.data);
+        }
+      } catch {
+        /* ignore malformed payloads */
+      }
+    }
     return response;
   },
   function (error) {
