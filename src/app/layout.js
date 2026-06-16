@@ -54,10 +54,10 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {/* Adsterra Popunder — kích hoạt khi user click đầu tiên */}
-        <Script
+        {/*<Script
           src="https://pl29762368.effectivecpmnetwork.com/df/ff/50/dfff50bc2abf5c57568f755f92d85bcd.js"
           strategy="afterInteractive"
-        />
+        /> */}
         {/* Adsterra Social Bar — widget nổi góc màn hình */}
         <Script
           src="https://pl29762370.effectivecpmnetwork.com/1c/b6/d4/1cb6d46b76a662cb578b8e0eae9e6773.js"
