@@ -66,11 +66,11 @@ export default function RootLayout({ children }) {
           strategy="afterInteractive"
         />
         {/* Monetag Banner */}
-        <Script
+        {/*<Script
           src="//shameful-farm.com/b.XsV-sydOG/lr0EYKWUcu/heJmZ9qulZrUMlckiPSTVcoxgNeDRE/3/NYjqUTtdNFzoEd0/MMTNcN2GOJQR"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
-        />
+        />*/}
         {/* Monetag In-Page Push */}
         <Script
           src="//shameful-farm.com/bjX.Vks/dRGHle0EYHWRcQ/XeZmY9SudZXUOlskFPgTHcsx/NpD_ED3WO/DGEztINpzaEd0dMPTTc/4UNSQj"
