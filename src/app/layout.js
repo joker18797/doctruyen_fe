@@ -78,11 +78,11 @@ export default function RootLayout({ children }) {
           referrerPolicy="no-referrer-when-downgrade"
         />
         {/* Monetag Video Slider */}
-        <Script
+        {/*<Script
           src="//shameful-farm.com/bNXHV.sHdxG/l/0bY/Wtcr/_eBmJ9eusZbUClMksPUTDccx/NODSEU3kO/Tlcyt/Ntz/Ed0DM/ThgEw/MiQY"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
-        />
+        />*/}
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>
