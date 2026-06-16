@@ -137,7 +137,7 @@ export default function StoryInfoPage({ story }) {
                     {/* Sidebar trái */}
                     <div className="hidden xl:flex flex-col gap-4 sticky top-24 w-[160px] shrink-0">
                         <AdsterraBanner
-                            adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                            adKey="d70ebc3244b4a80a25c43a68c9bf9376"
                             width={160}
                             height={600}
                         />
@@ -322,7 +322,7 @@ export default function StoryInfoPage({ story }) {
                     {/* Sidebar phải */}
                     <div className="hidden xl:flex flex-col gap-4 sticky top-24 w-[160px] shrink-0">
                         <AdsterraBanner
-                            adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                            adKey="d70ebc3244b4a80a25c43a68c9bf9376"
                             width={160}
                             height={600}
                         />
