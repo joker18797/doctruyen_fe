@@ -61,10 +61,10 @@ export default function RootLayout({ children }) {
           strategy="afterInteractive"
         /> */}
         {/* Adsterra Social Bar — widget nổi góc màn hình */}
-        <Script
+        {/*<Script
           src="https://pl29762370.effectivecpmnetwork.com/1c/b6/d4/1cb6d46b76a662cb578b8e0eae9e6773.js"
           strategy="afterInteractive"
-        />
+        />*/}
         {/* Monetag Banner */}
         {/*<Script
           src="//shameful-farm.com/b.XsV-sydOG/lr0EYKWUcu/heJmZ9qulZrUMlckiPSTVcoxgNeDRE/3/NYjqUTtdNFzoEd0/MMTNcN2GOJQR"
