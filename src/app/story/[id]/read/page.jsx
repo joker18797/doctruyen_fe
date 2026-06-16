@@ -7,6 +7,8 @@ import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined, LeftOutlined, Righ
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
+import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
+import AdsterraBanner from '@/components/ads/AdsterraBanner'
 
 const { Option } = Select
 const chapterCache = new Map()
@@ -892,6 +894,32 @@ export default function StoryReadPage() {
             )}
           </div>
         </div>
+
+        {/* Adsterra — chỉ hiển thị khi đang đọc bình thường (không bị khóa) */}
+        {!lockState.locked && (
+          <div className="max-w-4xl mx-auto mt-4 space-y-4">
+            {/* Native Banner */}
+            <AdsterraNativeBanner />
+
+            {/* Banner 728x90 — desktop */}
+            <div className="hidden md:flex justify-center">
+              <AdsterraBanner
+                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                width={728}
+                height={90}
+              />
+            </div>
+
+            {/* Banner 320x50 — mobile */}
+            <div className="flex md:hidden justify-center">
+              <AdsterraBanner
+                adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                width={320}
+                height={50}
+              />
+            </div>
+          </div>
+        )}
 
         <div ref={fakeBottomRef} className="h-4" />
         <ChapterNavigator position="bottom" floating />
