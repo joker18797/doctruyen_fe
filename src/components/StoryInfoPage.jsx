@@ -131,6 +131,19 @@ export default function StoryInfoPage({ story }) {
         <div>
             <LayoutHeader />
             <div className="min-h-screen bg-gray-50 py-10 px-4">
+                {/* Layout 3 cột — sidebar quảng cáo chỉ hiện trên desktop */}
+                <div className="max-w-7xl mx-auto flex gap-4 items-start">
+
+                    {/* Sidebar trái */}
+                    <div className="hidden xl:flex flex-col gap-4 sticky top-24 w-[160px] shrink-0">
+                        <AdsterraBanner
+                            adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                            width={160}
+                            height={600}
+                        />
+                    </div>
+
+                <div className="flex-1 min-w-0">
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg">
                     <div className="flex flex-col md:flex-row gap-6">
                         <img
@@ -304,6 +317,18 @@ export default function StoryInfoPage({ story }) {
                         />
                     </div>
                 </div>
+                </div> {/* end flex-1 */}
+
+                    {/* Sidebar phải */}
+                    <div className="hidden xl:flex flex-col gap-4 sticky top-24 w-[160px] shrink-0">
+                        <AdsterraBanner
+                            adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                            width={160}
+                            height={600}
+                        />
+                    </div>
+
+                </div> {/* end max-w-7xl flex */}
             </div>
         </div>
     )

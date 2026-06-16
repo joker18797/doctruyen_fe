@@ -778,7 +778,19 @@ export default function StoryReadPage() {
       <LayoutHeader />
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4">
-        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
+        <div className="max-w-7xl mx-auto flex gap-4 items-start">
+
+          {/* Sidebar trái */}
+          <div className="hidden xl:flex flex-col sticky top-24 w-[160px] shrink-0">
+            <AdsterraBanner
+              adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+              width={160}
+              height={600}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+          <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
           {/* Dark mode toggle */}
           <div className="fixed top-20 right-6 z-40 flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-md border dark:border-gray-700">
             <SunOutlined className={isDarkMode ? 'text-gray-400' : 'text-yellow-500'} />
@@ -960,6 +972,18 @@ export default function StoryReadPage() {
 
         <div ref={fakeBottomRef} className="h-4" />
         <ChapterNavigator position="bottom" floating />
+          </div> {/* end flex-1 */}
+
+          {/* Sidebar phải */}
+          <div className="hidden xl:flex flex-col sticky top-24 w-[160px] shrink-0">
+            <AdsterraBanner
+              adKey="7c390bc8e5616f68ca6771dbd50db81f"
+              width={160}
+              height={600}
+            />
+          </div>
+
+        </div> {/* end max-w-7xl flex */}
       </div>
     </div>
   )
