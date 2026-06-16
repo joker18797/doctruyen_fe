@@ -840,9 +840,46 @@ export default function StoryReadPage() {
                   {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
                 </h2>
                 {chapterContent ? (
-                  <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
-                    {chapterContent}
-                  </div>
+                  <>
+                    {/* Chia nội dung làm 2 nửa, chèn banner giữa */}
+                    {(() => {
+                      const lines = chapterContent.split('\n')
+                      const mid = Math.floor(lines.length / 2)
+                      const firstHalf = lines.slice(0, mid).join('\n')
+                      const secondHalf = lines.slice(mid).join('\n')
+                      return (
+                        <>
+                          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose select-none text-[20px]">
+                            {firstHalf}
+                          </div>
+
+                          {/* Banner giữa chương */}
+                          <div className="my-6 flex flex-col items-center gap-3">
+                            {/* Desktop 728x90 */}
+                            <div className="hidden md:block">
+                              <AdsterraBanner
+                                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                                width={728}
+                                height={90}
+                              />
+                            </div>
+                            {/* Mobile 320x50 */}
+                            <div className="block md:hidden">
+                              <AdsterraBanner
+                                adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                                width={320}
+                                height={50}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
+                            {secondHalf}
+                          </div>
+                        </>
+                      )
+                    })()}
+                  </>
                 ) : (
                   <p className="text-gray-500 dark:text-gray-400">Đang tải nội dung...</p>
                 )}
