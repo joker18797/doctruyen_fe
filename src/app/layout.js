@@ -75,11 +75,11 @@ export default function RootLayout({ children }) {
           referrerPolicy="no-referrer-when-downgrade"
         />*/}
         {/* Monetag In-Page Push */}
-        <Script
+        {/*<Script
           src="//shameful-farm.com/bjX.Vks/dRGHle0EYHWRcQ/XeZmY9SudZXUOlskFPgTHcsx/NpD_ED3WO/DGEztINpzaEd0dMPTTc/4UNSQj"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
-        />
+        />*/}
         {/* Monetag Video Slider */}
         {/*<Script
           src="//shameful-farm.com/bNXHV.sHdxG/l/0bY/Wtcr/_eBmJ9eusZbUClMksPUTDccx/NODSEU3kO/Tlcyt/Ntz/Ed0DM/ThgEw/MiQY"
