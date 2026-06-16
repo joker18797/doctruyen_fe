@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux'
 import { UserOutlined, DeleteOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 import { toast } from 'react-toastify'
+import AdsterraBanner from '@/components/ads/AdsterraBanner'
+import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -234,6 +236,25 @@ export default function StoryInfoPage({ story }) {
                             </div>
                         )
                     }
+                    {/* Quảng cáo sau thông tin truyện */}
+                    <div className="mt-8 flex flex-col items-center gap-3">
+                        <AdsterraNativeBanner />
+                        <div className="hidden md:block">
+                            <AdsterraBanner
+                                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                                width={728}
+                                height={90}
+                            />
+                        </div>
+                        <div className="block md:hidden">
+                            <AdsterraBanner
+                                adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                                width={320}
+                                height={50}
+                            />
+                        </div>
+                    </div>
+
                     {user && (
                         <div className="mt-10">
                             <h2 className="text-xl font-semibold text-gray-700 mb-4">💬 Bình luận</h2>
