@@ -65,6 +65,30 @@ export default function RootLayout({ children }) {
           src="https://pl29762370.effectivecpmnetwork.com/1c/b6/d4/1cb6d46b76a662cb578b8e0eae9e6773.js"
           strategy="afterInteractive"
         />
+        {/* Monetag Popunder */}
+        <Script
+          src="//shameful-farm.com/bTX/Vhs.dLGKl/0PYOWWcb/OeRm/9KusZjU/lVkhP/T_ccxJNLDeEV3KN/T/MgttN/z/E/0FM/TkcC1HN/wk"
+          strategy="afterInteractive"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+        {/* Monetag Banner */}
+        <Script
+          src="//shameful-farm.com/b.XsV-sydOG/lr0EYKWUcu/heJmZ9qulZrUMlckiPSTVcoxgNeDRE/3/NYjqUTtdNFzoEd0/MMTNcN2GOJQR"
+          strategy="afterInteractive"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+        {/* Monetag In-Page Push */}
+        <Script
+          src="//shameful-farm.com/bjX.Vks/dRGHle0EYHWRcQ/XeZmY9SudZXUOlskFPgTHcsx/NpD_ED3WO/DGEztINpzaEd0dMPTTc/4UNSQj"
+          strategy="afterInteractive"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+        {/* Monetag Video Slider */}
+        <Script
+          src="//shameful-farm.com/bNXHV.sHdxG/l/0bY/Wtcr/_eBmJ9eusZbUClMksPUTDccx/NODSEU3kO/Tlcyt/Ntz/Ed0DM/ThgEw/MiQY"
+          strategy="afterInteractive"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>
