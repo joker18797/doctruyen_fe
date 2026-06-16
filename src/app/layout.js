@@ -51,6 +51,8 @@ export default function RootLayout({ children }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="9147d08a0630238d1de63a35c74257bc2410b6d1" content="9147d08a0630238d1de63a35c74257bc2410b6d1" />
+        <meta name="referrer" content="no-referrer-when-downgrade" />
       </head>
       <body>
         {/* Adsterra Popunder — kích hoạt khi user click đầu tiên */}
