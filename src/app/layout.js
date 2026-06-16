@@ -53,6 +53,9 @@ export default function RootLayout({ children }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="9147d08a0630238d1de63a35c74257bc2410b6d1" content="9147d08a0630238d1de63a35c74257bc2410b6d1" />
         <meta name="referrer" content="no-referrer-when-downgrade" />
+        <link rel="dns-prefetch" href="//shameful-farm.com" />
+        <link rel="dns-prefetch" href="//pl29762370.effectivecpmnetwork.com" />
+        <link rel="preconnect" href="//shameful-farm.com" crossOrigin="anonymous" />
       </head>
       <body>
         {/* Adsterra Popunder — kích hoạt khi user click đầu tiên */}
