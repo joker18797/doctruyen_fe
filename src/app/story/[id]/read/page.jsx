@@ -781,7 +781,7 @@ export default function StoryReadPage() {
         <div className="max-w-7xl mx-auto flex gap-4 items-start">
 
           {/* Sidebar trái */}
-          <div className="hidden xl:flex flex-col sticky top-24 w-[160px] shrink-0">
+          <div className="hidden lg:flex flex-col sticky top-24 w-[160px] shrink-0">
             <AdsterraBanner
               adKey="d70ebc3244b4a80a25c43a68c9bf9376"
               width={160}
@@ -975,7 +975,7 @@ export default function StoryReadPage() {
           </div> {/* end flex-1 */}
 
           {/* Sidebar phải */}
-          <div className="hidden xl:flex flex-col sticky top-24 w-[160px] shrink-0">
+          <div className="hidden lg:flex flex-col sticky top-24 w-[160px] shrink-0">
             <AdsterraBanner
               adKey="d70ebc3244b4a80a25c43a68c9bf9376"
               width={160}
