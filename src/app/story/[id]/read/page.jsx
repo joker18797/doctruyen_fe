@@ -781,8 +781,12 @@ export default function StoryReadPage() {
         <div className="max-w-7xl mx-auto flex gap-4 items-start">
 
           {/* Sidebar trái */}
-          <div className="hidden lg:flex flex-col sticky top-24 w-[300px] shrink-0">
-            <AdsterraNativeBanner />
+          <div className="hidden lg:flex flex-col sticky top-24 w-[160px] shrink-0">
+            <AdsterraBanner
+              adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+              width={160}
+              height={600}
+            />
           </div>
 
           <div className="flex-1 min-w-0">
