@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Table as AntTable, Spin, Upload } from 'antd'
+import { Table, Button, Modal, Input, Form, Tag, message, Popconfirm, Space, Table as AntTable, Spin, Upload, Select } from 'antd'
 import { EditOutlined, LinkOutlined, DeleteOutlined, StopOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons'
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
@@ -56,7 +56,8 @@ export default function AdminAdsPage() {
             const formData = new FormData()
             formData.append('title', values.title)
             formData.append('url', values.url)
-            
+            formData.append('type', values.type || 'default')
+
             // Nếu có file ảnh mới, thêm vào FormData
             if (imageFile) {
                 formData.append('image', imageFile)
@@ -143,6 +144,14 @@ export default function AdminAdsPage() {
             render: (text) => <a href={text} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">{text}</a>,
         },
         {
+            title: 'Loại',
+            dataIndex: 'type',
+            key: 'type',
+            render: (type) => type === 'shopee_food'
+                ? <Tag color="orange">Shopee Food (giữa truyện)</Tag>
+                : <Tag color="blue">Mặc định</Tag>
+        },
+        {
             title: 'Trạng thái',
             dataIndex: 'active',
             key: 'active',
@@ -211,8 +220,16 @@ export default function AdminAdsPage() {
                             <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}> 
                                 <Input />
                             </Form.Item>
-                            <Form.Item name="url" label="Liên kết" rules={[{ required: true, message: 'Nhập URL' }]}> 
+                            <Form.Item name="url" label="Liên kết" rules={[{ required: true, message: 'Nhập URL' }]}>
                                 <Input />
+                            </Form.Item>
+                            <Form.Item name="type" label="Loại quảng cáo" initialValue="default">
+                                <Select
+                                    options={[
+                                        { value: 'default', label: 'Mặc định (mở khóa / cuối chương)' },
+                                        { value: 'shopee_food', label: 'Shopee Food (hiển thị ở giữa truyện)' },
+                                    ]}
+                                />
                             </Form.Item>
                             <Form.Item label="Ảnh quảng cáo">
                                 <div className="space-y-2">

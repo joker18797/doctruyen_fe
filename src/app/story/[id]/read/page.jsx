@@ -63,6 +63,7 @@ export default function StoryReadPage() {
   const [ads, setAds] = useState([])
   const [adsOther, setAdsOther] = useState([])
   const [unlockAd, setUnlockAd] = useState(null) // Quảng cáo hiển thị khi unlock
+  const [middleAd, setMiddleAd] = useState(null) // Quảng cáo Shopee Food hiển thị ở giữa truyện
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -124,6 +125,15 @@ export default function StoryReadPage() {
             // Chọn ngẫu nhiên một quảng cáo có ảnh cho unlock (có thể khác với chapterAd)
             const randomUnlockAd = activeAdsWithImage[Math.floor(Math.random() * activeAdsWithImage.length)]
             setUnlockAd(randomUnlockAd)
+          }
+
+          // Quảng cáo Shopee Food hiển thị ở giữa truyện
+          const shopeeFoodAds = allAds.filter(
+            (ad) => ad.active && ad.type === 'shopee_food' && ad.created_by === s.author?._id
+          )
+          if (shopeeFoodAds.length > 0) {
+            const randomMiddleAd = shopeeFoodAds[Math.floor(Math.random() * shopeeFoodAds.length)]
+            setMiddleAd(randomMiddleAd)
           }
 
           // Lọc ads cho unlock (không có ảnh hoặc không phải Shopee)
@@ -598,7 +608,7 @@ export default function StoryReadPage() {
   }
 
   // Component hiển thị quảng cáo (dùng chung cho đầu chương và unlock)
-  const AdDisplay = ({ ad, onClick, showFullInfo = true }) => {
+  const AdDisplay = ({ ad, onClick, showFullInfo = true, label = 'SHOPEE', linkText = 'SHOPEE' }) => {
     if (!ad) return null
 
     return (
@@ -610,7 +620,7 @@ export default function StoryReadPage() {
           {/* Header */}
           <div className="bg-orange-500 dark:bg-orange-600 px-4 py-2">
             <div className="flex items-center justify-between">
-              <span className="text-white font-bold text-sm">SHOPEE</span>
+              <span className="text-white font-bold text-sm">{label}</span>
               <span className="text-white text-xs">🔗 Link tiếp thị</span>
             </div>
           </div>
@@ -620,7 +630,7 @@ export default function StoryReadPage() {
             {showFullInfo && (
               <div className="mb-3">
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                  <strong className="text-orange-600 dark:text-orange-400">Website có sử dụng link tiếp thị liên kết SHOPEE.</strong>
+                  <strong className="text-orange-600 dark:text-orange-400">Website có sử dụng link tiếp thị liên kết {label}.</strong>
                 </p>
               </div>
             )}
@@ -646,7 +656,7 @@ export default function StoryReadPage() {
             {/* Link */}
             <div className="flex items-center gap-2 text-xs">
               <span className="text-blue-600 dark:text-blue-400 font-medium">
-                Xem sản phẩm trên <strong>SHOPEE</strong>
+                Xem sản phẩm trên <strong>{linkText}</strong>
               </span>
               <span className="text-gray-400">→</span>
             </div>
@@ -864,6 +874,19 @@ export default function StoryReadPage() {
                           <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose select-none text-[20px]">
                             {firstHalf}
                           </div>
+
+                          {/* Quảng cáo Shopee Food — chỉ hiển thị ở chương giữa truyện (vd: 16 chương -> chương 8) */}
+                          {middleAd && currentIndex + 1 === Math.floor(story.chapters.length / 2) && (
+                            <div className="my-6 max-w-md mx-auto">
+                              <AdDisplay
+                                ad={middleAd}
+                                onClick={() => openLinkSafely(middleAd.url, middleAd._id)}
+                                showFullInfo={true}
+                                label="SHOPEE FOOD"
+                                linkText="SHOPEE FOOD"
+                              />
+                            </div>
+                          )}
 
                           {/* Banner giữa chương */}
                           <div className="my-6 flex flex-col items-center gap-3">
