@@ -128,9 +128,10 @@ export default function StoryReadPage() {
           }
 
           // Quảng cáo Shopee Food hiển thị ở giữa truyện
-          const shopeeFoodAds = allAds.filter(
-            (ad) => ad.active && ad.type === 'shopee_food' && ad.created_by === s.author?._id
-          )
+          const allShopeeFood = allAds.filter((ad) => ad.active && ad.type === 'shopee_food')
+          // Ưu tiên quảng cáo của tác giả truyện, nếu không có thì lấy bất kỳ quảng cáo Shopee Food nào
+          const byAuthor = allShopeeFood.filter((ad) => ad.created_by === s.author?._id)
+          const shopeeFoodAds = byAuthor.length > 0 ? byAuthor : allShopeeFood
           if (shopeeFoodAds.length > 0) {
             const randomMiddleAd = shopeeFoodAds[Math.floor(Math.random() * shopeeFoodAds.length)]
             setMiddleAd(randomMiddleAd)
