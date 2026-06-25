@@ -35,7 +35,7 @@ export default function AdminAdsPage() {
 
     const handleAdEdit = (record) => {
         setEditingAd(record)
-        form.setFieldsValue(record)
+        form.setFieldsValue({ ...record, type: record.type || 'default' })
         setPreviewImage(record.image || null)
         setImageFile(null)
         setIsModalOpen(true)

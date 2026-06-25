@@ -119,7 +119,8 @@ export default function StoryReadPage() {
         // Lấy quảng cáo có ảnh và active để hiển thị
         if (adsRes?.status === 200) {
           const allAds = adsRes.data || []
-          const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image && ad.created_by === s.author?._id)
+          // Quảng cáo unlock (chương đầu): chỉ lấy quảng cáo thường, KHÔNG lấy Shopee Food
+          const activeAdsWithImage = allAds.filter(ad => ad.active && ad.image && ad.type !== 'shopee_food' && ad.created_by === s.author?._id)
 
           if (activeAdsWithImage.length > 0) {
             // Chọn ngẫu nhiên một quảng cáo có ảnh cho unlock (có thể khác với chapterAd)
@@ -137,13 +138,13 @@ export default function StoryReadPage() {
             setMiddleAd(randomMiddleAd)
           }
 
-          // Lọc ads cho unlock (không có ảnh hoặc không phải Shopee)
-          const unlockAds = allAds.filter(ad => ad.active && !ad.url?.toLowerCase().includes("shopee"))
+          // Lọc ads cho unlock (không có ảnh hoặc không phải Shopee), loại bỏ Shopee Food
+          const unlockAds = allAds.filter(ad => ad.active && ad.type !== 'shopee_food' && !ad.url?.toLowerCase().includes("shopee"))
           setAds(unlockAds)
 
-          // Ads khác (có thể là Shopee)
+          // Ads khác (có thể là Shopee), loại bỏ Shopee Food
           // const otherAds = allAds.filter(ad => ad.active && ad.url?.toLowerCase().includes("shopee"))
-          const activeAdsOther = allAds.filter((ad) => ad.active)?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
+          const activeAdsOther = allAds.filter((ad) => ad.active && ad.type !== 'shopee_food')?.filter((ad) => !ad.url?.toLowerCase().includes("shopee"))
           setAdsOther(activeAdsOther)
         }
 
