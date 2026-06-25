@@ -35,6 +35,24 @@ const checkUnlocked = (storyId) => {
   }
 }
 
+// Helper function để check đã click quảng cáo Shopee Food giữa truyện chưa (có expiry)
+const checkMiddleAdClicked = (storyId) => {
+  const data = localStorage.getItem(`middleAdClicked_${storyId}`)
+  if (!data) return false
+
+  try {
+    const parsed = JSON.parse(data)
+    if (parsed.clicked && parsed.expiry && Date.now() < parsed.expiry) {
+      return true
+    }
+    localStorage.removeItem(`middleAdClicked_${storyId}`)
+    return false
+  } catch {
+    localStorage.removeItem(`middleAdClicked_${storyId}`)
+    return false
+  }
+}
+
 // Helper function để phát hiện Facebook in-app browser
 const isFacebookApp = () => {
   if (typeof window === 'undefined') return false
@@ -64,6 +82,7 @@ export default function StoryReadPage() {
   const [adsOther, setAdsOther] = useState([])
   const [unlockAd, setUnlockAd] = useState(null) // Quảng cáo hiển thị khi unlock
   const [middleAd, setMiddleAd] = useState(null) // Quảng cáo Shopee Food hiển thị ở giữa truyện
+  const [middleAdClicked, setMiddleAdClicked] = useState(false) // Đã click quảng cáo giữa truyện chưa
 
   const [unlockedChapters, setUnlockedChapters] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -91,10 +110,16 @@ export default function StoryReadPage() {
     localStorage.setItem('darkMode', isDarkMode.toString())
   }, [isDarkMode])
 
+  // Đồng bộ trạng thái đã click quảng cáo giữa truyện khi đổi chương / truyện
+  useEffect(() => {
+    if (!id) return
+    setMiddleAdClicked(checkMiddleAdClicked(id))
+  }, [id, selectedChapterId])
+
   useEffect(() => {
     checkHealth()
   }, [])
-  const checkHealth = async () => { 
+  const checkHealth = async () => {
     await API.Story.checkHealth()
   }
   useEffect(() => {
@@ -108,7 +133,7 @@ export default function StoryReadPage() {
         ])
 
         if (!isMounted) return
-        let s 
+        let s
         if (storyRes?.status === 200) {
           s = storyRes.data
           setStory(s)
@@ -609,6 +634,22 @@ export default function StoryReadPage() {
     }
   }
 
+  // Hàm click quảng cáo Shopee Food ở giữa truyện (gate riêng, độc lập với unlock chương đầu)
+  const unlockMiddle = () => {
+    if (!middleAd) return
+
+    // Mở link quảng cáo Shopee Food + track click
+    openLinkSafely(middleAd.url, middleAd._id)
+
+    // Ghi nhớ đã click (hết hạn sau 10 phút) để không bắt click lại khi đọc tiếp
+    const expiryTime = Date.now() + (10 * 60 * 1000)
+    localStorage.setItem(`middleAdClicked_${id}`, JSON.stringify({
+      clicked: true,
+      expiry: expiryTime
+    }))
+    setMiddleAdClicked(true)
+  }
+
   // Component hiển thị quảng cáo (dùng chung cho đầu chương và unlock)
   const AdDisplay = ({ ad, onClick, showFullInfo = true, label = 'SHOPEE', linkText = 'SHOPEE' }) => {
     if (!ad) return null
@@ -784,6 +825,10 @@ export default function StoryReadPage() {
   }
 
   const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+  // Chương giữa truyện (vd: 6 chương -> chương 3, 16 chương -> chương 8)
+  const isMiddleChapter = currentIndex + 1 === Math.floor(story.chapters.length / 2)
+  // Cần click quảng cáo Shopee Food để đọc tiếp chương giữa (gate riêng, dù đã unlock chương đầu)
+  const showMiddleGate = isMiddleChapter && !!middleAd && !middleAdClicked
 
   return (
     <div className="pb-[90px] dark:bg-gray-900">
@@ -802,201 +847,212 @@ export default function StoryReadPage() {
           </div>
 
           <div className="flex-1 min-w-0">
-          <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
-          {/* Dark mode toggle */}
-          <div className="fixed top-20 right-6 z-40 flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-md border dark:border-gray-700">
-            <SunOutlined className={isDarkMode ? 'text-gray-400' : 'text-yellow-500'} />
-            <Switch
-              checked={isDarkMode}
-              onChange={setIsDarkMode}
-              checkedChildren={<MoonOutlined />}
-              unCheckedChildren={<SunOutlined />}
-            />
-            <MoonOutlined className={isDarkMode ? 'text-blue-400' : 'text-gray-400'} />
-          </div>
+            <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative">
+              {/* Dark mode toggle */}
+              <div className="fixed top-20 right-6 z-40 flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-md border dark:border-gray-700">
+                <SunOutlined className={isDarkMode ? 'text-gray-400' : 'text-yellow-500'} />
+                <Switch
+                  checked={isDarkMode}
+                  onChange={setIsDarkMode}
+                  checkedChildren={<MoonOutlined />}
+                  unCheckedChildren={<SunOutlined />}
+                />
+                <MoonOutlined className={isDarkMode ? 'text-blue-400' : 'text-gray-400'} />
+              </div>
 
-          {/* Scroll lên/xuống */}
-          <div className="fixed bottom-20 right-6 z-40">
-            <Button
-              type="primary"
-              shape="circle"
-              size="large"
-              icon={isAtBottom ? <UpOutlined /> : <DownOutlined />}
-              onClick={() => {
-                if (isAtBottom) {
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                } else {
-                  fakeBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-                }
-              }}
-            />
-          </div>
+              {/* Scroll lên/xuống */}
+              <div className="fixed bottom-20 right-6 z-40">
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="large"
+                  icon={isAtBottom ? <UpOutlined /> : <DownOutlined />}
+                  onClick={() => {
+                    if (isAtBottom) {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    } else {
+                      fakeBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+                    }
+                  }}
+                />
+              </div>
 
-          {/* Tiêu đề */}
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{story.title}</h1>
-          </div>
+              {/* Tiêu đề */}
+              <div className="mb-4">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{story.title}</h1>
+              </div>
 
-          {/* Audio */}
-          {!lockState.locked && chapterAudio && (
-            <div className="mb-6">
-              <Button
-                type="primary"
-                onClick={() => {
-                  if (ads.length > 0) {
-                    const randomAd = ads[Math.floor(Math.random() * ads.length)]
-                    openLinkSafely(randomAd.url, randomAd._id)
-                  }
-                  router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
-                }}
-              >
-                ▶ Nghe chương {currentIndex + 1}
-              </Button>
-            </div>
-          )}
+              {/* Audio */}
+              {!lockState.locked && chapterAudio && (
+                <div className="mb-6">
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      if (ads.length > 0) {
+                        const randomAd = ads[Math.floor(Math.random() * ads.length)]
+                        openLinkSafely(randomAd.url, randomAd._id)
+                      }
+                      router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
+                    }}
+                  >
+                    ▶ Nghe chương {currentIndex + 1}
+                  </Button>
+                </div>
+              )}
 
 
-          {/* Nội dung */}
-          <div className="max-w-4xl mx-auto mt-6">
-            {!lockState.locked ? (
-              <div className="mt-6 border-t dark:border-gray-700 pt-6">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
-                </h2>
-                {chapterContent ? (
-                  <>
-                    {/* Chia nội dung làm 2 nửa, chèn banner giữa */}
-                    {(() => {
-                      const lines = chapterContent.split('\n')
-                      const mid = Math.floor(lines.length / 2)
-                      const firstHalf = lines.slice(0, mid).join('\n')
-                      const secondHalf = lines.slice(mid).join('\n')
-                      return (
-                        <>
-                          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose select-none text-[20px]">
-                            {firstHalf}
-                          </div>
+              {/* Nội dung */}
+              <div className="max-w-4xl mx-auto mt-6">
+                {!lockState.locked ? (
+                  showMiddleGate ? (
+                    <div className='text-center max-w-2xl mx-auto'>
+                      <div className="mb-6">
+                        <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                          Mời các cậu click vào{' '}
+                          <span className="text-orange-600 dark:text-orange-400 font-bold cursor-pointer" onClick={unlockMiddle}>QUẢNG CÁO SHOPEE FOOD</span>
+                          {' '}bên dưới để tiếp tục đọc truyện
+                        </p>
+                        <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
+                          Cảm ơn các bạn đã ủng hộ! 💖
+                        </p>
+                      </div>
+                      <div className="mb-6 max-w-md mx-auto">
+                        <AdDisplay
+                          ad={middleAd}
+                          onClick={unlockMiddle}
+                          showFullInfo={true}
+                          label="SHOPEE FOOD"
+                          linkText="SHOPEE FOOD"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                  <div className="mt-6 border-t dark:border-gray-700 pt-6">
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                      {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
+                    </h2>
+                    {chapterContent ? (
+                      <>
+                        {/* Chia nội dung làm 2 nửa, chèn banner giữa */}
+                        {(() => {
+                          const lines = chapterContent.split('\n')
+                          const mid = Math.floor(lines.length / 2)
+                          const firstHalf = lines.slice(0, mid).join('\n')
+                          const secondHalf = lines.slice(mid).join('\n')
+                          return (
+                            <>
+                              <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose select-none text-[20px]">
+                                {firstHalf}
+                              </div>
 
-                          {/* Quảng cáo Shopee Food — chỉ hiển thị ở chương giữa truyện (vd: 16 chương -> chương 8) */}
-                          {middleAd && currentIndex + 1 === Math.floor(story.chapters.length / 2) && (
-                            <div className="my-6 max-w-md mx-auto">
-                              <AdDisplay
-                                ad={middleAd}
-                                onClick={() => openLinkSafely(middleAd.url, middleAd._id)}
-                                showFullInfo={true}
-                                label="SHOPEE FOOD"
-                                linkText="SHOPEE FOOD"
-                              />
-                            </div>
-                          )}
+                              {/* Banner giữa chương */}
+                              <div className="my-6 flex flex-col items-center gap-3">
+                                {/* Desktop 728x90 */}
+                                <div className="hidden md:block">
+                                  <AdsterraBanner
+                                    adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                                    width={728}
+                                    height={90}
+                                  />
+                                </div>
+                                {/* Mobile 320x50 */}
+                                <div className="block md:hidden">
+                                  <AdsterraBanner
+                                    adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                                    width={320}
+                                    height={50}
+                                  />
+                                </div>
+                              </div>
 
-                          {/* Banner giữa chương */}
-                          <div className="my-6 flex flex-col items-center gap-3">
-                            {/* Desktop 728x90 */}
-                            <div className="hidden md:block">
-                              <AdsterraBanner
-                                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
-                                width={728}
-                                height={90}
-                              />
-                            </div>
-                            {/* Mobile 320x50 */}
-                            <div className="block md:hidden">
-                              <AdsterraBanner
-                                adKey="7c390bc8e5616f68ca6771dbd50db81f"
-                                width={320}
-                                height={50}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
-                            {secondHalf}
-                          </div>
-                        </>
-                      )
-                    })()}
-                  </>
+                              <div className="text-gray-800 dark:text-gray-200 whitespace-pre-line leading-loose mb-6 select-none text-[20px]">
+                                {secondHalf}
+                              </div>
+                            </>
+                          )
+                        })()}
+                      </>
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400">Đang tải nội dung...</p>
+                    )}
+                  </div>
+                  )
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400">Đang tải nội dung...</p>
+                  <div className='text-center max-w-2xl mx-auto'>
+                    <div className="mb-6">
+                      <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                        Mời các cậu click vào link bên dưới để{' '}
+                        <span className="text-orange-600 dark:text-orange-400 font-bold cursor-pointer" onClick={unlockStory}>MỞ ỨNG DỤNG SHOPEE</span>
+                        {' '}để tiếp tục đọc truyện
+                      </p>
+                      <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
+                        Hành động này chỉ thực hiện một lần. Mong các bạn ủng hộ! 💖
+                      </p>
+                    </div>
+
+                    {/* Hiển thị quảng cáo unlock */}
+                    {unlockAd ? (
+                      <div className="mb-6">
+                        <AdDisplay
+                          ad={unlockAd}
+                          onClick={unlockStory}
+                          showFullInfo={true}
+                        />
+                      </div>
+                    ) : ads.length > 0 ? (
+                      <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                        <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
+                          ẤN VÀO ĐÂY ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
+                        </p>
+                        <Button
+                          type="primary"
+                          size="large"
+                          onClick={unlockStory}
+                          className="bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
+                        >
+                          🔓 Mở khóa chương
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mb-6 p-6 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Không có quảng cáo để hiển thị
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            ) : (
-              <div className='text-center max-w-2xl mx-auto'>
-                <div className="mb-6">
-                  <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
-                    Mời các cậu click vào link bên dưới để{' '}
-                    <span className="text-orange-600 dark:text-orange-400 font-bold cursor-pointer" onClick={unlockStory}>MỞ ỨNG DỤNG SHOPEE</span>
-                    {' '}để tiếp tục đọc truyện
-                  </p>
-                  <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mb-6">
-                    Hành động này chỉ thực hiện một lần. Mong các bạn ủng hộ! 💖
-                  </p>
+            </div>
+
+            {/* Adsterra — chỉ hiển thị khi đang đọc bình thường (không bị khóa) */}
+            {!lockState.locked && (
+              <div className="max-w-4xl mx-auto mt-4 space-y-4">
+                {/* Native Banner */}
+                <AdsterraNativeBanner />
+
+                {/* Banner 728x90 — desktop */}
+                <div className="hidden md:flex justify-center">
+                  <AdsterraBanner
+                    adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                    width={728}
+                    height={90}
+                  />
                 </div>
 
-                {/* Hiển thị quảng cáo unlock */}
-                {unlockAd ? (
-                  <div className="mb-6">
-                    <AdDisplay
-                      ad={unlockAd}
-                      onClick={unlockStory}
-                      showFullInfo={true}
-                    />
-                  </div>
-                ) : ads.length > 0 ? (
-                  <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-                    <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
-                      ẤN VÀO ĐÂY ĐỂ ĐỌC TOÀN BỘ CHƯƠNG TRUYỆN
-                    </p>
-                    <Button
-                      type="primary"
-                      size="large"
-                      onClick={unlockStory}
-                      className="bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
-                    >
-                      🔓 Mở khóa chương
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="mb-6 p-6 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Không có quảng cáo để hiển thị
-                    </p>
-                  </div>
-                )}
+                {/* Banner 320x50 — mobile */}
+                <div className="flex md:hidden justify-center">
+                  <AdsterraBanner
+                    adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                    width={320}
+                    height={50}
+                  />
+                </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Adsterra — chỉ hiển thị khi đang đọc bình thường (không bị khóa) */}
-        {!lockState.locked && (
-          <div className="max-w-4xl mx-auto mt-4 space-y-4">
-            {/* Native Banner */}
-            <AdsterraNativeBanner />
-
-            {/* Banner 728x90 — desktop */}
-            <div className="hidden md:flex justify-center">
-              <AdsterraBanner
-                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
-                width={728}
-                height={90}
-              />
-            </div>
-
-            {/* Banner 320x50 — mobile */}
-            <div className="flex md:hidden justify-center">
-              <AdsterraBanner
-                adKey="7c390bc8e5616f68ca6771dbd50db81f"
-                width={320}
-                height={50}
-              />
-            </div>
-          </div>
-        )}
-
-        <div ref={fakeBottomRef} className="h-4" />
-        <ChapterNavigator position="bottom" floating />
+            <div ref={fakeBottomRef} className="h-4" />
+            <ChapterNavigator position="bottom" floating />
           </div> {/* end flex-1 */}
 
           {/* Sidebar phải */}
