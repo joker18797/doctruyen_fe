@@ -22,7 +22,7 @@ myInterceptor.interceptors.response.use(
           typeof response.data === 'object'
             ? JSON.stringify(response.data)
             : String(response.data);
-        if (probe.includes('cdn.jsdelivr.net/gh')) {
+        if (probe.includes('raw.githubusercontent.com')) {
           response.data = rewriteDeepJsDelivrGithubUrls(response.data);
         }
       } catch {
