@@ -7,6 +7,7 @@ import { DownOutlined, UpOutlined, MoonOutlined, SunOutlined, LeftOutlined, Righ
 import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
+import RelatedStories from '@/components/RelatedStories'
 import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
 import AdsterraBanner from '@/components/ads/AdsterraBanner'
 
@@ -825,6 +826,8 @@ export default function StoryReadPage() {
   }
 
   const currentIndex = story.chapters.findIndex((cid) => cid === selectedChapterId)
+  // Chương cuối cùng hiện có -> gợi ý truyện liên quan
+  const isLastChapter = currentIndex !== -1 && currentIndex === story.chapters.length - 1
   // Chương giữa truyện (vd: 6 chương -> chương 3, 16 chương -> chương 8)
   const isMiddleChapter = currentIndex + 1 === Math.floor(story.chapters.length / 2)
   // Cần click quảng cáo Shopee Food để đọc tiếp chương giữa (gate riêng, dù đã unlock chương đầu)
@@ -1048,6 +1051,15 @@ export default function StoryReadPage() {
                     height={50}
                   />
                 </div>
+              </div>
+            )}
+
+            {!lockState.locked && isLastChapter && (
+              <div className="max-w-4xl mx-auto mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                <p className="text-center text-gray-600 dark:text-gray-400 mb-2">
+                  🎉 Bạn đã đọc đến chương cuối cùng hiện có của truyện này.
+                </p>
+                <RelatedStories storyId={story?._id || id} limit={12} />
               </div>
             )}
 
