@@ -6,6 +6,7 @@ import { Button, Select } from "antd"
 import { DownOutlined, UpOutlined } from "@ant-design/icons"
 import LayoutHeader from "@/components/LayoutHeader"
 import API from "@/Service/API"
+import RelatedStories from "@/components/RelatedStories"
 import { sanitizeText } from "@/Helper/helpFunction"
 
 const { Option } = Select
@@ -209,6 +210,7 @@ export default function StoryReadPage({ id, story, ads }) {
   }
 
   const currentIndex = chapterIds.findIndex((cid) => cid === selectedChapterId)
+  const isLastChapter = currentIndex !== -1 && currentIndex === chapterIds.length - 1
 
   return (
     <div className="pb-[90px]">
@@ -280,6 +282,15 @@ export default function StoryReadPage({ id, story, ads }) {
             </div>
           </div>
         </div>
+
+        {isLastChapter && (
+          <div className="max-w-4xl mx-auto mt-6 bg-white p-6 rounded-xl shadow-lg">
+            <p className="text-center text-gray-600 mb-2">
+              🎉 Bạn đã đọc đến chương cuối cùng hiện có của truyện này.
+            </p>
+            <RelatedStories storyId={story?._id} limit={12} />
+          </div>
+        )}
 
         {hasLockedChapters && (
           <div className="max-w-4xl mx-auto mt-6 bg-[#FFEBCB] border border-yellow-300 rounded-xl p-6 shadow text-center">

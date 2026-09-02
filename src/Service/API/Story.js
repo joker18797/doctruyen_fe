@@ -17,6 +17,10 @@ export default class Story {
     delete(id) {
         return axiosDELETE('api_gw', `/api/story/${id}`);
     }
+    related(id, data) {
+        const stringUrl = urlParseParams(data || {});
+        return axiosGET("api_gw", `/api/story/${id}/related?${stringUrl}`);
+    }
     list(data) {
         const stringUrl = urlParseParamsIgnoreZero(data);
         return axiosGET("api_gw", `/api/story?${stringUrl}`);

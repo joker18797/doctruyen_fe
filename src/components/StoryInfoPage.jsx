@@ -6,6 +6,7 @@ import LayoutHeader from '@/components/LayoutHeader'
 import { useSelector } from 'react-redux'
 import { UserOutlined, DeleteOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
+import RelatedStories from '@/components/RelatedStories'
 import { toast } from 'react-toastify'
 import AdsterraBanner from '@/components/ads/AdsterraBanner'
 import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
@@ -267,6 +268,8 @@ export default function StoryInfoPage({ story }) {
                             />
                         </div>
                     </div>
+
+                    <RelatedStories storyId={story?._id} />
 
                     {user && (
                         <div className="mt-10">
