@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { EyeOutlined } from '@ant-design/icons'
 import API from '@/Service/API'
 
-export default function RelatedStories({ storyId, limit = 12 }) {
+export default function RelatedStories({ storyId, limit = 6, title = '🔥 Truyện hay cùng biên tập' }) {
   const router = useRouter()
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -35,40 +35,55 @@ export default function RelatedStories({ storyId, limit = 12 }) {
   if (loading || stories.length === 0) return null
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">🔥 Truyện hay cùng biên tập</h2>
+    <div className="mt-8">
+      <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">{title}</h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {stories.map((story) => (
           <div
             key={story._id}
-            className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden hover:scale-[1.05] cursor-pointer"
+            className="flex gap-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700 p-3 hover:shadow-md transition cursor-pointer"
             onClick={() => router.push(`/story/${story.slug || story._id}`)}
           >
-            <div className="relative">
+            <div className="relative shrink-0">
               <img
                 src={story.coverImage}
                 alt={story.title}
-                className="w-full h-44 object-cover"
+                className="w-[80px] h-[110px] object-cover rounded-lg"
               />
-              {story.sameAuthor ? (
-                <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow">
-                  Cùng biên tập
-                </span>
-              ) : (
-                <span className="absolute top-2 left-2 bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded shadow">
-                  Cùng thể loại
-                </span>
-              )}
-              <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
+              <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1">
                 <EyeOutlined /> {Number(story.totalRead || 0).toLocaleString('en-US')}
               </span>
             </div>
 
-            <div className="p-3">
-              <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">{story.title}</h3>
-              {story.authorName && story.authorName !== 'undefined' && (
-                <p className="text-xs text-gray-500 mt-1 line-clamp-1">{story.authorName}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded text-white ${
+                    story.sameAuthor ? 'bg-blue-600' : 'bg-purple-600'
+                  }`}
+                >
+                  {story.sameAuthor ? 'Cùng biên tập' : 'Cùng thể loại'}
+                </span>
+                {story.isCompleted && (
+                  <span className="text-[10px] text-green-600 dark:text-green-400">✅ Hoàn thành</span>
+                )}
+              </div>
+
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">
+                {story.title}
+              </h3>
+
+              {story.excerpt ? (
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-3 leading-relaxed">
+                  {story.excerpt}
+                </p>
+              ) : (
+                story.genres?.length > 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                    {story.genres.join(', ')}
+                  </p>
+                )
               )}
             </div>
           </div>

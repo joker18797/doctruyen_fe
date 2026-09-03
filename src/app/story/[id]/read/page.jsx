@@ -1059,7 +1059,7 @@ export default function StoryReadPage() {
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-2">
                   🎉 Bạn đã đọc đến chương cuối cùng hiện có của truyện này.
                 </p>
-                <RelatedStories storyId={story?._id || id} limit={12} />
+                <RelatedStories storyId={story?._id || id} limit={6} />
               </div>
             )}
 
