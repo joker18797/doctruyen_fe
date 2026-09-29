@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import API from '@/Service/API'
 import LayoutHeader from '@/components/LayoutHeader'
 import { Button } from 'antd'
+import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
+import AdsterraBanner from '@/components/ads/AdsterraBanner'
 
 export default function StoryAudioPage() {
   const { id } = useParams()
@@ -17,7 +19,7 @@ export default function StoryAudioPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [ads, setAds] = useState([])
   // thay đổi: chỉ cần 1 flag unlock cho toàn bộ truyện
-  const [isStoryUnlocked, setIsStoryUnlocked] = useState(true)
+  const [isStoryUnlocked, setIsStoryUnlocked] = useState(false)
 
   // Helper function để check unlock status với expiry
   const checkUnlocked = (storyId) => {
@@ -66,12 +68,11 @@ export default function StoryAudioPage() {
 
     if (id && chapterId) {
       // kiểm tra key unlock cho toàn truyện (một lần) với expiry
-      // try {
-      //   const unlocked = checkUnlocked(id)
-      //   setIsStoryUnlocked(unlocked)
-      // } catch (e) {
-      //   setIsStoryUnlocked(false)
-      // }
+      try {
+        setIsStoryUnlocked(checkUnlocked(id))
+      } catch (e) {
+        setIsStoryUnlocked(false)
+      }
 
       fetchData()
     }
@@ -153,6 +154,27 @@ export default function StoryAudioPage() {
               </div>
             </div>
           )}
+
+          {/* Quảng cáo — giống trang đọc truyện */}
+          <div className="w-full space-y-3">
+            <AdsterraNativeBanner />
+
+            <div className="hidden md:flex justify-center">
+              <AdsterraBanner
+                adKey="9d6a2e1edd7202c169d77f9bcab62ab0"
+                width={728}
+                height={90}
+              />
+            </div>
+
+            <div className="flex md:hidden justify-center">
+              <AdsterraBanner
+                adKey="7c390bc8e5616f68ca6771dbd50db81f"
+                width={320}
+                height={50}
+              />
+            </div>
+          </div>
 
           <div className="flex justify-between">
             <Button disabled={currentIndex <= 0} onClick={() => handleChangeChapter(-1)}>

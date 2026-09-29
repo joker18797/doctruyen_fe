@@ -206,15 +206,31 @@ export default function StoryInfoPage({ story }) {
                                 ))}
                             </Select> */}
 
-                            <div className="flex items-center gap-3">
-                                <Button type="primary" onClick={handleRead}>📖 Đọc truyện</Button>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    onClick={handleRead}
+                                    className="flex-1 min-w-[160px] !h-[52px] !text-[17px] !font-semibold !rounded-xl shadow"
+                                >
+                                    📖 Đọc truyện
+                                </Button>
                                 {story.hasAudio && (
-                                    <Button type="default" onClick={handleAudio}>🎧 Nghe audio</Button>
+                                    <Button
+                                        type="default"
+                                        size="large"
+                                        onClick={handleAudio}
+                                        className="flex-1 min-w-[160px] !h-[52px] !text-[17px] !font-semibold !rounded-xl shadow"
+                                    >
+                                        🎧 Nghe audio
+                                    </Button>
                                 )}
                                 {story?.youtubeLink && !lockState.locked && (
                                     <Button
                                         type="dashed"
+                                        size="large"
                                         style={{ borderColor: "#FF0000", color: "#FF0000" }}
+                                        className="w-full sm:w-auto !h-[52px] !text-[17px] !font-semibold !rounded-xl"
                                         onClick={() => window.open(story.youtubeLink, "_blank", "noopener,noreferrer")}
                                     >
                                         ▶️ Xem trên YouTube
