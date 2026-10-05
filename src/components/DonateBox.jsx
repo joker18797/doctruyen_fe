@@ -41,7 +41,7 @@ export default function DonateBox() {
         src={qrUrl}
         alt={`QR ủng hộ ${BANK.bankName} - ${BANK.accountName}`}
         loading="lazy"
-        className="w-[200px] h-auto mx-auto my-4 rounded-lg bg-white p-2"
+        className="w-[260px] md:w-[300px] max-w-full h-auto mx-auto my-4 rounded-lg bg-white p-2"
       />
 
       <div className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
