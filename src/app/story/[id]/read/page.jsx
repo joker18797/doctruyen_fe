@@ -8,6 +8,7 @@ import LayoutHeader from '@/components/LayoutHeader'
 import API from '@/Service/API'
 import { sanitizeText } from '@/Helper/helpFunction'
 import RelatedStories from '@/components/RelatedStories'
+import DonateBox from '@/components/DonateBox'
 import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
 import AdsterraBanner from '@/components/ads/AdsterraBanner'
 
@@ -1059,6 +1060,7 @@ export default function StoryReadPage() {
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-2">
                   🎉 Bạn đã đọc đến chương cuối cùng hiện có của truyện này.
                 </p>
+                <DonateBox />
                 <RelatedStories storyId={story?._id || id} limit={6} />
               </div>
             )}
