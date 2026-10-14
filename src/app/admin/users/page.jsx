@@ -8,6 +8,8 @@ import API from '@/Service/API'
 import { toast } from 'react-toastify'
 import { debounce } from 'lodash'
 
+const PAGE_SIZE = 10
+
 const ROLE_OPTIONS = [
   { value: 'User', label: 'Người dùng' },
   { value: 'admin', label: 'Quản trị' },
@@ -21,12 +23,18 @@ export default function AdminUserPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const [updatingRoleId, setUpdatingRoleId] = useState(null)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
-  const fetchUsers = useCallback(async (q = '') => {
+  // Phân trang phía server: mỗi lần chỉ lấy 1 trang
+  const fetchUsers = useCallback(async (q = '', p = 1) => {
     try {
       setLoading(true)
-      const res = await API.AdminUser.list(q ? { q } : {})
-      setUsers(res.data)
+      const res = await API.AdminUser.list({ q, page: p, limit: PAGE_SIZE })
+      if (p > 1 && !res.data.data?.length) return fetchUsers(q, p - 1)
+      setUsers(res.data.data || [])
+      setTotal(res.data.pagination?.total || 0)
+      setPage(p)
     } catch (err) {
       toast.error('Lỗi khi tải danh sách người dùng')
     } finally {
@@ -37,7 +45,7 @@ export default function AdminUserPage() {
   const debouncedSearch = useMemo(
     () =>
       debounce((value) => {
-        fetchUsers(value.trim())
+        fetchUsers(value.trim(), 1)
       }, 350),
     [fetchUsers]
   )
@@ -54,7 +62,7 @@ export default function AdminUserPage() {
     try {
       await API.AdminUser.delete(id)
       toast.success('Đã xóa người dùng')
-      fetchUsers(searchQ.trim())
+      fetchUsers(searchQ.trim(), page)
     } catch (err) {
       toast.error('Xóa người dùng thất bại')
     }
@@ -64,7 +72,7 @@ export default function AdminUserPage() {
     try {
       await API.AdminUser.block(id)
       toast.success('Đã cập nhật trạng thái khóa')
-      fetchUsers(searchQ.trim())
+      fetchUsers(searchQ.trim(), page)
     } catch (err) {
       toast.error('Lỗi khi cập nhật trạng thái')
     }
@@ -74,7 +82,7 @@ export default function AdminUserPage() {
     try {
       await API.AdminUser.activate(id)
       toast.success('Đã kích hoạt tài khoản thành công')
-      fetchUsers(searchQ.trim())
+      fetchUsers(searchQ.trim(), page)
     } catch (err) {
       toast.error('Lỗi khi kích hoạt tài khoản')
     }
@@ -96,7 +104,7 @@ export default function AdminUserPage() {
       })
       toast.success('Cập nhật thông tin thành công')
       setIsModalOpen(false)
-      fetchUsers(searchQ.trim())
+      fetchUsers(searchQ.trim(), page)
     } catch (err) {
       const msg = err?.data?.message || err?.response?.data?.message
       toast.error(msg || 'Lỗi khi cập nhật người dùng')
@@ -115,7 +123,7 @@ export default function AdminUserPage() {
         role: newRole,
       })
       toast.success('Đã cập nhật vai trò')
-      fetchUsers(searchQ.trim())
+      fetchUsers(searchQ.trim(), page)
     } catch (err) {
       const msg = err?.data?.message || err?.response?.data?.message
       toast.error(msg || 'Không thể đổi vai trò')
@@ -233,7 +241,13 @@ export default function AdminUserPage() {
             dataSource={users}
             columns={columns}
             bordered
-            pagination={{ pageSize: 5 }}
+            pagination={{
+              current: page,
+              pageSize: PAGE_SIZE,
+              total,
+              showSizeChanger: false,
+              onChange: (p) => fetchUsers(searchQ.trim(), p),
+            }}
             scroll={{ x: true }}
             loading={loading}
           />
