@@ -6,9 +6,7 @@ import { ToastContainer } from "react-toastify";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Script from "next/script";
-import dynamic from "next/dynamic";
-
-const StickyAdBanner = dynamic(() => import('@/components/ads/StickyAdBanner'), { ssr: false })
+import StickyAdBanner from '@/components/ads/StickyAdBanner';
 import { DEFAULT_STATIC_BRAND_IMAGE } from "@/utils/normalizeGithubCdnUrl";
 
 const geistSans = Geist({

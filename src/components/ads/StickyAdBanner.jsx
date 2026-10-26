@@ -61,18 +61,23 @@ export default function StickyAdBanner() {
   const adHeight = 50   // cả 2 loại đều 50px cao
 
   const btnStyle = {
-    background: 'rgba(20,20,20,0.82)',
-    color: '#ddd',
+    background: '#e8470a',
+    color: '#fff',
     border: 'none',
-    padding: '1px 10px',
-    fontSize: '11px',
+    borderRadius: '0 0 20px 20px',
+    padding: '3px 18px',
+    fontSize: '12px',
+    fontWeight: '600',
     cursor: 'pointer',
-    letterSpacing: '0.2px',
-    lineHeight: '18px',
-    display: 'block',
-    width: '100%',
-    textAlign: 'center',
+    letterSpacing: '0.3px',
+    lineHeight: '20px',
+    display: 'inline-block',
+    pointerEvents: 'auto',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
   }
+
+  const btnStyleTop = { ...btnStyle, borderRadius: '0 0 20px 20px' }
+  const btnStyleBottom = { ...btnStyle, borderRadius: '20px 20px 0 0' }
 
   return (
     <>
@@ -86,8 +91,7 @@ export default function StickyAdBanner() {
           <div style={{ pointerEvents: 'auto' }}>
             <AdsterraSlot adKey={adKey} width={adWidth} height={adHeight} />
           </div>
-          <button style={{ ...btnStyle, borderRadius: '0 0 5px 5px', pointerEvents: 'auto' }}
-            onClick={() => setTopClosed(true)}>
+          <button style={btnStyleTop} onClick={() => setTopClosed(true)}>
             Tắt QC ✕
           </button>
         </div>
@@ -101,8 +105,7 @@ export default function StickyAdBanner() {
           pointerEvents: 'none',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}>
-          <button style={{ ...btnStyle, borderRadius: '5px 5px 0 0', pointerEvents: 'auto' }}
-            onClick={() => setBottomClosed(true)}>
+          <button style={btnStyleBottom} onClick={() => setBottomClosed(true)}>
             Tắt QC ✕
           </button>
           <div style={{ pointerEvents: 'auto' }}>
