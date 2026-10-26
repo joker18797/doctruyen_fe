@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react'
 
 // Mỗi banner chạy trong iframe riêng — tránh conflict atOptions global
 export default function AdsterraBanner({ adKey, width, height }) {
-    return null
     const ref = useRef(null)
     const loaded = useRef(false)
 

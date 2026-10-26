@@ -6,6 +6,9 @@ import { ToastContainer } from "react-toastify";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Script from "next/script";
+import dynamic from "next/dynamic";
+
+const StickyAdBanner = dynamic(() => import('@/components/ads/StickyAdBanner'), { ssr: false })
 import { DEFAULT_STATIC_BRAND_IMAGE } from "@/utils/normalizeGithubCdnUrl";
 
 const geistSans = Geist({
@@ -58,34 +61,37 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="//shameful-farm.com" crossOrigin="anonymous" />
       </head>
       <body>
-        {/* Adsterra Popunder — kích hoạt khi user click đầu tiên */}
+        {/* Adsterra Popunder — kích hoạt khi user click đầu tiên (TẮT — gây khó chịu trong FB app) */}
         {/*<Script
           src="https://pl29762368.effectivecpmnetwork.com/df/ff/50/dfff50bc2abf5c57568f755f92d85bcd.js"
           strategy="afterInteractive"
         /> */}
-        {/* Adsterra Social Bar — widget nổi góc màn hình */}
+
+        {/* Adsterra Social Bar (TẮT — dùng StickyAdBanner thay thế) */}
         {/*<Script
           src="https://pl29762370.effectivecpmnetwork.com/1c/b6/d4/1cb6d46b76a662cb578b8e0eae9e6773.js"
           strategy="afterInteractive"
         />*/}
-        {/* Monetag Banner */}
+
+        {/* Monetag Banner (TẮT) */}
         {/*<Script
           src="//shameful-farm.com/b.XsV-sydOG/lr0EYKWUcu/heJmZ9qulZrUMlckiPSTVcoxgNeDRE/3/NYjqUTtdNFzoEd0/MMTNcN2GOJQR"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
         />*/}
-        {/* Monetag In-Page Push */}
+        {/* Monetag In-Page Push (TẮT — bị chặn trong FB app) */}
         {/*<Script
           src="//shameful-farm.com/bjX.Vks/dRGHle0EYHWRcQ/XeZmY9SudZXUOlskFPgTHcsx/NpD_ED3WO/DGEztINpzaEd0dMPTTc/4UNSQj"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
         />*/}
-        {/* Monetag Video Slider */}
+        {/* Monetag Video Slider (TẮT) */}
         {/*<Script
           src="//shameful-farm.com/bNXHV.sHdxG/l/0bY/Wtcr/_eBmJ9eusZbUClMksPUTDccx/NODSEU3kO/Tlcyt/Ntz/Ed0DM/ThgEw/MiQY"
           strategy="afterInteractive"
           referrerPolicy="no-referrer-when-downgrade"
         />*/}
+        <StickyAdBanner />
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>

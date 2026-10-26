@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react'
 
 export default function AdsterraNativeBanner() {
-    return null
     const ref = useRef(null)
     const loaded = useRef(false)
 
