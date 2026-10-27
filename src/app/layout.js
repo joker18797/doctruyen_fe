@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 // import Script from "next/script";
 // import StickyAdBanner from '@/components/ads/StickyAdBanner';
+import FacebookInAppNotice from '@/components/FacebookInAppNotice';
 import { DEFAULT_STATIC_BRAND_IMAGE } from "@/utils/normalizeGithubCdnUrl";
 
 const geistSans = Geist({
@@ -90,6 +91,7 @@ export default function RootLayout({ children }) {
           referrerPolicy="no-referrer-when-downgrade"
         />*/}
         {/* <StickyAdBanner /> */}
+        <FacebookInAppNotice />
         <ToastContainer />
         <Providers>{children}</Providers>
       </body>
