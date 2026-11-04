@@ -215,6 +215,14 @@ export default function StoryInfoPage({ story }) {
                                 >
                                     📖 Đọc truyện
                                 </Button>
+                                <Button
+                                    type="default"
+                                    size="large"
+                                    onClick={() => router.push(`/story/${story._id}/read?chapter=${selectedChapterId}&audio=1`)}
+                                    className="flex-1 min-w-[160px] !h-[52px] !text-[17px] !font-semibold !rounded-xl shadow !border-emerald-500 !text-emerald-600 hover:!bg-emerald-50"
+                                >
+                                    🎧 Tự động đọc
+                                </Button>
                                 {story.hasAudio && (
                                     <Button
                                         type="default"

@@ -63,3 +63,57 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+
+/* =========================================================
+   AUDIO NOVEL READER & KARAOKE HIGHLIGHT EFFECTS
+   ========================================================= */
+
+.karaoke-sentence {
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 4px;
+  padding: 2px 4px;
+  display: inline;
+}
+
+.karaoke-sentence:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 4px;
+}
+
+.karaoke-active {
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.9) 100%) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.45);
+  border-left: 3px solid #eab308;
+  padding-left: 6px;
+  border-radius: 4px;
+  animation: karaokeGlow 2s infinite ease-in-out;
+}
+
+.dark .karaoke-active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(236, 72, 153, 0.4) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+  border-left: 3px solid #a5b4fc;
+}
+
+@keyframes karaokeGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(234, 179, 8, 0.7);
+  }
+}
+
+.dark @keyframes karaokeGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.7);
+  }
+}

@@ -11,6 +11,7 @@ import RelatedStories from '@/components/RelatedStories'
 import DonateBox from '@/components/DonateBox'
 import AdsterraNativeBanner from '@/components/ads/AdsterraNativeBanner'
 import AdsterraBanner from '@/components/ads/AdsterraBanner'
+import AudioNovelReader from '@/components/AudioNovelReader'
 
 const { Option } = Select
 const chapterCache = new Map()
@@ -94,6 +95,12 @@ export default function StoryReadPage() {
     return []
   })
   const [lockState, setLockState] = useState({ locked: false })
+  const [audioMode, setAudioMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('audio') === '1'
+    }
+    return false
+  })
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('darkMode')
@@ -886,21 +893,38 @@ export default function StoryReadPage() {
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{story.title}</h1>
               </div>
 
-              {/* Audio */}
-              {!lockState.locked && chapterAudio && (
-                <div className="mb-6">
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      if (ads.length > 0) {
-                        const randomAd = ads[Math.floor(Math.random() * ads.length)]
-                        openLinkSafely(randomAd.url, randomAd._id)
-                      }
-                      router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
-                    }}
+              {/* Toolbar Nút Audio & Tự Động Đọc Truyện */}
+              {!lockState.locked && (
+                <div className="mb-6 flex items-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setAudioMode(!audioMode)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm shadow-md transition-all duration-300 ${
+                      audioMode
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-500/30 ring-2 ring-emerald-400'
+                        : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-600 hover:border-emerald-500 hover:text-emerald-600'
+                    }`}
+                    title={audioMode ? 'Tắt chế độ tự động đọc' : 'Nghe truyện tự động theo câu có hiệu ứng karaoke'}
                   >
-                    ▶ Nghe chương {currentIndex + 1}
-                  </Button>
+                    <span className="text-base">🎧</span>
+                    <span>{audioMode ? 'Đang Nghe Tự Động' : 'Tự Động Đọc Truyện'}</span>
+                  </button>
+
+                  {chapterAudio && (
+                    <Button
+                      type="default"
+                      className="rounded-full font-medium"
+                      onClick={() => {
+                        if (ads.length > 0) {
+                          const randomAd = ads[Math.floor(Math.random() * ads.length)]
+                          openLinkSafely(randomAd.url, randomAd._id)
+                        }
+                        router.push(`/story/${id}/audio?chapter=${selectedChapterId}`)
+                      }}
+                    >
+                      ▶ File Audio Có Sẵn
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -930,8 +954,23 @@ export default function StoryReadPage() {
                         />
                       </div>
                     </div>
+                  ) : audioMode ? (
+                    /* Chế độ đọc truyện tự động bằng Audio TTS & Karaoke Highlight */
+                    <div className="mt-4">
+                      <AudioNovelReader
+                        content={chapterContent}
+                        title={`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
+                        onNextChapter={() => {
+                          if (story?.chapters && currentIndex < story.chapters.length - 1) {
+                            handleChangeChapter(story.chapters[currentIndex + 1])
+                          }
+                        }}
+                        onClose={() => setAudioMode(false)}
+                        fontSize={20}
+                      />
+                    </div>
                   ) : (
-                  <div className="mt-6 border-t dark:border-gray-700 pt-6">
+                    <div className="mt-6 border-t dark:border-gray-700 pt-6">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                       {`Chương ${story.chapters.indexOf(selectedChapterId) + 1}: ${chapterTitle}`}
                     </h2>
